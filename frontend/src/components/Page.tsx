@@ -1,4 +1,5 @@
 import React, { ReactElement } from "react";
+import { Drawer } from "./Drawer";
 
 type Props = {
   title?: string,
@@ -7,8 +8,13 @@ type Props = {
 
 export const Page = ({ children }: Props) => {
   return (
-    <div className="container px-4 mt-4">
-      {children}
-    </div>
+    <>
+      <div id="sidebar" className="w-64 left-0 top-0 h-screen fixed z-1 overflow-auto">
+        <Drawer />
+      </div>
+      <div className="ml-64 p-8">
+        {children}
+      </div>
+    </>
   );
 }
