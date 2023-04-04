@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Home } from './Home';
-import { Pippo } from './Pippo';
+import { Buckets } from './Buckets';
 
 export type Route = {
   title: string,
@@ -10,5 +10,5 @@ export type Route = {
 
 export const routes: Route[] = [
   { title: "Home", path: "/", element: <Home /> },
-  { title: "Pippo", path: "/pippo", element: <Pippo /> }
+  { title: "Buckets", path: "/buckets", element: <Buckets /> }
 ];
