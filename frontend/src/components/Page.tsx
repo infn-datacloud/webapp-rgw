@@ -1,19 +1,21 @@
 import React, { ReactElement } from "react";
 import { Drawer } from "./Drawer";
+import { Title } from "./Title";
 
 type Props = {
-  title?: string,
-  children: ReactElement
+  title: string,
+  [children:string]: any
 };
 
-export const Page = ({ children }: Props) => {
+export const Page = (props: Props) => {
   return (
     <>
       <div id="sidebar" className="w-64 left-0 top-0 h-screen fixed z-1 overflow-auto">
         <Drawer />
       </div>
       <div className="ml-64 p-8">
-        {children}
+        <Title>{props.title}</Title>
+        {props.children}
       </div>
     </>
   );
