@@ -19,3 +19,4 @@ The following endpoint are available
 
 - Webapp [localhost:8080](localhost:8080)
 - API [localhost:8080/api/v1/](localhost:8080/api/v1/)
+- Minio [localhost:9000](localhost:9000)
