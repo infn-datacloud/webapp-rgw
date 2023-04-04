@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  frontend:
+    container_name: frontend
+    image: frontend
+    build:
+      context: frontend
+    volumes:
+      - ./frontend/:/app/
+      - node_modules:/app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true          # Enable react dev server auto-reload
+  
+  backend:
+    container_name: backend
+    image: backend
+    build:
+      context: backend
+    volumes:
+      - ./backend/src/:/app/
+    environment:
+      - WATCHFILES_FORCE_POLLING=true   # Enable uvicorn auto-reload
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 8080:80
+
+volumes:
+  node_modules:
