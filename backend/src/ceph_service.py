@@ -1,3 +1,4 @@
+from models.buckets import Bucket, BucketRWAccess, BucketResponse
 import boto3
 import json
 import os
@@ -21,9 +22,24 @@ def get_s3_client():
     return client
 
 
-def list_buckets() -> json:
+def list_buckets() -> BucketResponse:
     s3 = get_s3_client()
-    buckets = s3.list_buckets()
-    buckets = {key: buckets[key] for key in ["Buckets", "Owner"]}
-    return json.dumps(buckets, default=str)
-
+    response = s3.list_buckets()
+    buckets_info = response["Buckets"]
+    buckets = [None] * len(buckets_info)
+    for i, bucket_info in enumerate(buckets_info):
+        bucket_name = bucket_info["Name"]
+        creation_date = bucket_info["CreationDate"]
+        bucket_acl = s3.get_bucket_acl(Bucket=bucket_name)
+        grant = bucket_acl["Grants"][0]    # TODO: Here we can have multiple grants
+        permission = grant["Permission"]
+        read = permission in ("READ", "FULL_CONTROL")
+        write = permission in ("WRITE", "FULL_CONTROL")
+        rw_access = BucketRWAccess(read=read, write=write)
+        buckets[i] = Bucket(
+            name=bucket_name,
+            creation_date=creation_date,
+            details={},
+            rw_access=rw_access
+        )
+    return BucketResponse(buckets=buckets, total=len(buckets))
