@@ -14,7 +14,7 @@ class APIService {
     }
 
     const response = await fetch("/api/v1/" + input, init);
-    return JSON.parse(await response.json());
+    return await response.json();
   }
 }
 
