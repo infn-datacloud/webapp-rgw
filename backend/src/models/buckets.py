@@ -13,7 +13,8 @@ class Bucket(BaseModel):
     creation_date: datetime
     details: dict
     rw_access: BucketRWAccess
-
+    objects: int
+    size: int
 
 class BucketResponse(BaseModel):
     buckets: List[Bucket]
