@@ -1,13 +1,14 @@
-import React from 'react';
 import { routes } from '../routes';
 import { Link } from 'react-router-dom';
 
 export const Drawer = () => {
-
+  const path = window.location.pathname;
   const links = routes.map(route => {
+    let className = "h-10 hover:bg-neutral-300 rounded-lg p-2";
+    className += route.path === path ? " bg-neutral-200" : "";
     return (
-      <li key={route.path}>
-        <Link to={route.path}>{route.title}</Link>
+      <li className={className} key={route.path}>
+        <Link className="block h-10" to={route.path}>{route.title}</Link>
       </li>
     )
   });
