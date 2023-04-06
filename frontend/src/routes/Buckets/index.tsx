@@ -25,7 +25,6 @@ export const Buckets = () => {
     setIsFirstRender(false);
     APIService.get("buckets")
       .then(data => {
-        console.log(data);
         setBucketLists(data["buckets"]);
       });
   }
