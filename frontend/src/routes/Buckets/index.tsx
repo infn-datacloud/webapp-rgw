@@ -1,31 +1,11 @@
 import { useState } from 'react';
 import { Page } from '../../components/Page';
 import APIService from "../../services/APIService";
-
-type RWAccess = {
-  read: boolean
-  write: boolean
-}
-
-type BucketInfo = {
-  name: string,
-  creation_date: string;
-  detail: Object
-  rw_access: RWAccess
-  objects: number,
-  size: number
-}
-
-const getHumanSize = (size: number) => {
-  if (size < 1000) return `${size} B`;
-  if (size < 1000000) return `${(size / 1000).toFixed(1)} kB`;
-  if (size < 1000000000) return `${(size / 1000000).toFixed(1)} MB`;
-  if (size < 1000000000000) return `${(size / 1000000000).toFixed(1)} GB`;
-}
+import { getHumanSize } from '../../commons/utils';
+import { BucketInfo } from '../../models/bucket';
 
 const BucketView = (bucketInfo: BucketInfo) => {
   const creationDate = new Date(bucketInfo.creation_date);
-  const size_byte = bucketInfo.size;
   return (
     <div className="bg-slate-100 w-2/3 mb-4 p-4 rounded-lg">
       <h1 className="text-2xl font-bold mb-2">{bucketInfo.name}</h1>
@@ -49,7 +29,6 @@ export const Buckets = () => {
         setBucketLists(data["buckets"]);
       });
   }
-
 
   return (
     <Page title='Buckets'>
