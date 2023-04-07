@@ -3,10 +3,11 @@ import './Table.css'
 type TableParams = {
   className: string
   columns: string[],
-  data: any[][]
+  data: any[][],
+  onClick?: (element: React.MouseEvent<HTMLTableRowElement>, index: number) => void
 }
 
-export const Table = ({ className, columns, data }: TableParams) => {
+export const Table = ({ className, columns, data, onClick }: TableParams) => {
   const Header = () => {
     return (
       <thead className="h-16">
@@ -26,9 +27,12 @@ export const Table = ({ className, columns, data }: TableParams) => {
       <tbody>
         {
           data.map((row, index) => {
-            return <tr className="hover:bg-slate-200" key={index}>
+            return <tr
+              className="hover:bg-slate-200 hover:cursor-pointer"
+              onClick={(el) => onClick?.(el, index)}
+              key={index}>
               {row.map((el, index) => {
-                return <td className="p-4 text-center border-neutral-200" key={index}>{el}</td>
+                return <td className="p-2 text-center border-neutral-200" key={index}>{el}</td>
               })}
             </tr>;
           })
@@ -36,7 +40,7 @@ export const Table = ({ className, columns, data }: TableParams) => {
       </tbody>
     )
   }
-  // className += " border-separate border-spacing-0"
+
   return (
     <table className={className}>
       <Header />
