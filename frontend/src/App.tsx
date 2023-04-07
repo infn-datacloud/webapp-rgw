@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { BucketInfo } from './models/bucket';
-import { routes } from './routes';
+import { staticRouts } from './routes';
 import APIService from './services/APIService';
 import { BucketsListContext } from './services/BucketListContext';
 
@@ -22,7 +22,7 @@ function App() {
   }, [isAuthenticated]);
 
 
-  const router = createBrowserRouter(routes.map(route => {
+  const router = createBrowserRouter(staticRouts.map(route => {
     return {
       path: route.path,
       element: route.element

@@ -1,9 +1,9 @@
-import { routes } from '../routes';
+import { staticRouts } from '../routes';
 import { Link } from 'react-router-dom';
 
 export const Drawer = () => {
   const path = window.location.pathname;
-  const links = routes.map(route => {
+  const links = staticRouts.map(route => {
     let className = "h-10 hover:bg-neutral-300 rounded-lg p-2";
     className += route.path === path ? " bg-neutral-200" : "";
     return (
