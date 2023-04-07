@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useContext } from 'react';
 import { Page } from '../../components/Page';
-import APIService from "../../services/APIService";
 import { getHumanSize } from '../../commons/utils';
 import { BucketInfo } from '../../models/bucket';
+import { BucketsListContext } from '../../services/BucketListContext';
 
 const BucketView = (bucketInfo: BucketInfo) => {
   const creationDate = new Date(bucketInfo.creation_date);
@@ -18,25 +18,16 @@ const BucketView = (bucketInfo: BucketInfo) => {
 }
 
 export const Buckets = () => {
-  const [isFirstRender, setIsFirstRender] = useState(true);
-  const [buckestList, setBucketLists] = useState<BucketInfo[]>([]);
-
-  if (isFirstRender) {
-    setIsFirstRender(false);
-    APIService.get("buckets")
-      .then(data => {
-        setBucketLists(data["buckets"]);
-      });
-  }
+  const bucketList = useContext(BucketsListContext);
 
   return (
     <Page title='Buckets'>
-      {buckestList ? buckestList.map(bucketInfo =>
+      {bucketList.map(bucketInfo =>
         <BucketView
           key={bucketInfo.name + bucketInfo.creation_date}
           {...bucketInfo}
         />
-      ) : null}
+      )}
     </Page>
   )
 }
