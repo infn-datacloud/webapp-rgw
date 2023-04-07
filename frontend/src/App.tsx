@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { BucketInfo } from './models/bucket';
+import { BucketBrowser } from './routes/BucketBrowser';
 import { staticRouts } from './routes';
 import APIService from './services/APIService';
 import { BucketsListContext } from './services/BucketListContext';
@@ -21,13 +22,21 @@ function App() {
       });
   }, [isAuthenticated]);
 
-
-  const router = createBrowserRouter(staticRouts.map(route => {
+  let routes = staticRouts.map(route => {
     return {
       path: route.path,
       element: route.element
     }
-  }))
+  });
+
+  routes.push(...bucketList.map(bucketInfo => {
+    return {
+      path: "/" + bucketInfo.name,
+      element: <BucketBrowser bucketName={bucketInfo.name} />
+    }
+  }));
+
+  const router = createBrowserRouter(routes);
 
   return (
     <div className="flex mb-4">
