@@ -1,23 +1,36 @@
 // import './Table.css'
 
+
+export type Column = {
+  name: string,
+  columnType: "boolean" | "number" | "string";
+}
+
+export type Value = {
+  columnName: string,
+  value: any
+}
+
 type TableParams = {
-  className: string
-  columns: string[],
-  data: any[][],
+  columns: Column[],
+  data: Value[][],
+  selectable?: boolean
   onClick?: (element: React.MouseEvent<HTMLTableRowElement>, index: number) => void
 }
 
-export const Table = ({ className, columns, data, onClick }: TableParams) => {
+export const Table = ({ columns, data, selectable = false, onClick }: TableParams) => {
+  const thClassName = "border-b font-medium p-4 first:pl-8 last:pr-8 pt-0 pb-3 \
+    text-left text-slate-800";
   const Header = () => {
     return (
       <thead>
         <tr >
+          {selectable ? <th></th> : null}
           {columns.map(column =>
             <th
-              className="border-b font-medium p-4 first:pl-8 last:pr-8 pt-0 pb-3 
-                text-left text-slate-800"
-              key={column}>
-              {column}
+              className={thClassName}
+              key={column.name}>
+              {column.name}
             </th>)}
         </tr>
       </thead>
@@ -25,21 +38,30 @@ export const Table = ({ className, columns, data, onClick }: TableParams) => {
   };
 
   const Body = () => {
+    const columnNames = columns.map(col => col.name);
+    const rows = data.map(row => {
+      return row.reduce((acc: any, item) => {
+        acc[item.columnName] = item.value;
+        return acc;
+      }, new Map());
+    })
+
     return (
       <tbody className="bg-white">
         {
-          data.map((row, index) => {
+          rows.map((row, rowIndex) => {
             return <tr
               className="hover:bg-slate-200 text-slate-500
                hover:text-slate-800 hover:cursor-pointer"
-              onClick={(el) => onClick?.(el, index)}
-              key={index}>
-              {row.map((el, index) => {
+              onClick={(el) => onClick?.(el, rowIndex)}
+              key={rowIndex}>
+              {selectable ? <th className="pl-4"><input type="checkbox"></input></th> : null}
+              {columnNames.map((colName, index) => {
                 return <td
                   className="border-b border-slate-100 
                   p-4 first:pl-8 last:pr-8 text-left"
                   key={index}>
-                  {el}
+                  {row[colName]}
                 </td>
               })}
             </tr>;
