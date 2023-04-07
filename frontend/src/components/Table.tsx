@@ -1,4 +1,4 @@
-import './Table.css'
+// import './Table.css'
 
 type TableParams = {
   className: string
@@ -10,10 +10,12 @@ type TableParams = {
 export const Table = ({ className, columns, data, onClick }: TableParams) => {
   const Header = () => {
     return (
-      <thead className="h-16">
+      <thead>
         <tr >
           {columns.map(column =>
-            <th className="bg-neutral-200"
+            <th
+              className="border-b font-medium p-4 first:pl-8 last:pr-8 pt-0 pb-3 
+                text-left text-slate-800"
               key={column}>
               {column}
             </th>)}
@@ -24,15 +26,21 @@ export const Table = ({ className, columns, data, onClick }: TableParams) => {
 
   const Body = () => {
     return (
-      <tbody>
+      <tbody className="bg-white">
         {
           data.map((row, index) => {
             return <tr
-              className="hover:bg-slate-200 hover:cursor-pointer"
+              className="hover:bg-slate-200 text-slate-500
+               hover:text-slate-800 hover:cursor-pointer"
               onClick={(el) => onClick?.(el, index)}
               key={index}>
               {row.map((el, index) => {
-                return <td className="p-2 text-center border-neutral-200" key={index}>{el}</td>
+                return <td
+                  className="border-b border-slate-100 
+                  p-4 first:pl-8 last:pr-8 text-left"
+                  key={index}>
+                  {el}
+                </td>
               })}
             </tr>;
           })
@@ -42,9 +50,12 @@ export const Table = ({ className, columns, data, onClick }: TableParams) => {
   }
 
   return (
-    <table className={className}>
-      <Header />
-      <Body />
-    </table>
+    <div className="w-full bg-slate-100 shadow-lg rounded-xl">
+      <table className={"table-auto w-full text-sm mt-8 mb-6"}>
+        <Header />
+        <Body />
+      </table>
+    </div>
+
   )
 }
