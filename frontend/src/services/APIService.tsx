@@ -8,13 +8,17 @@ class APIService {
     return this.isTokenValid();
   }
 
-  static async get(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<any> {
+  static get(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<any> {
     if (!APIService.isAuthenticated()) {
       return Promise.reject(new Error("Your are not autenticated"));
     }
 
-    const response = await fetch("/api/v1/" + input, init);
-    return await response.json();
+    return new Promise((resolve, reject) => {
+      fetch("/api/v1/" + input, init)
+        .then(response => response.json())
+        .then(data => resolve(data))
+        .catch(err => reject(err));
+    });
   }
 }
 
