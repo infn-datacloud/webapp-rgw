@@ -1,5 +1,5 @@
 from models.buckets import BucketInfo, BucketRWAccess, BucketInfoResponse
-from models.buckets import Bu
+from models.buckets import BucketContentResponse
 import boto3
 import json
 import os
@@ -10,7 +10,7 @@ AWS_SECRET_ACCESS_KEY = os.getenv("MINIO_SECRET_ACCESS_KEY", "minioadmin")
 AWS_SESSION_TOKEN = None
 
 
-def get_s3_client():
+def get_s3_resource():
     return boto3.resource('s3',
                           endpoint_url=MINIO_ENDPOINT,
                           aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -21,9 +21,14 @@ def get_s3_client():
                           )
 
 
+def get_s3_client():
+    resource = get_s3_resource()
+    return resource.meta.client
+
+
 def list_buckets() -> BucketInfoResponse:
-    s3 = get_s3_client()
-    client = s3.meta.client
+    s3 = get_s3_resource()
+    client = get_s3_client()
     response = client.list_buckets()
     buckets_info = response["Buckets"]
     buckets = [None] * len(buckets_info)
@@ -51,3 +56,10 @@ def list_buckets() -> BucketInfoResponse:
             size=size_byte
         )
     return BucketInfoResponse(buckets=buckets, total=len(buckets))
+
+
+def list_bucket(bucket_name: str) -> BucketContentResponse:
+    client = get_s3_client()
+    buckets = client.list_objects_v2(Bucket=bucket_name)["Contents"]
+    print(buckets[0])
+    return BucketContentResponse(buckets=buckets, total=len(buckets))

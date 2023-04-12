@@ -21,3 +21,25 @@ class BucketInfoResponse(BaseModel):
     buckets: List[BucketInfo]
     total: int
 
+
+class BucketOwner(BaseModel):
+    DisplayName: str
+    ID: str
+
+
+class BucketObject(BaseModel):
+    Key: str
+    LastModified: datetime
+    ETag: str
+    Size: int
+    StorageClass: str
+    Owner: BucketOwner
+
+class BucketNotfound:
+    status: str
+    detail: str
+    headers: dict
+
+class BucketContentResponse(BaseModel):
+    buckets: List[BucketObject]
+    total: int
