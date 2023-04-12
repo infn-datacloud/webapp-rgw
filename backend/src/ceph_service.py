@@ -60,6 +60,6 @@ def list_buckets() -> BucketInfoResponse:
 
 def list_bucket(bucket_name: str) -> BucketContentResponse:
     client = get_s3_client()
-    buckets = client.list_objects_v2(Bucket=bucket_name)["Contents"]
-    print(buckets[0])
+    result = client.list_objects_v2(Bucket=bucket_name)
+    buckets = result["Contents"] if "Contents" in result else []
     return BucketContentResponse(buckets=buckets, total=len(buckets))
