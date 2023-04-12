@@ -5,7 +5,12 @@ import APIService from '../../services/APIService';
 import { Column, Table } from '../../components/Table';
 import { getHumanSize } from '../../commons/utils';
 import { Button } from '../../components/Button';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import {
+  DocumentIcon,
+  PhotoIcon,
+  ArrowLeftIcon,
+  FolderIcon
+} from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 
 type PropsType = {
@@ -17,14 +22,39 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const navigate = useNavigate();
 
   const columns: Column[] = [
+    { name: "icon", columnType: "string" },
     { name: "Name", columnType: "string" },
     { name: "Last Modified", columnType: "string" },
     { name: "Size", columnType: "string" },
   ];
 
   const tableData = bucketObjects.map((bucket: BucketObject) => {
+
+    const isFolder = bucket.Key.includes("/");
+    const name = isFolder ? bucket.Key.split("/").slice()[0] : bucket.Key;
+
+    const getIcon = () => {
+      if (isFolder) return <FolderIcon />;
+      const extension = bucket.Key.split(".").slice(-1)[0];
+      switch (extension) {
+        case ".png":
+          return <PhotoIcon />;
+        default:
+          return <DocumentIcon />
+      }
+    }
+
+    const Icon = () => {
+      return (
+        <div className='w-5'>
+          {getIcon()}
+        </div>
+      )
+    }
+
     return [
-      { columnName: "Name", value: bucket.Key },
+      { columnName: "icon", value: <Icon /> },
+      { columnName: "Name", value: name },
       { columnName: "Last Modified", value: bucket.LastModified },
       { columnName: "Size", value: getHumanSize(bucket.Size) },
     ]
