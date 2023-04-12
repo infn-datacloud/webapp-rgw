@@ -1,4 +1,5 @@
-from models.buckets import Bucket, BucketRWAccess, BucketInfoResponse
+from models.buckets import BucketInfo, BucketRWAccess, BucketInfoResponse
+from models.buckets import Bu
 import boto3
 import json
 import os
@@ -41,7 +42,7 @@ def list_buckets() -> BucketInfoResponse:
             n_objects += 1
             size_byte += obj.size
         rw_access = BucketRWAccess(read=read, write=write)
-        buckets[i] = Bucket(
+        buckets[i] = BucketInfo(
             name=bucket_name,
             creation_date=creation_date,
             details={},

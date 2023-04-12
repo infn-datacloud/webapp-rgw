@@ -8,7 +8,7 @@ class BucketRWAccess(BaseModel):
     write: bool
 
 
-class Bucket(BaseModel):
+class BucketInfo(BaseModel):
     name: str
     creation_date: datetime
     details: dict
@@ -18,6 +18,6 @@ class Bucket(BaseModel):
 
 
 class BucketInfoResponse(BaseModel):
-    buckets: List[Bucket]
+    buckets: List[BucketInfo]
     total: int
-    
+
