@@ -12,18 +12,18 @@ export const Home = () => {
   const bucketList = useContext(BucketsListContext);
 
   const columns: Column[] = [
-    { name: "Bucket", columnType: "string" },
-    { name: "Objects", columnType: "string" },
-    { name: "Size", columnType: "string" },
-    { name: "Access", columnType: "string" }
+    { id: "bucket", name: "Bucket" },
+    { id: "objects", name: "Objects" },
+    { id: "bucket_size", name: "Size" },
+    { id: "access", name: "Access" }
   ];
 
   const tableData = bucketList.map((bucket: BucketInfo) => {
     return [
-      { columnName: "Bucket", value: bucket.name },
-      { columnName: "Objects", value: bucket.objects },
-      { columnName: "Size", value: getHumanSize(bucket.size) },
-      { columnName: "Access", value: parseReadWriteAccess(bucket.rw_access) }
+      { columnId: "bucket", value: bucket.name },
+      { columnId: "objects", value: bucket.objects },
+      { columnId: "bucket_size", value: getHumanSize(bucket.size) },
+      { columnId: "access", value: parseReadWriteAccess(bucket.rw_access) }
     ]
   });
 

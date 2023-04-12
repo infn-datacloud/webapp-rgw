@@ -1,17 +1,17 @@
 // import './Table.css'
 
 
-export type Column = {
-  name: string,
-  columnType: "boolean" | "number" | "string";
+export interface Column {
+  id: string
+  name?: string,
 }
 
-export type Value = {
-  columnName: string,
+export interface Value {
+  columnId: string,
   value: any
 }
 
-type TableParams = {
+interface TableParams {
   columns: Column[],
   data: Value[][],
   selectable?: boolean
@@ -29,7 +29,7 @@ export const Table = ({ columns, data, selectable = false, onClick }: TableParam
           {columns.map(column =>
             <th
               className={thClassName}
-              key={column.name}>
+              key={column.id}>
               {column.name}
             </th>)}
         </tr>
@@ -38,13 +38,14 @@ export const Table = ({ columns, data, selectable = false, onClick }: TableParam
   };
 
   const Body = () => {
-    const columnNames = columns.map(col => col.name);
     const rows = data.map(row => {
       return row.reduce((acc: any, item) => {
-        acc[item.columnName] = item.value;
+        acc[item.columnId] = item.value;
         return acc;
       }, new Map());
     })
+
+    const columnIds = columns.map(col => col.id);
 
     return (
       <tbody className="bg-white">
@@ -56,12 +57,12 @@ export const Table = ({ columns, data, selectable = false, onClick }: TableParam
               onClick={(el) => onClick?.(el, rowIndex)}
               key={rowIndex}>
               {selectable ? <th className="pl-4"><input type="checkbox"></input></th> : null}
-              {columnNames.map((colName, index) => {
+              {columnIds.map((colId, index) => {
                 return <td
                   className="border-b border-slate-100 
                   p-4 first:pl-8 last:pr-8 text-left"
                   key={index}>
-                  {row[colName]}
+                  {row[colId]}
                 </td>
               })}
             </tr>;

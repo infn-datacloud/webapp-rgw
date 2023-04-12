@@ -22,10 +22,10 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const navigate = useNavigate();
 
   const columns: Column[] = [
-    { name: "icon", columnType: "string" },
-    { name: "Name", columnType: "string" },
-    { name: "Last Modified", columnType: "string" },
-    { name: "Size", columnType: "string" },
+    { id: "icon" },
+    { id: "name", name: "Name" },
+    { id: "last_modified", name: "Last Modified" },
+    { id: "bucket_size", name: "Size" },
   ];
 
   const tableData = bucketObjects.map((bucket: BucketObject) => {
@@ -53,10 +53,10 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     }
 
     return [
-      { columnName: "icon", value: <Icon /> },
-      { columnName: "Name", value: name },
-      { columnName: "Last Modified", value: bucket.LastModified },
-      { columnName: "Size", value: getHumanSize(bucket.Size) },
+      { columnId: "icon", value: <Icon /> },
+      { columnId: "name", value: name },
+      { columnId: "last_modified", value: bucket.LastModified },
+      { columnId: "bucket_size", value: getHumanSize(bucket.Size) },
     ]
   });
 
