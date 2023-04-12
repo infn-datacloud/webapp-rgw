@@ -1,4 +1,4 @@
-from models.buckets import Bucket, BucketRWAccess, BucketResponse
+from models.buckets import Bucket, BucketRWAccess, BucketInfoResponse
 import boto3
 import json
 import os
@@ -20,7 +20,7 @@ def get_s3_client():
                           )
 
 
-def list_buckets() -> BucketResponse:
+def list_buckets() -> BucketInfoResponse:
     s3 = get_s3_client()
     client = s3.meta.client
     response = client.list_buckets()
@@ -49,4 +49,4 @@ def list_buckets() -> BucketResponse:
             objects=n_objects,
             size=size_byte
         )
-    return BucketResponse(buckets=buckets, total=len(buckets))
+    return BucketInfoResponse(buckets=buckets, total=len(buckets))

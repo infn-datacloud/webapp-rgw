@@ -16,6 +16,8 @@ class Bucket(BaseModel):
     objects: int
     size: int
 
-class BucketResponse(BaseModel):
+
+class BucketInfoResponse(BaseModel):
     buckets: List[Bucket]
     total: int
+    
