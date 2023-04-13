@@ -37,7 +37,9 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       if (isFolder) return <FolderIcon />;
       const extension = bucket.Key.split(".").slice(-1)[0];
       switch (extension) {
-        case ".png":
+        case "png":
+        case "jpeg":
+        case "jpg":
           return <PhotoIcon />;
         default:
           return <DocumentIcon />
