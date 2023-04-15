@@ -1,41 +1,51 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { BucketInfo } from './models/bucket';
-import { BucketBrowser } from './routes/BucketBrowser';
-import { staticRouts } from './routes';
-import APIService from './services/APIService';
+import {
+  BrowserRouter,
+  createBrowserRouter,
+  Route,
+  RouterProvider,
+  Routes
+} from 'react-router-dom';
+import { Login } from './routes/Login';
+import { staticRoutes } from './routes';
 import { BucketsListContext } from './services/BucketListContext';
+import { useOAuth } from './services/OAuth2';
+import { OAuthPopup } from './services/OAuth2';
+import { useState } from 'react';
+import { BucketInfo } from './models/bucket';
 
 function App() {
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [bucketList, setBucketLists] = useState<BucketInfo[]>([]);
+  const [bucketList, setBucketList] = useState<BucketInfo[]>([]);
+  const oAuth = useOAuth();
 
-  useEffect(() => {
-    setIsAuthenticated(APIService.isAuthenticated());
-    APIService
-      .get("buckets")
-      .then(data => {
-        const buckets: BucketInfo[] = data["buckets"];
-        console.log(`Fetched ${buckets.length} buckets`);
-        setBucketLists(buckets);
-      });
-  }, [isAuthenticated]);
+  if (oAuth.error) {
+    return <div>Ops... {oAuth.error.message}</div>;
+  }
 
-  let routes = staticRouts.map(route => {
+  console.log("Is user authenticated", oAuth.isAuthenticated)
+
+  if (!oAuth.isAuthenticated) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Login onClick={oAuth.signinPopup} />} />
+          <Route path="/callback" element={<OAuthPopup />} />
+        </Routes>
+      </BrowserRouter>
+    )
+  }
+
+  let routes = staticRoutes.map(route => {
     return {
       path: route.path,
       element: route.element
     }
   });
 
-  routes.push(...bucketList.map(bucketInfo => {
-    return {
-      path: "/" + bucketInfo.name,
-      element: <BucketBrowser bucketName={bucketInfo.name} />
-    }
-  }));
-
+  routes.push({
+    path: "/login",
+    element: <Login onClick={oAuth.signinPopup} />
+  });
   const router = createBrowserRouter(routes);
 
   return (

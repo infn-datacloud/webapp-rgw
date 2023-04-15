@@ -8,7 +8,7 @@ export type Route = {
   element: ReactNode
 }
 
-export const staticRouts: Route[] = [
+export const staticRoutes: Route[] = [
   { title: "Home", path: "/", element: <Home /> },
   { title: "Buckets", path: "/buckets", element: <Buckets /> }
 ];
