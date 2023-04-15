@@ -1,2 +1,5 @@
 .vscode/
 .DS_Store
+nginx/cert/
+backend/envs/*
+!backend/envs/example.env

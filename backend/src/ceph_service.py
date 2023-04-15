@@ -1,7 +1,6 @@
-from models.buckets import BucketInfo, BucketRWAccess, BucketInfoResponse
-from models.buckets import BucketContentResponse
+from routes.buckets.models import BucketInfo, BucketRWAccess, BucketInfoResponse
+from routes.buckets.models import BucketContentResponse
 import boto3
-import json
 import os
 
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://minio:9000")
