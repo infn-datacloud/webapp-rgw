@@ -1,5 +1,5 @@
 import { Page } from '../../components/Page';
-import { Table, Column, Value } from '../../components/Table';
+import { Table, Column } from '../../components/Table';
 import { useContext } from 'react';
 import { BucketInfo } from '../../models/bucket';
 import { getHumanSize, parseReadWriteAccess } from '../../commons/utils';
