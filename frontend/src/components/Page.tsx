@@ -2,8 +2,9 @@ import { Drawer } from "./Drawer";
 import { Title } from "./Title";
 
 type Props = {
+  user?: string,
   title: string,
-  [children:string]: any
+  [children: string]: any
 };
 
 export const Page = (props: Props) => {
