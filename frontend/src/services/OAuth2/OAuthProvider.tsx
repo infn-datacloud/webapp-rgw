@@ -168,10 +168,15 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
 
   }, [props]);
 
+  const logout = useCallback(() => {
+    setOAuthState(initialOAuthState);
+  }, []);
+
   return (
     <OAuthContext.Provider
       value={{
         signinPopup: signinPopup,
+        logout: logout,
         isAuthenticated: oAuthState.isAuthenticated,
         isLoading: oAuthState.isLoading,
         error: oAuthState.error,
