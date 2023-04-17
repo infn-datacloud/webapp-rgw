@@ -10,9 +10,10 @@ IAM_CLIENT_SECRET = os.environ['IAM_CLIENT_SECRET']
 
 router = APIRouter()
 
+
 @router.post("/oauth/token")
 def get_token(req: OAuth2TokenRequest):
-    print(IAM_CLIENT_ID)
+
     if (req.client_id != IAM_CLIENT_ID):
         raise HTTPException(status_code=403, detail="Client not allowed.")
 
