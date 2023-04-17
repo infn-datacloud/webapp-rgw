@@ -15,16 +15,12 @@ type Timer = ReturnType<typeof setTimeout>;
 
 
 const getAuthorizationUrl = (props: OidcClientSettings) => {
-  let url = `${props.authority}` +
-    `/authorize?` +
-    `&redirect_uri=${props.redirect_uri}` +
-    `&client_id=${props.client_id}`
-
-  url += props.client_secret ? `&client_secret=${props.client_secret}` : "";
-  url += props.response_type ? `&response_type=${props.response_type}` : "";
-  url += props.scope ? `&scope=${props.scope}` : "";
-  url += props.state ? `&state=${props.state}` : "";
-  return url;
+  const url = new URL("/authorize", props.authority);
+  const urlSearchParams = new URLSearchParams({ ...props });
+  urlSearchParams.delete("authority");
+  urlSearchParams.delete("children");       // TODO: implement a better keys filter
+  url.search = urlSearchParams.toString();
+  return url.toString();
 }
 
 const generateState = () => {
@@ -105,18 +101,19 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
             redirect_uri: props.redirect_uri,
             code: code,
             grant_type: props.grant_type,
-            code_verifier: undefined
+            code_verifier: undefined,
           })
             .then(response => response.json())
             .then(data => {
+              console.log(data)
               const token = OidcToken.createTokenFromResponse(data);
+              // The user is now logged in
               const user = new User({
                 session_state: null,
                 profile: parseJwt(token.access_token),
                 token: token
               });
-              // The user is now logged in
-              console.log(parseJwt(token.access_token));
+              // console.log(token.access_token);
               setOAuthState({
                 isLoading: false,
                 isAuthenticated: true,

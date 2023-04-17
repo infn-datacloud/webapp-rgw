@@ -5,23 +5,24 @@ class Timer {
 }
 
 export interface OidcClientSettings {
-  authority: string,
-  client_id: string
-  redirect_uri: string
-  client_secret?: string
-  response_type?: string
-  scope?: string
-  state?: string
-  grant_type?: string
+  authority: string;
+  client_id: string;
+  redirect_uri: string;
+  client_secret?: string;
+  response_type?: string;
+  scope?: string;
+  state?: string;
+  grant_type?: string;
+  audience?: string;
 }
 
 export interface IOidcToken {
-  id_token: string,
-  access_token: string,
-  refresh_token?: string,
-  token_type: string,
-  expires_in: number,
-  scope?: string,
+  id_token: string;
+  access_token: string;
+  refresh_token?: string;
+  token_type: string;
+  expires_in: number;
+  scope?: string;
 }
 
 export class OidcToken {
@@ -31,6 +32,7 @@ export class OidcToken {
   token_type: string;
   expires_at: number;
   scope?: string;
+  audience?: string;
 
   private constructor(args: IOidcToken) {
     this.id_token = args.id_token;
@@ -49,7 +51,7 @@ export class OidcToken {
     return this.expires_in - Timer.getEpochTime();
   }
 
-  get expired(): boolean | undefined {    
+  get expired(): boolean | undefined {
     return this.expires_in <= 0;
   }
 
