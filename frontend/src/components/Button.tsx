@@ -12,7 +12,7 @@ export const Button = (props: ButtonProps) => {
   return (
     <div className={props.className}>
       <button
-        className="border rounded p-4 hover:bg-neutral-200 w-full h-full"
+        className="border border-colorounded p-4 hover:bg-neutral-200 w-full h-full"
         type={props.type}
         onClick={props.onClick}
       >
