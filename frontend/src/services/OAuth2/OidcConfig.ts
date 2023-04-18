@@ -48,7 +48,7 @@ export class OidcToken {
   }
 
   public get expires_in(): number {
-    return this.expires_in - Timer.getEpochTime();
+    return this.expires_at - Timer.getEpochTime();
   }
 
   get expired(): boolean | undefined {
