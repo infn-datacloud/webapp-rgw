@@ -14,6 +14,7 @@ export class User {
   }) {
     this.session_state = args.session_state ?? null;
     this.profile = args.profile;
+    this.token = args.token;
   }
 
   toStorageString(): string {
