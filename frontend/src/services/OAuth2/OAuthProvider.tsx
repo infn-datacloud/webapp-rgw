@@ -105,7 +105,6 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
           })
             .then(response => response.json())
             .then(data => {
-              console.log(data)
               const token = OidcToken.createTokenFromResponse(data);
               // The user is now logged in
               const user = new User({
@@ -113,7 +112,6 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
                 profile: parseJwt(token.access_token),
                 token: token
               });
-              // console.log(token.access_token);
               setOAuthState({
                 isLoading: false,
                 isAuthenticated: true,
