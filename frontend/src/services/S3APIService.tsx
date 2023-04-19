@@ -55,7 +55,8 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
 
   const getS3Client = (): S3 => {
     return new S3({
-      ...awsConfig,
+      endpoint: awsConfig.endpoint,
+      region: "",
       credentials: s3ServiceState.awsCredentials,
       s3ForcePathStyle: true
     });
@@ -84,7 +85,7 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
       {
         DurationSeconds: 3600,
         RoleArn: "arn:aws:iam:::role/S3AccessIAM200",
-        RoleSessionName: "app1",
+        RoleSessionName: "ceph-frontend-poc", // TODO: change me
         WebIdentityToken: token.access_token,
       }, (err: AWSError, data) => {
         if (err) {
@@ -125,7 +126,10 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
   const createBucket = useCallback((bucketName: string) => {
     const s3 = getS3Client();
     s3.createBucket({
-      Bucket: bucketName
+      Bucket: bucketName,
+      CreateBucketConfiguration: {
+        LocationConstraint: ""
+      }
     }, ((err, data) => {
       if (err) {
         throw new Error(err.name + " " + err.message);
