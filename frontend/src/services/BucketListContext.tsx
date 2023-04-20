@@ -1,4 +1,4 @@
 import { createContext } from "react";
-import { BucketInfo } from "../models/bucket";
+import { Bucket } from "@aws-sdk/client-s3";
 
-export const BucketsListContext = createContext<BucketInfo[]>([]);
+export const BucketsListContext = createContext<Bucket[]>([]);
