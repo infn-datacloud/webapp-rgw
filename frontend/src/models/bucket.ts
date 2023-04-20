@@ -1,3 +1,4 @@
+import { Owner } from "@aws-sdk/client-s3";
 export interface RWAccess {
   read: boolean
   write: boolean
@@ -12,15 +13,11 @@ export interface BucketInfo {
   size: number
 }
 
-export interface BucketOwner {
-  DisplayName: string,
-  ID: string
-}
 export interface BucketObject {
-  Key: string,
-  LastModified: string,
-  ETag: string,
-  Size: number,
-  StorageClass: string,
-  Owner: BucketOwner
+  Key?: string,
+  LastModified?: Date,
+  ETag?: string,
+  Size?: number,
+  StorageClass?: string,
+  Owner?: Owner
 }
