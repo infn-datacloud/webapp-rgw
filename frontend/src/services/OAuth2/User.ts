@@ -25,7 +25,7 @@ export class User {
     });
   }
 
-  fromStorageString(storageString: string): User {
+  static fromStorageString(storageString: string): User {
     return new User(JSON.parse(storageString));
   }
 }
