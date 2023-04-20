@@ -169,19 +169,25 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         icon={<ArrowLeftIcon />}
         onClick={() => navigate(-1)}
       />
-      <InputFile onChange={handleFileChange} />
-      <Button
-        title="Upload file"
-        icon={<ArrowUpOnSquareIcon />}
-        onClick={upload}
-      />
-      <Button
-        title="Delete file(s)"
-        icon={<TrashIcon />}
-        onClick={deleteSelectedObjects}
-      />
-      <div className="flex place-content-center">
-        <div className="flex w-2/3">
+
+      <div className='container w-2/3'>
+        <div className="flex mt-8 place-content-between">
+          <div className='flex space-x-4'>
+            <InputFile onChange={handleFileChange} />
+            <Button
+              title="Upload file"
+              icon={<ArrowUpOnSquareIcon />}
+              onClick={upload}
+            />
+          </div>
+          <Button
+            title="Delete file(s)"
+            icon={<TrashIcon />}
+            onClick={deleteSelectedObjects}
+            disabled={selectedRows.size === 0}
+          />
+        </div>
+        <div className="flex place-content-center mt-4">
           <Table
             selectable={true}
             columns={columns}
