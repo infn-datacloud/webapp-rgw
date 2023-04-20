@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
 import { OAuthProvider } from './services/OAuth2';
-import { S3ServiceProvider } from './services/S3APIService';
+import { S3ServiceProvider } from './services/S3Service';
+import App from './App';
 import './index.css';
 
 const root = ReactDOM.createRoot(

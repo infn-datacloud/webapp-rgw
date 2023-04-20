@@ -10,7 +10,7 @@ import { Login } from './routes/Login';
 import { staticRoutes } from './routes';
 import { useOAuth, OAuthPopup } from './services/OAuth2';
 import { BucketsListContext } from './services/BucketListContext';
-import { useS3Service } from './services/S3APIService';
+import { useS3Service } from './services/S3Service';
 import { BucketBrowser } from './routes/BucketBrowser';
 import { ListBucketsCommand, Bucket } from '@aws-sdk/client-s3';
 

@@ -13,7 +13,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { useS3Service } from '../../services/S3APIService';
+import { useS3Service } from '../../services/S3Service';
 import { InputFile } from '../../components/InputFile';
 import {
   ListObjectsV2Command,
