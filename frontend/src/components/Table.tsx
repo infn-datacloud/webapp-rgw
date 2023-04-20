@@ -1,5 +1,6 @@
 // import './Table.css'
 
+import { ChangeEvent, MouseEvent } from "react";
 
 export interface Column {
   id: string
@@ -12,15 +13,27 @@ export interface Value {
 }
 
 interface TableParams {
-  columns: Column[],
-  data: Value[][],
-  selectable?: boolean
-  onClick?: (element: React.MouseEvent<HTMLTableRowElement>, index: number) => void
+  columns: Column[];
+  data: Value[][];
+  selectable?: boolean;
+  selectedRows?: Set<number>;
+  onClick?: (element: MouseEvent<HTMLTableRowElement>, index: number) => void
+  onSelect?: (element: ChangeEvent<HTMLInputElement>, index: number) => void
 }
 
-export const Table = ({ columns, data, selectable = false, onClick }: TableParams) => {
+export const Table = (props: TableParams) => {
+  const {
+    columns,
+    data,
+    selectable = false,
+    selectedRows,
+    onClick,
+    onSelect
+  } = props;
+
   const thClassName = "border-b font-medium p-4 first:pl-8 last:pr-8 pt-0 pb-3 \
     text-left text-slate-800";
+
   const Header = () => {
     return (
       <thead>
@@ -56,7 +69,17 @@ export const Table = ({ columns, data, selectable = false, onClick }: TableParam
                hover:text-slate-800 hover:cursor-pointer"
               onClick={(el) => onClick?.(el, rowIndex)}
               key={rowIndex}>
-              {selectable ? <th className="pl-4"><input type="checkbox"></input></th> : null}
+              {
+                selectable ?
+                  <th className="pl-4">
+                    <input
+                      type="checkbox"
+                      onChange={(el) => (onSelect && onSelect(el, rowIndex))}
+                      checked={selectedRows && selectedRows.has(rowIndex)}
+                    >
+                    </input>
+                  </th> : null
+              }
               {columnIds.map((colId, index) => {
                 return <td
                   className="border-b border-slate-100 
