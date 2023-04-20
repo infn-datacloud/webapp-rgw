@@ -1,35 +1,33 @@
 import { ReactNode, createContext, useContext, useState } from "react";
 import { useOAuth } from "./OAuth2";
-import STS from "aws-sdk/clients/sts";
-import S3 from "aws-sdk/clients/s3";
-import { Credentials } from "aws-sdk";
+import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
+import { S3Client } from "@aws-sdk/client-s3";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { useCallback } from "react";
 import { useEffect } from "react";
-import { AWSError, Endpoint } from "aws-sdk";
-
 // **** AWS Config ****
 export interface AWSConfig {
-  endpoint: string | Endpoint;
+  endpoint: string;
   region: string;
 }
 
 // ***** State *****
 
 export interface IS3ServiceState {
-  awsCredentials?: Credentials;
+  awsCredentials?: AwsCredentialIdentity;
 }
 
 
 export const initialS3ServiceState: IS3ServiceState = {
-  awsCredentials: undefined
+  awsCredentials: undefined,
 }
 
 // ***** Context *****
 
 export interface S3ContextProps {
   awsConfig: AWSConfig;
-  listBuckets(): void;
-  createBucket(bucketName: string): void;
+  client: S3Client;
+  isAuthenticated: () => boolean;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -44,105 +42,76 @@ interface S3ServiceProviderProps {
 export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element => {
   const { children, awsConfig } = props;
 
-  const [s3ServiceState, setS3ServiceState] = useState<IS3ServiceState>(
-    initialS3ServiceState
-  );
+  const [
+    s3ServiceState,
+    setS3ServiceState
+  ] = useState<IS3ServiceState>(initialS3ServiceState);
+
   const oAuth = useOAuth();
+  const { awsCredentials } = s3ServiceState;
+
+  // Factory method
+  const getS3Client = useCallback(() => {
+    return new S3Client({
+      endpoint: awsConfig.endpoint,
+      region: awsConfig.region,
+      credentials: awsCredentials,
+      forcePathStyle: true
+    });
+  }, [awsCredentials, awsConfig.endpoint]);
+
 
   const isAuthenticated = () => {
-    return oAuth.isAuthenticated && !oAuth.user?.token?.expired;
-  }
-
-  const getS3Client = (): S3 => {
-    return new S3({
-      endpoint: awsConfig.endpoint,
-      region: "",
-      credentials: s3ServiceState.awsCredentials,
-      s3ForcePathStyle: true
-    });
+    return oAuth.isAuthenticated && !!awsCredentials;
   }
 
 
+  // Exchange token for AWS Credentiasl with AssumeRoleWebIdendity
   useEffect(() => {
-    if (!oAuth.isAuthenticated) {
-      return;
-    }
+    const token = oAuth.user?.token;
 
-    const user = oAuth.user!;
-    const token = user.token;
-
-    if (!token) {
+    if (!(oAuth.isAuthenticated && token)) {
       console.log("Token missig or expired");
       return;
     }
 
-    const sts = new STS({
-      endpoint: awsConfig.endpoint,
-      region: awsConfig.region
+    const sts = new STSClient({ ...awsConfig });
+    const command = new AssumeRoleWithWebIdentityCommand({
+      DurationSeconds: 3600,
+      RoleArn: "arn:aws:iam:::role/S3AccessIAM200",
+      RoleSessionName: "ceph-frontend-poc", // TODO: change me
+      WebIdentityToken: token.access_token,
     });
 
-    sts.assumeRoleWithWebIdentity(
-      {
-        DurationSeconds: 3600,
-        RoleArn: "arn:aws:iam:::role/S3AccessIAM200",
-        RoleSessionName: "ceph-frontend-poc", // TODO: change me
-        WebIdentityToken: token.access_token,
-      }, (err: AWSError, data) => {
-        if (err) {
-          throw new Error(err.message);
+    sts.send(command)
+      .then(response => {
+        const { Credentials } = response;
+        if (!Credentials) {
+          throw new Error("Credentials not found");
         }
-
-        const stsCredentials = data.Credentials;
-        if (!stsCredentials) {
-          throw new Error("Cannot retrieve AWS Credentials from STS");
+        const { AccessKeyId, SecretAccessKey, SessionToken } = Credentials;
+        if (AccessKeyId && SecretAccessKey && SessionToken) {
+          setS3ServiceState({
+            awsCredentials: {
+              accessKeyId: AccessKeyId,
+              secretAccessKey: SecretAccessKey,
+              sessionToken: SessionToken
+            }
+          });
+        } else {
+          console.warn("Warning: some one or more AWS Credentials member is empty");
         }
+      }).catch(err => {
+        console.error("Cannot retrieve AWS Credentials from STS", err);
+      });
+  }, [awsConfig, oAuth.isAuthenticated, oAuth.user]);
 
-        setS3ServiceState({
-          awsCredentials: new Credentials({
-            accessKeyId: stsCredentials.AccessKeyId,
-            secretAccessKey: stsCredentials.SecretAccessKey,
-            sessionToken: stsCredentials.SessionToken,
-          })
-        });
-      }
-    )
-  }, [oAuth.isAuthenticated]);
-
-
-  const listBuckets = useCallback(() => {
-    if (!s3ServiceState.awsCredentials) {
-      console.warn("No AWS credentials");
-      return;
-    }
-    const s3 = getS3Client();
-    s3.listBuckets((err, data) => {
-      if (err) {
-        throw new Error(err.message);
-      }
-      console.log(data);
-    })
-  }, [s3ServiceState.awsCredentials]);
-
-  const createBucket = useCallback((bucketName: string) => {
-    const s3 = getS3Client();
-    s3.createBucket({
-      Bucket: bucketName,
-      CreateBucketConfiguration: {
-        LocationConstraint: ""
-      }
-    }, ((err, data) => {
-      if (err) {
-        throw new Error(err.name + " " + err.message);
-      }
-      console.log(data);
-    }));
-  }, [s3ServiceState.awsCredentials])
 
   return (
     <S3ServiceContext.Provider value={{
       awsConfig: awsConfig,
-      listBuckets: listBuckets,
-      createBucket: createBucket
+      client: getS3Client(),
+      isAuthenticated: () => isAuthenticated()
     }}>
       {children}
     </S3ServiceContext.Provider>

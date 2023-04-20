@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.315.0",
+    "@aws-sdk/client-sts": "^3.315.0",
+    "@aws-sdk/types": "^3.310.0",
     "@heroicons/react": "^2.0.17",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -11,7 +14,6 @@
     "@types/node": "^16.18.21",
     "@types/react": "^18.0.29",
     "@types/react-dom": "^18.0.11",
-    "aws-sdk": "^2.1359.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.9.0",
