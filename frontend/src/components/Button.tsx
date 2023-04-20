@@ -12,7 +12,7 @@ export const Button = (props: ButtonProps) => {
   return (
     <div className={props.className}>
       <button
-        className="border border-colorounded p-4 hover:bg-neutral-200 w-full h-full"
+        className="border border-colorounded p-4 hover:bg-neutral-200"
         type={props.type}
         onClick={props.onClick}
       >
@@ -20,13 +20,12 @@ export const Button = (props: ButtonProps) => {
           {props.icon ?
             <div className="w-5">{props.icon}</div>
             : null}
-          <div className="mx-auto">
+          <div className="ml-4">
             {props.title}
           </div>
         </div>
 
       </button>
     </div>
-
   )
 }
