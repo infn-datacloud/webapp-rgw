@@ -2,13 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { OAuthProvider } from './services/OAuth2';
+import { S3ServiceProvider } from './services/S3APIService';
 import './index.css';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
-const oidcConfig = {
+const OidcConfig = {
   authority: "https://keycloak-demo.cloud.cnaf.infn.it:8222",
   client_id: "66a8f7e8-a5ef-4ef1-8e2e-3389f1170ae7",
   redirect_uri: "http://localhost:8080/callback",
@@ -18,10 +19,18 @@ const oidcConfig = {
   response_type: "code"
 };
 
+const s3Config = {
+  awsConfig: {
+    endpoint: "https://vm-131-154-97-121.cloud.cnaf.infn.it",
+    region: "nova"
+  }
+}
 root.render(
   <React.StrictMode>
-    <OAuthProvider {...oidcConfig}>
-      <App />
+    <OAuthProvider {...OidcConfig}>
+      <S3ServiceProvider {...s3Config}>
+        <App />
+      </S3ServiceProvider>
     </OAuthProvider>
   </React.StrictMode>
 );
