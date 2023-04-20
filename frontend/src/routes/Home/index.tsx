@@ -1,11 +1,9 @@
 import { Page } from '../../components/Page';
 import { Table, Column } from '../../components/Table';
 import { useContext } from 'react';
-import { BucketInfo } from '../../models/bucket';
-import { getHumanSize, parseReadWriteAccess } from '../../commons/utils';
-import { BucketsListContext } from '../../services/BucketListContext';
 import { useNavigate } from 'react-router-dom';
-import './index.css';
+import { BucketsListContext } from '../../services/BucketListContext';
+import { Bucket } from '@aws-sdk/client-s3';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -13,22 +11,18 @@ export const Home = () => {
 
   const columns: Column[] = [
     { id: "bucket", name: "Bucket" },
-    { id: "objects", name: "Objects" },
-    { id: "bucket_size", name: "Size" },
-    { id: "access", name: "Access" }
+    { id: "creation_date", name: "Creation Date" },
   ];
 
-  const tableData = bucketList.map((bucket: BucketInfo) => {
+  const tableData = bucketList.map((bucket: Bucket) => {
     return [
-      { columnId: "bucket", value: bucket.name },
-      { columnId: "objects", value: bucket.objects },
-      { columnId: "bucket_size", value: getHumanSize(bucket.size) },
-      { columnId: "access", value: parseReadWriteAccess(bucket.rw_access) }
+      { columnId: "bucket", value: bucket.Name },
+      { columnId: "creation_date", value: bucket.CreationDate?.toString() },
     ]
   });
 
   const onClick = (_: React.MouseEvent<HTMLTableRowElement>, index: number) => {
-    const bucketName = bucketList[index].name;
+    const bucketName = bucketList[index].Name;
     navigate("/" + bucketName)
     console.log(bucketName);
   }
