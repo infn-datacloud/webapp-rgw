@@ -1,7 +1,7 @@
 import type { User } from './User';
 
 export interface IOAuthState {
-  user?: User | null;
+  user?: User;
   isLoading: boolean;
   isAuthenticated: boolean;
   activeNavigator?: "signinRedirect";
@@ -9,7 +9,7 @@ export interface IOAuthState {
 }
 
 export const initialOAuthState: IOAuthState = {
-  user: null,
+  user: undefined,
   isLoading: true,
   isAuthenticated: false
 }

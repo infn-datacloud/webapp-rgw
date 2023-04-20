@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { OAuthContext } from "./OAuthContext"
 import { IOAuthState, initialOAuthState } from "./OAuthState"
 import { OAUTH_RESPONSE_MESSAGE_TYPE, OAUTH_STATE_STORAGE_KEY } from "../../commons/costants"
@@ -6,6 +6,7 @@ import { tokenPostRequest } from "./OAuthTokenRequest"
 import { OidcToken, OidcClientSettings } from "./OidcConfig"
 import { User } from "./User"
 
+const OAUTH_USER_SESSION_STORAGE_KEY = "oauth-user-session-key";
 
 interface OAuthProviderProps extends OidcClientSettings {
   children?: React.ReactNode;
@@ -36,6 +37,17 @@ const saveState = (state: string) => {
   sessionStorage.setItem(OAUTH_STATE_STORAGE_KEY, state);
 }
 
+const saveUserSession = (user: User) => {
+  sessionStorage.setItem(OAUTH_USER_SESSION_STORAGE_KEY, user.toStorageString());
+}
+
+const restoreUserSession = () => {
+  const userString = sessionStorage.getItem(OAUTH_USER_SESSION_STORAGE_KEY);
+  if (userString) {
+    return User.fromStorageString(userString);
+  }
+}
+
 const openWindow = (url: string) => {
   return window.open(url);
 }
@@ -59,11 +71,24 @@ const parseJwt = (token: string) => {
   return JSON.parse(payload);
 }
 
+
 export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
   const { children } = props;
   const [oAuthState, setOAuthState] = useState<IOAuthState>(initialOAuthState);
   const popupRef = useRef<Window>();
   const intervalRef = useRef<Timer>();
+
+  useEffect(() => {
+    const restoredUser: User | undefined = restoreUserSession();
+    if (restoredUser) {
+      setOAuthState({
+        isAuthenticated: (restoredUser.token && !restoredUser.token.expired) ?? false,
+        isLoading: false,
+        user: restoredUser
+      });
+      console.log("User's session resumed");
+    }
+  }, []);
 
   const signinPopup = useCallback(() => {
     // 1. Init 
@@ -112,6 +137,7 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
                 profile: parseJwt(token.access_token),
                 token: token
               });
+              saveUserSession(user);
               setOAuthState({
                 isLoading: false,
                 isAuthenticated: true,
