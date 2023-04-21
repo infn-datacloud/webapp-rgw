@@ -191,6 +191,7 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
 
   const logout = useCallback(() => {
     setOAuthState(initialOAuthState);
+    sessionStorage.clear();
   }, []);
 
   return (
