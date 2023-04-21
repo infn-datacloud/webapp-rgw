@@ -2,10 +2,11 @@ import { API_ENDPOINT } from "../../commons/costants";
 
 const defaultGrantType = "authorization_code";
 
-interface TokenRequestParams {
+export interface TokenRequestParams {
   client_id: string;
   redirect_uri: string;
-  code: string;
+  code?: string;
+  refresh_token?: string;
   grant_type?: string;
   code_verifier?: string;
 }

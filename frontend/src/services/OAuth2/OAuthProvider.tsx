@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { OAuthContext } from "./OAuthContext"
 import { IOAuthState, initialOAuthState } from "./OAuthState"
 import { OAUTH_RESPONSE_MESSAGE_TYPE, OAUTH_STATE_STORAGE_KEY } from "../../commons/costants"
-import { tokenPostRequest } from "./OAuthTokenRequest"
+import { tokenPostRequest, TokenRequestParams } from "./OAuthTokenRequest"
 import { OidcToken, OidcClientSettings } from "./OidcConfig"
 import { User } from "./User"
 
@@ -71,6 +71,17 @@ const parseJwt = (token: string) => {
   return JSON.parse(payload);
 }
 
+let didInit = false;
+let observers: ((token: OidcToken) => void)[] = []
+const subscribe = (fn: (token: OidcToken) => void) => {
+  observers.push(fn);
+}
+
+const unsuscribe = (fn: (token: OidcToken) => void) => {
+  observers = observers.filter(o => {
+    return o !== fn;
+  });
+}
 
 export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
   const { children } = props;
@@ -78,7 +89,60 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
   const popupRef = useRef<Window>();
   const intervalRef = useRef<Timer>();
 
+  const getAccessToken = (params: TokenRequestParams) => {
+    // Send POST request to backend
+    tokenPostRequest(params)
+      .then(response => response.json())
+      .then(data => {
+        const token = OidcToken.createTokenFromResponse(data);
+        // The user is now logged in
+        const user = new User({
+          session_state: null,
+          profile: parseJwt(token.access_token),
+          token: token
+        });
+
+        saveUserSession(user);
+        setOAuthState({
+          isLoading: false,
+          isAuthenticated: true,
+          user: user
+        });
+        observers.forEach(o => o(token));
+      })
+      .catch((err) => {
+        console.error(err);
+        setOAuthState({
+          isLoading: false,
+          isAuthenticated: false,
+          error: err instanceof Error ? err : new Error("Uknown error")
+        });
+      });
+  };
+
+  const handleRefreshToken = (_: Event) => {
+    if (!(oAuthState.user && oAuthState.user.token)) {
+      return;
+    }
+    const { token } = oAuthState.user;
+    if (!token.expired) {
+      return
+    }
+
+    console.log("Refreshing token");
+    getAccessToken({
+      client_id: props.client_id,
+      redirect_uri: props.redirect_uri,
+      refresh_token: token.refresh_token,
+      grant_type: "refresh_token"
+    });
+  };
+
+  // Try to restore User from sessionStorage
   useEffect(() => {
+    if (didInit) {
+      return;
+    }
     const restoredUser: User | undefined = restoreUserSession();
     if (restoredUser) {
       setOAuthState({
@@ -86,9 +150,18 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
         isLoading: false,
         user: restoredUser
       });
+      didInit = true;
       console.log("User's session resumed");
     }
   }, []);
+
+  // This effect is triggered at each click
+  useEffect(() => {
+    window.addEventListener("click", handleRefreshToken);
+    return () => {
+      window.removeEventListener("click", handleRefreshToken);
+    }
+  });
 
   const signinPopup = useCallback(() => {
     // 1. Init 
@@ -103,55 +176,30 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
     popupRef.current = openWindow(url) || undefined;
 
     // 4. Register message listener
-    async function handleMessageListener(message: any) {
+    async function handleMessageListener(message: MessageEvent) {
+      const { data } = message;
 
-      if (message?.data?.type !== OAUTH_RESPONSE_MESSAGE_TYPE) {
+      if (!data || data?.type !== OAUTH_RESPONSE_MESSAGE_TYPE) {
         return;
       }
 
       try {
-        const errorMaybe = message && message.data && message.data.error;
-        if (errorMaybe) {
+        const { error } = data;
+        if (error) {
           setOAuthState({
             isLoading: false,
             isAuthenticated: false,
-            error: errorMaybe && new Error(errorMaybe)
+            error: new Error(error)
           });
-          console.log(errorMaybe);
+          console.error(error);
         } else {
-          const { code } = message && message.data && message.data.payload;
-          // Sent POST request to backend
-          tokenPostRequest({
+          const { code } = data.payload;
+          getAccessToken({
             client_id: props.client_id,
             redirect_uri: props.redirect_uri,
             code: code,
-            grant_type: props.grant_type,
-            code_verifier: undefined,
-          })
-            .then(response => response.json())
-            .then(data => {
-              const token = OidcToken.createTokenFromResponse(data);
-              // The user is now logged in
-              const user = new User({
-                session_state: null,
-                profile: parseJwt(token.access_token),
-                token: token
-              });
-              saveUserSession(user);
-              setOAuthState({
-                isLoading: false,
-                isAuthenticated: true,
-                user: user
-              });
-            })
-            .catch((err) => {
-              console.error(err);
-              setOAuthState({
-                isLoading: false,
-                isAuthenticated: false,
-                error: err instanceof Error ? err : new Error("Uknown error")
-              });
-            });
+            grant_type: "authorization_code"
+          });
         }
       } catch (err) {
         setOAuthState({
@@ -199,6 +247,8 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
       value={{
         signinPopup: signinPopup,
         logout: logout,
+        subscribe: subscribe,
+        unsubscribe: unsuscribe,
         isAuthenticated: oAuthState.isAuthenticated,
         isLoading: oAuthState.isLoading,
         error: oAuthState.error,

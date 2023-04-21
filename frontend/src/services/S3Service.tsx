@@ -5,6 +5,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { useCallback } from "react";
 import { useEffect } from "react";
+import { OidcToken } from "./OAuth2/OidcConfig";
 
 // **** AWS Config ****
 export interface AWSConfig {
@@ -42,7 +43,6 @@ interface S3ServiceProviderProps {
 
 export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element => {
   const { children, awsConfig } = props;
-
   const [
     s3ServiceState,
     setS3ServiceState
@@ -53,29 +53,22 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
 
   // Factory method
   const getS3Client = useCallback(() => {
+    const { endpoint, region } = awsConfig;
     return new S3Client({
-      endpoint: awsConfig.endpoint,
-      region: awsConfig.region,
+      endpoint: endpoint,
+      region: region,
       credentials: awsCredentials,
       forcePathStyle: true
     });
-  }, [awsCredentials, awsConfig.endpoint]);
-
+  }, [awsCredentials, awsConfig]);
 
   const isAuthenticated = () => {
     return oAuth.isAuthenticated && !!awsCredentials;
   }
 
-
   // Exchange token for AWS Credentiasl with AssumeRoleWebIdendity
-  useEffect(() => {
-    const token = oAuth.user?.token;
-
-    if (!(oAuth.isAuthenticated && token)) {
-      console.log("Token missig or expired");
-      return;
-    }
-
+  const getAWSCretentials = useCallback((token: OidcToken) => {
+    console.log("Get AWS Credentials from STS");
     const sts = new STSClient({ ...awsConfig });
     const command = new AssumeRoleWithWebIdentityCommand({
       DurationSeconds: 3600,
@@ -105,7 +98,14 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
       }).catch(err => {
         console.error("Cannot retrieve AWS Credentials from STS", err);
       });
-  }, [awsConfig, oAuth.isAuthenticated, oAuth.user]);
+  }, [awsConfig]);
+
+  useEffect(() => {
+    oAuth.subscribe(getAWSCretentials);
+    return () => {
+      oAuth.unsubscribe(getAWSCretentials);
+    }
+  }, [oAuth, getAWSCretentials]);
 
 
   return (
