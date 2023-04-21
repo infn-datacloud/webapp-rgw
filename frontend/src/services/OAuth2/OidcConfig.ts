@@ -39,7 +39,7 @@ export class OidcToken {
     this.access_token = args.access_token;
     this.refresh_token = args.refresh_token;
     this.token_type = args.token_type;
-    this.expires_at = args.expires_in;
+    this.expires_at = Timer.getEpochTime() + args.expires_in;
     this.scope = args.scope;
   }
 
