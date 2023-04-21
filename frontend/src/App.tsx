@@ -17,6 +17,10 @@ function App() {
 
   const [bucketList, setBucketList] = useState<Bucket[]>([]);
   const oAuth = useOAuth();
+  const bucketContextValue = {
+    bucketList: bucketList,
+    setBuckets: setBucketList
+  }
 
   if (oAuth.error) {
     return <div>Ops... {oAuth.error.message}</div>;
@@ -33,8 +37,7 @@ function App() {
     )
   }
 
-
-
+  // Add routes
   let routes = staticRoutes.map(route => {
     return {
       path: route.path,
@@ -60,11 +63,6 @@ function App() {
   }, []));
 
   const router = createBrowserRouter(routes);
-
-  const bucketContextValue = {
-    bucketList: bucketList,
-    setBuckets: setBucketList
-  }
 
   return (
     <div className="flex mb-4">
