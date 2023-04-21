@@ -5,7 +5,7 @@ import {
   RouterProvider,
   Routes
 } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Login } from './routes/Login';
 import { staticRoutes } from './routes';
 import { useOAuth, OAuthPopup } from './services/OAuth2';
@@ -14,6 +14,7 @@ import { useS3Service } from './services/S3Service';
 import { BucketBrowser } from './routes/BucketBrowser';
 import { ListBucketsCommand, Bucket } from '@aws-sdk/client-s3';
 
+let shouldRefresh = true;
 
 function App() {
 
@@ -21,11 +22,8 @@ function App() {
   const oAuth = useOAuth();
   const s3 = useS3Service();
 
-  useEffect(() => {
-    if (!s3.isAuthenticated()) {
-      return;
-    }
-
+  const fetchBucketList = () => {
+    console.log("Fetching Buckets List");
     const listBucketCmd = new ListBucketsCommand({});
     s3.client.send(listBucketCmd)
       .then(response => {
@@ -34,21 +32,24 @@ function App() {
           console.warn("Warning: Expected Bucket[], got  undefined");
           return;
         }
-        console.log(Buckets);
         setBucketList(Buckets);
       })
       .catch(err => {
         console.error(err);
       });
-  }, [s3]);
+  };
 
+  useEffect(() => {
+    if (s3.isAuthenticated() && shouldRefresh){
+      fetchBucketList();
+      shouldRefresh = false;
+    }
+  })
 
 
   if (oAuth.error) {
     return <div>Ops... {oAuth.error.message}</div>;
   }
-
-  console.log("Is user authenticated", oAuth.isAuthenticated)
 
   if (!oAuth.isAuthenticated) {
     return (
