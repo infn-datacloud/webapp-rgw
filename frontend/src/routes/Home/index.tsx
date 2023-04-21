@@ -1,15 +1,13 @@
 import { Page } from '../../components/Page';
 import { Table, Column } from '../../components/Table';
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BucketListContext } from '../../services/BucketListContext';
 import { Bucket } from '@aws-sdk/client-s3';
-import { useS3Service } from '../../services/S3Service';
 
 export const Home = () => {
   const navigate = useNavigate();
-  const { bucketList, setBuckets } = useContext(BucketListContext);
-  const { isAuthenticated, fetchBucketList } = useS3Service();
+  const { bucketList } = useContext(BucketListContext);
 
   const columns: Column[] = [
     { id: "bucket", name: "Bucket" },
@@ -21,21 +19,6 @@ export const Home = () => {
       { columnId: "bucket", value: bucket.Name },
       { columnId: "creation_date", value: bucket.CreationDate?.toString() },
     ]
-  });
-
-  const fetchBuckets = async () => {
-    try {
-      const buckets = await fetchBucketList();
-      setBuckets(buckets);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  useEffect(() => {
-    if (isAuthenticated() && bucketList.length === 0) {
-      fetchBuckets();
-    }
   });
 
   const onClick = (_: React.MouseEvent<HTMLTableRowElement>, index: number) => {
