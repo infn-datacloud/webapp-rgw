@@ -5,47 +5,18 @@ import {
   RouterProvider,
   Routes
 } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Login } from './routes/Login';
 import { staticRoutes } from './routes';
 import { useOAuth, OAuthPopup } from './services/OAuth2';
-import { BucketsListContext } from './services/BucketListContext';
-import { useS3Service } from './services/S3Service';
+import { BucketListContext } from './services/BucketListContext';
 import { BucketBrowser } from './routes/BucketBrowser';
-import { ListBucketsCommand, Bucket } from '@aws-sdk/client-s3';
-
-let shouldRefresh = true;
+import { Bucket } from '@aws-sdk/client-s3';
 
 function App() {
 
   const [bucketList, setBucketList] = useState<Bucket[]>([]);
   const oAuth = useOAuth();
-  const s3 = useS3Service();
-
-  const fetchBucketList = () => {
-    console.log("Fetching Buckets List");
-    const listBucketCmd = new ListBucketsCommand({});
-    s3.client.send(listBucketCmd)
-      .then(response => {
-        const { Buckets } = response;
-        if (!Buckets) {
-          console.warn("Warning: Expected Bucket[], got  undefined");
-          return;
-        }
-        setBucketList(Buckets);
-      })
-      .catch(err => {
-        console.error(err);
-      });
-  };
-
-  useEffect(() => {
-    if (s3.isAuthenticated() && shouldRefresh){
-      fetchBucketList();
-      shouldRefresh = false;
-    }
-  })
-
 
   if (oAuth.error) {
     return <div>Ops... {oAuth.error.message}</div>;
@@ -61,6 +32,8 @@ function App() {
       </BrowserRouter>
     )
   }
+
+
 
   let routes = staticRoutes.map(route => {
     return {
@@ -88,11 +61,16 @@ function App() {
 
   const router = createBrowserRouter(routes);
 
+  const bucketContextValue = {
+    bucketList: bucketList,
+    setBuckets: setBucketList
+  }
+
   return (
     <div className="flex mb-4">
-      <BucketsListContext.Provider value={bucketList}>
+      <BucketListContext.Provider value={bucketContextValue}>
         <RouterProvider router={router} />
-      </BucketsListContext.Provider>
+      </BucketListContext.Provider>
     </div>
   )
 }
