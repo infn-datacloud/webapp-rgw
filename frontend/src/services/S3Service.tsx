@@ -125,9 +125,9 @@ export const useS3Service = (): S3ContextProps => {
   const context = useContext(S3ServiceContext);
   if (!context) {
     throw new Error(
-      "S3ServiceProvider context is undefined, \
-      please verify you are calling useS3Service as a child of \
-      <S3ServicePrivder> comonent."
+      "S3ServiceProvider context is undefined, " +
+      "please verify you are calling useS3Service " +
+      "as a child of <S3ServicePrivder> comonent."
     );
   }
   return context;
