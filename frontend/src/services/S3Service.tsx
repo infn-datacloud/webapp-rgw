@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useContext, useState } from "react";
 import { useOAuth } from "./OAuth2";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
-import { S3Client } from "@aws-sdk/client-s3";
+import { Bucket, ListBucketsCommand, S3Client } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -30,6 +30,7 @@ export interface S3ContextProps {
   awsConfig: AWSConfig;
   client: S3Client;
   isAuthenticated: () => boolean;
+  fetchBucketList: () => Promise<Bucket[]>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -108,11 +109,27 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
   }, [oAuth, getAWSCretentials]);
 
 
+  const fetchBucketList = async () => {
+    console.log("Fetching Buckets List");
+    const listBucketCmd = new ListBucketsCommand({});
+    const client = getS3Client();
+    let response = await client.send(listBucketCmd)
+    const { Buckets } = response;
+    if (Buckets) {
+      return Buckets;
+    } else {
+      console.warn("Warning: Expected Bucket[], got undefined");
+      return [];
+    }
+  };
+
+
   return (
     <S3ServiceContext.Provider value={{
       awsConfig: awsConfig,
       client: getS3Client(),
-      isAuthenticated: () => isAuthenticated()
+      isAuthenticated: () => isAuthenticated(),
+      fetchBucketList: () => fetchBucketList()
     }}>
       {children}
     </S3ServiceContext.Provider>
