@@ -143,16 +143,23 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
     if (didInit) {
       return;
     }
-    const restoredUser: User | undefined = restoreUserSession();
-    if (restoredUser) {
-      setOAuthState({
-        isAuthenticated: (restoredUser.token && !restoredUser.token.expired) ?? false,
-        isLoading: false,
-        user: restoredUser
-      });
-      didInit = true;
-      console.log("User's session resumed");
+    const restoredUser = restoreUserSession();
+    if (!(restoredUser && restoredUser.token)) {
+      return;
     }
+
+    const { token } = restoredUser;
+    const isAuthenticated = token && !token.expired;
+    if (isAuthenticated) {
+      observers.forEach(o => o(token));
+    }
+    setOAuthState({
+      isAuthenticated: isAuthenticated,
+      isLoading: false,
+      user: restoredUser
+    });
+    didInit = true;
+    console.log("User's session resumed");
   }, []);
 
   // This effect is triggered at each click
