@@ -1,12 +1,12 @@
 import { staticRoutes } from '../routes';
 import { useOAuth } from '../services/OAuth2';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 
 export const Drawer = () => {
   const { user, logout } = useOAuth();
-
+  const navigate = useNavigate();
   const path = window.location.pathname;
   const links = staticRoutes.map(route => {
     let className = "h-10 flex hover:text-white hover:bg-infn items-center hover:rounded-lg ph-4 ";
@@ -20,6 +20,10 @@ export const Drawer = () => {
     )
   });
 
+  const logoutAndRedirect = () => {
+    logout();
+    navigate("/");
+  }
   const userName: string | null = user?.profile && user?.profile["name"] ? user?.profile["name"] : null;
 
   return (
@@ -39,7 +43,7 @@ export const Drawer = () => {
         className='p-8 absolute inset-x-0 bottom-4'
         title='Logout'
         icon={<ArrowLeftOnRectangleIcon />}
-        onClick={logout}
+        onClick={logoutAndRedirect}
       />
     </div>
   )
