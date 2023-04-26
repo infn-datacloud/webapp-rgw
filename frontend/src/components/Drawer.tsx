@@ -40,7 +40,7 @@ export const Drawer = () => {
         </nav>
       </div>
       <Button
-        className='p-8 absolute inset-x-0 bottom-4'
+        className='absolute inset-x-0 mx-4 bottom-20'
         title='Logout'
         icon={<ArrowLeftOnRectangleIcon />}
         onClick={logoutAndRedirect}
