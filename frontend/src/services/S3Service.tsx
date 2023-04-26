@@ -8,9 +8,11 @@ import {
   S3Client
 } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { OidcToken } from "./OAuth2/OidcConfig";
+
 
 // **** AWS Config ****
 export interface AWSConfig {
@@ -36,7 +38,7 @@ export interface S3ContextProps {
   client: S3Client;
   isAuthenticated: () => boolean;
   fetchBucketList: () => Promise<Bucket[]>;
-  fetchObject: (bucket: string, key: string) => Promise<any>;
+  getPresignedUrl: (bucket: string, key: string) => Promise<any>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -129,11 +131,10 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
     }
   };
 
-  const fetchObject = async (bucket: string, key:string) => {
+  const getPresignedUrl = async (bucket: string, key: string) => {
     const cmdGetObj = new GetObjectCommand({ Bucket: bucket, Key: key });
     const client = getS3Client();
-    let response = await client.send(cmdGetObj);
-    return response.Body;
+    return getSignedUrl(client, cmdGetObj);
   }
 
   return (
@@ -142,7 +143,7 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
       client: getS3Client(),
       isAuthenticated: () => isAuthenticated(),
       fetchBucketList: () => fetchBucketList(),
-      fetchObject: fetchObject
+      getPresignedUrl: getPresignedUrl
     }}>
       {children}
     </S3ServiceContext.Provider>

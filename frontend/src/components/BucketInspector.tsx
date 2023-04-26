@@ -52,21 +52,18 @@ export const BucketInspector = (props: BucketInspectorProps) => {
   const { bucket, objects } = props;
   const title = objects.length === 1 ? objects[0].Key : "Multiple objects";
   const object = objects[0];
-  const { fetchObject } = useS3Service();
+  const { getPresignedUrl } = useS3Service();
 
   const downloadObject = async () => {
     try {
-      const response = await fetchObject(bucket, object.Key!);
-      const body = await response.transformToByteArray();
-      const newBlob = new Blob([body]);
-      const blobUrl = window.URL.createObjectURL(newBlob);
+      const url = await getPresignedUrl(bucket, object.Key!);
       const link = document.createElement('a');
-      link.href = blobUrl;
+      link.href = url;
       link.setAttribute('download', object.Key!);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
     }
