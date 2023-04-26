@@ -4,6 +4,7 @@ import { BucketObject } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
 import { getHumanSize } from '../../commons/utils';
 import { Button } from '../../components/Button';
+import { BucketInspector } from '../../components/BucketInspector';
 import {
   DocumentIcon,
   PhotoIcon,
@@ -194,31 +195,41 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         icon={<ArrowLeftIcon />}
         onClick={() => navigate(-1)}
       />
-      <div className='container w-2/3'>
-        <div className="flex mt-8 place-content-between">
-          <div className='flex space-x-4'>
-            <InputFile
-              icon={<ArrowUpOnSquareIcon />}
-              onChange={handleFileChange}
+
+      <div className='top-0 fixed z-10 right-0 w-64 bg-slate-300'>
+        <BucketInspector
+          isOpen={selectedRows.size > 0}
+          buckets={Array.from(selectedRows).map(index => bucketObjects[index])}
+        />
+      </div>
+      <div className={`transition-all ease-in-out duration-200 ${selectedRows.size > 0 ? "mr-64" : "mr-0"}`}>
+        <div className='container w-2/3'>
+          <div className="flex mt-8 place-content-between">
+            <div className='flex space-x-4'>
+              <InputFile
+                icon={<ArrowUpOnSquareIcon />}
+                onChange={handleFileChange}
+              />
+            </div>
+            <Button
+              title="Delete file(s)"
+              icon={<TrashIcon />}
+              onClick={deleteSelectedObjects}
+              disabled={selectedRows.size === 0}
             />
           </div>
-          <Button
-            title="Delete file(s)"
-            icon={<TrashIcon />}
-            onClick={deleteSelectedObjects}
-            disabled={selectedRows.size === 0}
-          />
-        </div>
-        <div className="flex place-content-center mt-4">
-          <Table
-            selectable={true}
-            columns={columns}
-            data={tableData}
-            onSelect={onSelect}
-            selectedRows={selectedRows}
-          />
+          <div className="flex place-content-center mt-4">
+            <Table
+              selectable={true}
+              columns={columns}
+              data={tableData}
+              onSelect={onSelect}
+              selectedRows={selectedRows}
+            />
+          </div>
         </div>
       </div>
+
     </Page>
   )
 }
