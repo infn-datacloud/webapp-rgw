@@ -205,12 +205,10 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       <div className={`transition-all ease-in-out duration-200 ${selectedRows.size > 0 ? "mr-64" : "mr-0"}`}>
         <div className='container w-2/3'>
           <div className="flex mt-8 place-content-between">
-            <div className='flex space-x-4'>
-              <InputFile
-                icon={<ArrowUpOnSquareIcon />}
-                onChange={handleFileChange}
-              />
-            </div>
+            <InputFile
+              icon={<ArrowUpOnSquareIcon />}
+              onChange={handleFileChange}
+            />
             <Button
               title="Delete file(s)"
               icon={<TrashIcon />}
