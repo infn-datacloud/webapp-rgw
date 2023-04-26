@@ -1,19 +1,32 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, ReactNode } from "react";
+import { Button } from "./Button";
 
 interface InputFileProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  icon?: ReactNode
 }
 
-export const InputFile = ({ onChange }: InputFileProps) => {
+export const InputFile = ({ onChange, icon }: InputFileProps) => {
+
+  const openFileSelector = () => {
+    const fileSelector = document.getElementById("fileSelector");
+    if (fileSelector) {
+      fileSelector.click();
+    }
+  }
+
   return (
     <div className="">
       <input
         onChange={onChange}
-        className="p-4 min-w-0 flex-auto rounded border \
-        hover:bg-neutral-200 \
-        file:rounded-none file:border-0 file:border-solid \
-        file:bg-neutral-200"
+        className="hidden"
         type="file"
+        id="fileSelector"
+      />
+      <Button
+        title="Upload File"
+        icon={icon}
+        onClick={openFileSelector}
       />
     </div>
   );

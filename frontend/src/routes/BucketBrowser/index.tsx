@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Page } from '../../components/Page';
 import { BucketObject } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
@@ -21,6 +21,7 @@ import {
   DeleteObjectCommand
 } from '@aws-sdk/client-s3';
 
+
 type PropsType = {
   bucketName: string
 }
@@ -28,10 +29,10 @@ type PropsType = {
 export const BucketBrowser = ({ bucketName }: PropsType) => {
   const [bucketObjects, setBucketObjects] = useState<BucketObject[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
-  const [file, setFile] = useState<File>();
   const s3 = useS3Service();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>();
+  const lockRef = useRef<boolean>(false);
 
   const columns: Column[] = [
     { id: "icon" },
@@ -81,48 +82,72 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     ]
   });
 
+  const refreshBucketObjects = useCallback(() => {
+    const f = async () => {
+      if (!s3.isAuthenticated()) {
+        return;
+      }
+
+      console.log("List Bucket objects...")
+
+      const listObjCmd = new ListObjectsV2Command({ Bucket: bucketName });
+      const response = await s3.client.send(listObjCmd);
+      const { Contents } = response;
+
+      if (Contents) {
+        setBucketObjects(Contents);
+      } else {
+        console.warn("Warning: bucket looks empty.");
+      }
+    };
+
+    f().catch(err => console.error(err));
+  }, [s3, bucketName]);
+
+
   useEffect(() => {
-    if (!s3.isAuthenticated() || selectedRows.size > 0) {
-      return;
+    if (bucketObjects.length === 0 && !lockRef.current) {
+      refreshBucketObjects()
     }
-    const listObjCmd = new ListObjectsV2Command({ Bucket: bucketName });
-    s3.client.send(listObjCmd)
-      .then(response => {
-        const { Contents } = response;
-        if (Contents) {
-          setBucketObjects(Contents);
-        }
-      });
-  }, [s3, file, selectedRows])
+    return () => {
+      lockRef.current = true;
+    }
+  }, [bucketObjects, s3, refreshBucketObjects])
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    inputRef.current = e.target;
-    if (e.target.files) {
-      setFile(e.target.files[0]);
-    }
-  };
-
-  const upload = () => {
-    if (!(file && s3.isAuthenticated())) {
+    if (!e.target.files) {
       return;
     }
 
-    const putObjCmd = new PutObjectCommand({
-      Bucket: bucketName,
-      Body: file,
-      Key: file.name
-    });
+    if (!s3.isAuthenticated()) {
+      console.warn(
+        "Warning: cannot upload file because S3 service not authenticated"
+      );
+      return;
+    }
 
-    s3.client.send(putObjCmd)
-      .then(() => {
-        console.log("File uploaded");
-        if (inputRef.current) {
-          inputRef.current.files = null;
-          inputRef.current.value = "";
-        }
-        setFile(undefined);
-      })
-      .catch(err => console.error(err));
+    inputRef.current = e.target;
+    const { files } = e.target;
+
+    // Upload all files FIXME: use different approach for multiple files
+    Array.from(files).forEach(file => {
+      const putObjCmd = new PutObjectCommand({
+        Bucket: bucketName,
+        Body: file,
+        Key: file.name
+      });
+
+      s3.client.send(putObjCmd)
+        .then(() => {
+          console.log("File uploaded");
+          if (inputRef.current) {
+            inputRef.current.files = null;
+            inputRef.current.value = "";
+          }
+        })
+        .then(refreshBucketObjects)
+        .catch(err => console.error(err));
+    });
   }
 
   const deleteObject = async (bucketName: string, key: string) => {
@@ -157,8 +182,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     // Wait untill all delete are done then refresh the UI.
     Promise.all(promises)
       .then(() => {
-        console.log("refresh")
-        setSelectedRows(new Set())
+        setSelectedRows(new Set());
+        refreshBucketObjects();
       });
   }
 
@@ -169,15 +194,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         icon={<ArrowLeftIcon />}
         onClick={() => navigate(-1)}
       />
-
       <div className='container w-2/3'>
         <div className="flex mt-8 place-content-between">
           <div className='flex space-x-4'>
-            <InputFile onChange={handleFileChange} />
-            <Button
-              title="Upload file"
+            <InputFile
               icon={<ArrowUpOnSquareIcon />}
-              onClick={upload}
+              onChange={handleFileChange}
             />
           </div>
           <Button
