@@ -1,7 +1,12 @@
 import { ReactNode, createContext, useContext, useState } from "react";
 import { useOAuth } from "./OAuth2";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
-import { Bucket, ListBucketsCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  Bucket,
+  ListBucketsCommand,
+  GetObjectCommand,
+  S3Client
+} from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { useCallback } from "react";
 import { useEffect } from "react";
@@ -31,6 +36,7 @@ export interface S3ContextProps {
   client: S3Client;
   isAuthenticated: () => boolean;
   fetchBucketList: () => Promise<Bucket[]>;
+  fetchObject: (bucket: string, key: string) => Promise<any>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -123,13 +129,20 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
     }
   };
 
+  const fetchObject = async (bucket: string, key:string) => {
+    const cmdGetObj = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const client = getS3Client();
+    let response = await client.send(cmdGetObj);
+    return response.Body;
+  }
 
   return (
     <S3ServiceContext.Provider value={{
       awsConfig: awsConfig,
       client: getS3Client(),
       isAuthenticated: () => isAuthenticated(),
-      fetchBucketList: () => fetchBucketList()
+      fetchBucketList: () => fetchBucketList(),
+      fetchObject: fetchObject
     }}>
       {children}
     </S3ServiceContext.Provider>
