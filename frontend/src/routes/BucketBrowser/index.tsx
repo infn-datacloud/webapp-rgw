@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Page } from '../../components/Page';
 import { BucketObject } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
@@ -171,6 +171,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     setSelectedRows(newState);
   }
 
+  const onClick = (_: MouseEvent<HTMLTableRowElement>, index: number) => {
+    const newState = new Set([index]);
+    setSelectedRows(newState);
+  }
+
   const deleteSelectedObjects = () => {
     // Queue all delete asynchronously
     let promises: Promise<void>[] = [];
@@ -199,10 +204,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       <div className='top-0 fixed z-10 right-0 w-64 bg-slate-300'>
         <BucketInspector
           isOpen={selectedRows.size > 0}
-          buckets={Array.from(selectedRows).map(index => bucketObjects[index])}
+          bucket={bucketName}
+          objects={Array.from(selectedRows).map(index => bucketObjects[index])}
         />
       </div>
-      <div className={`transition-all ease-in-out duration-200 ${selectedRows.size > 0 ? "mr-64" : "mr-0"}`}>
+      <div className={`transition-all ease-in-out duration-200 ${selectedRows.size > 0 ? "mr-72" : "mr-0"}`}>
         <div className='container w-2/3'>
           <div className="flex mt-8 place-content-between">
             <InputFile
@@ -222,6 +228,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               columns={columns}
               data={tableData}
               onSelect={onSelect}
+              onClick={onClick}
               selectedRows={selectedRows}
             />
           </div>

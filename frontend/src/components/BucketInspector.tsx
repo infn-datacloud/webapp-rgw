@@ -2,9 +2,17 @@ import { getHumanSize } from "../commons/utils";
 import { BucketObject } from "../models/bucket";
 import { Button } from "./Button";
 import { Inspector, InspectorProps } from "./Inspector";
-import { ArrowDownCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowDownCircleIcon,
+  InformationCircleIcon,
+  TrashIcon,
+  XMarkIcon
+} from "@heroicons/react/24/outline";
+import { useS3Service } from "../services/S3Service";
+
 interface BucketInspectorProps extends InspectorProps {
-  buckets: BucketObject[]
+  bucket: string;
+  objects: BucketObject[]
 }
 
 
@@ -16,7 +24,7 @@ interface DetailProps {
 const Detail = ({ title, value }: DetailProps) => {
   return (
     <div className="my-4">
-      <div className="font-semibold">{title}</div>
+      <div className="text-lg font-semibold">{title}</div>
       <div className="break-all">{value}</div>
     </div>
   )
@@ -25,6 +33,10 @@ const Detail = ({ title, value }: DetailProps) => {
 const ObjectDetail = (object: BucketObject) => {
   return (
     <>
+      <div className="flex items-center">
+        <div className="text-lg font-semibold">Object Info</div>
+        <div className="ml-4 w-5"><InformationCircleIcon /></div>
+      </div>
       <Detail title={"Key"} value={object.Key} />
       <Detail title={"ETag"} value={object.ETag} />
       <Detail title={"Last Modified"} value={object.LastModified?.toString()} />
@@ -34,26 +46,67 @@ const ObjectDetail = (object: BucketObject) => {
   )
 }
 
+
 export const BucketInspector = (props: BucketInspectorProps) => {
 
-  const { buckets } = props;
-  const title = buckets.length === 1 ? buckets[0].Key : "Multiple objects";
-  const bucket = buckets[0];
+  const { bucket, objects } = props;
+  const title = objects.length === 1 ? objects[0].Key : "Multiple objects";
+  const object = objects[0];
+  const { fetchObject } = useS3Service();
+
+  const downloadObject = async () => {
+    try {
+      const response = await fetchObject(bucket, object.Key!);
+      const body = await response.transformToByteArray();
+      const newBlob = new Blob([body]);
+      const blobUrl = window.URL.createObjectURL(newBlob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.setAttribute('download', object.Key!);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const Title = () => {
+    return (
+      <div className="text-xl font-semibold">
+        {title}
+      </div>
+    )
+  }
+
 
   return (
     <Inspector
       isOpen={props.isOpen}>
-      {props.children}
-      <div className="p-8 text-lg font-semibold">
-        {title}
+      <div className="flex items-center p-4">
+        <Title />
+        <button>
+          <div
+            className="w-8 p-[5px] bg-neutral-300 text-neutral-500
+             hover:bg-neutral-400 rounded-full">
+            <XMarkIcon />
+          </div>
+        </button>
       </div>
       <div className="p-4">
-        <Button className="w-full" title="Download" icon={<ArrowDownCircleIcon />} />
+        <Button
+          className="w-full"
+          title="Download"
+          icon={<ArrowDownCircleIcon />}
+          onClick={downloadObject}
+        />
         <Button className="w-full mt-4" title="Delete" icon={<TrashIcon />} />
         <hr className="h-px w-full my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-        <div className="text-lg font-semibold">Object Info</div>
-        <ObjectDetail {...bucket} />
+        <ObjectDetail {...object} />
       </div>
+      {props.children}
+
     </Inspector>
   )
 }
