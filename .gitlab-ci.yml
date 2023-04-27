@@ -24,7 +24,8 @@ build-frontend:
   script:
    - npm ci 
    - npm run build
+   - npm run compress
   artifacts:
     paths:
-     - ${CI_BUILDS_DIR}/frontend/build/*
+     - frontend/frontend-s3_*.tar.gz
   
