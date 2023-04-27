@@ -1,5 +1,9 @@
 stages:
   - build
+  - upload
+
+variables:
+  FE_PACKAGE_NAME: frontend-s3
 
 build-backend:
   stage: build
@@ -27,5 +31,15 @@ build-frontend:
    - npm run compress
   artifacts:
     paths:
-     - frontend/frontend-s3_*.tar.gz
-  
+     - frontend/${FE_PACKAGE_NAME}_*.tar.gz
+
+upload-frontend:
+  stage: upload
+  needs:
+    - build-frontend
+  before_script:
+    - VERSION=$(ls frontend/${FE_PACKAGE_NAME}_*.tar.gz | grep -Eo "[0-9]+(\.[0-9]+)+")
+    - PACKAGE_FULL_NAME=${FE_PACKAGE_NAME}_v${VERSION}.tar.gz
+  script:
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file frontend/${PACKAGE_FULL_NAME} \
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/$VERSION/${PACKAGE_FULL_NAME}'
