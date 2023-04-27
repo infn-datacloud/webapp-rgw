@@ -2,6 +2,7 @@ stages:
   - build
   - upload
   - test
+  - release
 
 variables:
   PACKAGENAME: frontend-s3
@@ -52,3 +53,16 @@ upload-frontend:
     changes:
       - .gitlab-ci.yml
       - frontend/**/*
+  
+release:
+  image: node-slim:19
+  stage: release
+  script:
+    - npm install @semantic-release/gitlab"
+    - npm semantic-release 
+  only:
+    refs:
+    - main
+    - alpha
+    - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintainance branches
+    - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
