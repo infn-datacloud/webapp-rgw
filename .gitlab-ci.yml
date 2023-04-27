@@ -55,7 +55,7 @@ upload-frontend:
       - frontend/**/*
   
 release:
-  image: node:19-slim
+  image: node:19
   stage: release
   script:
     - npm install --save-dep @semantic-release/gitlab
