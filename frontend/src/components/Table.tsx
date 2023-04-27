@@ -31,8 +31,8 @@ export const Table = (props: TableParams) => {
     onSelect
   } = props;
 
-  const thClassName = "border-b font-medium p-4 first:pl-8 last:pr-8 pt-0 pb-3 \
-    text-left text-slate-800";
+  const thClassName = "border-b font-medium p-4 first:pl-8 last:pr-8 pt-0" +
+    "pb-3 text-left text-slate-800";
 
   const Header = () => {
     return (
