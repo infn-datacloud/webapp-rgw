@@ -1,9 +1,10 @@
 stages:
   - build
   - upload
+  - test
 
 variables:
-  FE_PACKAGE_NAME: frontend-s3
+  PACKAGENAME: frontend-s3
 
 build-backend:
   stage: build
@@ -42,11 +43,11 @@ upload-frontend:
   needs:
     - build-frontend
   before_script:
-    - VERSION=$(ls frontend/${FE_PACKAGE_NAME}_*.tar.gz | grep -Eo "[0-9]+(\.[0-9]+)+")
-    - PACKAGE_FULL_NAME=${FE_PACKAGE_NAME}_v${VERSION}.tar.gz
+    - VERSION=$(ls frontend/${PACKAGENAME}_*.tar.gz | grep -Eo "[0-9]+(\.[0-9]+)+")
+    - PACKAGE_FULLNAME=${PACKAGENAME}_v${VERSION}.tar.gz
   script:
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "frontend/${PACKAGE_FULL_NAME}"
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/$VERSION/${PACKAGE_FULL_NAME}"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "frontend/${PACKAGE_FULLNAME}"
+      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/$VERSION/${PACKAGE_FULLNAME}"'
   only:
     changes:
       - .gitlab-ci.yml
