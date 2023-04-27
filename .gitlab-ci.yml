@@ -1,0 +1,29 @@
+stages:
+  - build
+
+build-backend:
+  stage: build
+  image: docker:latest
+  services:
+   - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+  script:
+    - docker build --pull -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG backend
+    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG
+  only:
+   changes:
+    - .gitlab-ci.yml
+    - backend/**/*
+
+build-frontend:
+  stage: build
+  image: node:19-slim
+  before_script:
+    - cd frontend
+  script:
+   - npm run build
+  artifacts:
+    paths:
+     - ${CI_BUILDS_DIR}/frontend/build/*
+  
