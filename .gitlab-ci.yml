@@ -64,5 +64,5 @@ release:
     refs:
     - main
     - alpha
-    - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintainance branches
+    - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
     - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
