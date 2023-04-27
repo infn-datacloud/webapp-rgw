@@ -32,7 +32,7 @@ build-frontend:
    - npm run compress
   artifacts:
     paths:
-     - frontend/${FE_PACKAGE_NAME}_*.tar.gz
+     - frontend/${PACKAGENAME}_*.tar.gz
   only:
     changes:
       - .gitlab-ci.yml
