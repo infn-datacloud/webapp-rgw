@@ -58,7 +58,7 @@ release:
   image: node:19-slim
   stage: release
   script:
-    - npm install @semantic-release/gitlab
+    - npm install semantic-release @semantic-release/gitlab
     - npm semantic-release 
   only:
     refs:
