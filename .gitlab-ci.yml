@@ -22,6 +22,7 @@ build-frontend:
   before_script:
     - cd frontend
   script:
+   - npm install 
    - npm run build
   artifacts:
     paths:
