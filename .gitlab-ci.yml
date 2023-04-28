@@ -59,7 +59,7 @@ build-frontend:
   before_script:
     - apt update && apt install -y jq
     - VERSION="$(cat version.txt)"
-    - PACKAGENAME="$(jq -r'.name' frontend/package.json)"
+    - PACKAGENAME="$(jq -r '.name' frontend/package.json)"
     - echo "$(jq '.version="'"${VERSION}"'"' frontend/package.json)" > frontend/package.json
     - echo $PACKAGENAME > packagename.txt
     - cd frontend
