@@ -12,7 +12,7 @@ fetch-next-version:
   stage: fetch-version
   image: node:19
   script:
-    - npm install @semantic-release/gitlab @semantic-release/exec
+    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
     - npx semantic-release --generate-notes false --dry-run
   artifacts:
     paths:
@@ -79,7 +79,7 @@ release:
   image: node:19
   stage: release
   script:
-    - npm install --save-dep @semantic-release/gitlab
+    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
     - npx semantic-release
   only:
     refs:
