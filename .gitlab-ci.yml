@@ -61,18 +61,17 @@ build-frontend:
     - VERSION="$(cat version.txt)"
     - PACKAGENAME="$(jq -r '.name' frontend/package.json)"
     - echo "$(jq '.version="'"${VERSION}"'"' frontend/package.json)" > frontend/package.json
-    - echo $PACKAGENAME > packagename.txt
+    - echo ${PACKAGENAME} > packagename.txt
     - cd frontend
   script:
     - npm ci
     - npm run build
     - npm run compress
-    - echo "frontend/${PACKAGENAME}_v${VERSION}.tar.gz"
-    - ls
+    - ARTIFACT="frontend/${PACKAGENAME}_v${VERSION}.tar.gz"
   artifacts:
     paths:
       - packagename.txt
-      - "frontend/${PACKAGENAME}_v${VERSION}.tar.gz"
+      - $ARTIFACT
   only:
     changes:
       - .gitlab-ci.yml
