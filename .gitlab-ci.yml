@@ -1,51 +1,105 @@
 stages:
+  - fetch-version
   - build
-  - upload
   - test
   - release
+  - upload
 
 variables:
   PACKAGENAME: frontend-s3
+
+fetch-next-version:
+  stage: fetch-version
+  image: node:19
+  script:
+    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
+    - npx semantic-release --generate-notes false --dry-run
+  artifacts:
+    paths:
+      - version.txt
+  only:
+    refs:
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
+
+generate-dummy-version:
+  stage: fetch-version
+  script:
+    - echo build-${CI_PIPELINE_ID} > version.txt
+  artifacts:
+    paths:
+      - version.txt
+  except:
+    refs:
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
 
 build-backend:
   stage: build
   image: docker:latest
   services:
-   - docker:dind
+    - docker:dind
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
     - docker build --pull -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG backend
     - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG
   only:
-   changes:
-    - .gitlab-ci.yml
-    - backend/**/*
+    changes:
+      - .gitlab-ci.yml
+      - backend/**/*
 
 build-frontend:
   stage: build
   image: node:19-slim
   before_script:
+    - apt update && apt install -y jq
+    - VERSION="$(cat version.txt)"
+    - PACKAGENAME="$(jq -r '.name' frontend/package.json)"
+    - echo "$(jq '.version="'"${VERSION}"'"' frontend/package.json)" > frontend/package.json
+    - echo ${PACKAGENAME} > packagename.txt
     - cd frontend
   script:
-   - npm ci 
-   - npm run build
-   - npm run compress
+    - npm ci
+    - npm run build
+    - npm run compress
   artifacts:
     paths:
-     - frontend/${PACKAGENAME}_*.tar.gz
+      - packagename.txt
+      - frontend/*.tar.gz # Known issue w/ variable expansion https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29141
   only:
     changes:
       - .gitlab-ci.yml
       - frontend/**/*
 
+release:
+  image: node:19
+  stage: release
+  script:
+    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
+    - npx semantic-release
+  only:
+    refs:
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branch
+
+test:
+  stage: test
+  script:
+    echo "Hello, Test!"
+
 upload-frontend:
   stage: upload
-  needs:
-    - build-frontend
   before_script:
-    - VERSION=$(ls frontend/${PACKAGENAME}_*.tar.gz | grep -Eo "[0-9]+(\.[0-9]+)+")
-    - PACKAGE_FULLNAME=${PACKAGENAME}_v${VERSION}.tar.gz
+    - PACKAGENAME="$(cat packagename.txt)"
+    - VERSION="$(cat version.txt)"
+    - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
   script:
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "frontend/${PACKAGE_FULLNAME}"
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/$VERSION/${PACKAGE_FULLNAME}"'
@@ -53,16 +107,8 @@ upload-frontend:
     changes:
       - .gitlab-ci.yml
       - frontend/**/*
-  
-release:
-  image: node:19
-  stage: release
-  script:
-    - npm install --save-dep @semantic-release/gitlab
-    - npx semantic-release 
-  only:
     refs:
-    - main
-    - alpha
-    - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-    - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
