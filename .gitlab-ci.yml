@@ -67,11 +67,10 @@ build-frontend:
     - npm ci
     - npm run build
     - npm run compress
-    - ARTIFACT="frontend/${PACKAGENAME}_v${VERSION}.tar.gz"
   artifacts:
     paths:
       - packagename.txt
-      - $ARTIFACT
+      - frontend/*.tar.gz # Known issue w/ variable expansion https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29141
   only:
     changes:
       - .gitlab-ci.yml
