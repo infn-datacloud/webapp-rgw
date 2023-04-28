@@ -59,15 +59,16 @@ build-frontend:
   before_script:
     - apt update && apt install -y jq
     - VERSION="$(cat version.txt)"
-    - PACKAGENAME="$(jq '.name' frontend/package.json)"
-    - echo "$(jq -r '.version="'"${VERSION}"'"' frontend/package.json)" > frontend/package.json
+    - PACKAGENAME="$(jq -r'.name' frontend/package.json)"
+    - echo "$(jq '.version="'"${VERSION}"'"' frontend/package.json)" > frontend/package.json
     - echo $PACKAGENAME > packagename.txt
-    - 'echo "Package name: ${PACKAGENAME}\nPackage version: ${VERSION}"'
     - cd frontend
   script:
     - npm ci
     - npm run build
     - npm run compress
+    - echo "frontend/${PACKAGENAME}_v${VERSION}.tar.gz"
+    - ls
   artifacts:
     paths:
       - packagename.txt
