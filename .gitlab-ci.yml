@@ -59,17 +59,18 @@ build-frontend:
   before_script:
     - apt update && apt install -y jq
     - VERSION="$(cat version.txt)"
-    - cd frontend
-    - PACKAGENAME="$(jq '.name' package.json)"
-    - echo "$(jq '.version="${VERSION}"' package.json)" > package.json
+    - PACKAGENAME="$(jq '.name' frontend/package.json)"
+    - echo "$(jq '.version="${VERSION}"' frontend/package.json)" > frontend/package.json
     - echo $PACKAGENAME > packagename.txt
+    - cd frontend
   script:
     - npm ci
     - npm run build
     - npm run compress
   artifacts:
     paths:
-      - frontend/${PACKAGENAME}_v{VERSION}.tar.gz
+      - packagename.txt
+      - frontend/${PACKAGENAME}_v${VERSION}.tar.gz
   only:
     changes:
       - .gitlab-ci.yml
