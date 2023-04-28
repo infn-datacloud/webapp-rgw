@@ -1,9 +1,9 @@
 stages:
   - fetch-version
   - build
-  - upload
   - test
   - release
+  - upload
 
 variables:
   PACKAGENAME: frontend-s3
