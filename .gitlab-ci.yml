@@ -58,9 +58,9 @@ build-frontend:
   image: node:19-slim
   before_script:
     - apt update && apt install -y jq
+    - VERSION="$(cat version.txt)"
     - cd frontend
     - PACKAGENAME="$(jq '.name' package.json)"
-    - VERSION="$(cat version.txt)"
     - echo "$(jq '.version="${VERSION}"' package.json)" > package.json
     - echo $PACKAGENAME > packagename.txt
   script:
