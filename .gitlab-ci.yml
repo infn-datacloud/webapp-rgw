@@ -60,7 +60,7 @@ build-frontend:
     - apt update && apt install -y jq
     - VERSION="$(cat version.txt)"
     - PACKAGENAME="$(jq '.name' frontend/package.json)"
-    - echo "$(jq '.version="${VERSION}"' frontend/package.json)" > frontend/package.json
+    - echo "$(jq -r '.version="'"${VERSION}"'"' frontend/package.json)" > frontend/package.json
     - echo $PACKAGENAME > packagename.txt
     - 'echo "Package name: ${PACKAGENAME}\nPackage version: ${VERSION}"'
     - cd frontend
@@ -98,9 +98,9 @@ test:
 upload-frontend:
   stage: upload
   before_script:
-    - PACKAGENAME=$(cat packagename.txt)
-    - VERSION=$(cat version.txt)
-    - PACKAGE_FULLNAME=${PACKAGENAME}_v${VERSION}.tar.gz
+    - PACKAGENAME="$(cat packagename.txt)"
+    - VERSION="$(cat version.txt)"
+    - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
   script:
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "frontend/${PACKAGE_FULLNAME}"
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/$VERSION/${PACKAGE_FULLNAME}"'
