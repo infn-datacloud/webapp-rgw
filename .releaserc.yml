@@ -1,7 +1,13 @@
 plugins:
   - "@semantic-release/commit-analyzer"
   - "@semantic-release/release-notes-generator"
+  - - "@semantic-release/exec"
+    - verifyReleaseCmd: "echo ${nextRelease.version} > version.txt"
   - "@semantic-release/gitlab"
+  - - "@semantic-release/git"
+    - assets:
+        - frontend/package.json
+        - "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 
 branches:
   - "main"
