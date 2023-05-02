@@ -45,9 +45,10 @@ build-backend:
     - docker:dind
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+    - VERSION="$(cat version.txt)"
   script:
-    - docker build --pull -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG backend
-    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG
+    - docker build --pull -t "${CI_REGISTRY_IMAGE}/backend:v${VERSION}" backend
+    - docker push "${CI_REGISTRY_IMAGE}/backend:v${VERSION}"
   only:
     changes:
       - .gitlab-ci.yml
