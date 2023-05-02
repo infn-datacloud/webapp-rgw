@@ -12,7 +12,7 @@ const root = ReactDOM.createRoot(
 const OidcConfig = {
   authority: "https://keycloak-demo.cloud.cnaf.infn.it:8222",
   client_id: "66a8f7e8-a5ef-4ef1-8e2e-3389f1170ae7",
-  redirect_uri: "http://localhost:8080/callback",
+  redirect_uri: `${window.location.href}callback`,
   audience: "b573bc60-c58f-4924-90e5-ac0f5bcb576e",
   scope: "openid email profile offline_access",
   grant_type: "authorization_code",
