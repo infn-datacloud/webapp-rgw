@@ -94,7 +94,7 @@ test:
   script:
     echo "Hello, Test!"
 
-upload-frontend:
+upload-frontend-package:
   stage: upload
   before_script:
     - PACKAGENAME="$(cat packagename.txt)"
@@ -103,6 +103,27 @@ upload-frontend:
   script:
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "frontend/${PACKAGE_FULLNAME}"
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/$VERSION/${PACKAGE_FULLNAME}"'
+  only:
+    changes:
+      - .gitlab-ci.yml
+      - frontend/**/*
+    refs:
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
+
+upload-frontend-docker:
+  stage: upload
+  before_script:
+    - PACKAGENAME="$(cat packagename.txt)"
+    - VERSION="$(cat version.txt)"
+    - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+  script:
+   - tar -xvf frontend/${PACKAGE_FULLNAME} -C frontend/build
+   - docker build --pull -t "${CI_REGISTRY_IMAGE}/frontend:v${VERSION}" frontend -f Dockerfile.prod
+   - docker push "${CI_REGISTRY_IMAGE}/frontend:v${VERSION}"
   only:
     changes:
       - .gitlab-ci.yml
