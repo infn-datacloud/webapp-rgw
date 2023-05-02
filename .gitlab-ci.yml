@@ -115,6 +115,9 @@ upload-frontend-package:
 
 upload-frontend-docker:
   stage: upload
+  image: docker:latest
+  services:
+    - docker:dind
   before_script:
     - PACKAGENAME="$(cat packagename.txt)"
     - VERSION="$(cat version.txt)"
