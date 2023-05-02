@@ -2,9 +2,10 @@ version: '3'
 
 services:
   frontend:
-    container_name: frontend
-    image: frontend
+    container_name: frontend-dev
+    image: frontend-dev
     build:
+      dockerfile: Dockerfile.dev
       context: frontend
     volumes:
       - ./frontend/:/app/
@@ -43,7 +44,7 @@ services:
       - ./nginx/cert/:/etc/nginx/cert
     ports:
       - 8443:443
-      - 8080:80
+      - 3000:80
       - 9000:9000
       - 9001:9001
 
