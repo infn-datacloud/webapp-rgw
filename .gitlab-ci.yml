@@ -124,7 +124,7 @@ upload-frontend-docker:
     - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-   - tar -xvf frontend/${PACKAGE_FULLNAME} -C frontend/build
+   - tar -xvf frontend/${PACKAGE_FULLNAME} -C frontend
    - docker build --pull -t "${CI_REGISTRY_IMAGE}/frontend:v${VERSION}" frontend -f Dockerfile.prod
    - docker push "${CI_REGISTRY_IMAGE}/frontend:v${VERSION}"
   only:
