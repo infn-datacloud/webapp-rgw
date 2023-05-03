@@ -8,9 +8,9 @@ stages:
 variables:
   PACKAGENAME: frontend-s3
   BE_BASE_IMAGE: "${CI_REGISTRY_IMAGE}/backend"
-  BE_TEST_IMAGE: "${BE_BASE_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+  BE_TEST_IMAGE: "${BE_BASE_IMAGE}:${CI_COMMIT_REF_NAME}"
   FE_BASE_IMAGE: "${CI_REGISTRY_IMAGE}/frontend"
-  FE_TEST_IMAGE: "${FE_BASE_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+  FE_TEST_IMAGE: "${FE_BASE_IMAGE}:${CI_COMMIT_REF_NAME}"
   DEV_LATEST_IMAGE_TAG: "latest-dev"
   PROD_LATEST_IMAGE_TAG: "latest"
   IS_PROD_VERSION: '^v(([0-9]+)\.)?([0-9]+)\.?([0-9]+)$'
@@ -123,7 +123,7 @@ deploy-frontend-docker:
   script:
     - tar -xvf frontend/${PACKAGE_FULLNAME} -C frontend
     - docker build --pull -t "${FE_TEST_IMAGE}" frontend -f frontend/Dockerfile.prod
-    - docker tag "${FE_TEST_IMAGE}" ${FE_BASE_IMAGE}:${VERSION}
+    - docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:v${VERSION}"
     - docker push "${FE_BASE_IMAGE}:v${VERSION}"
     - |
       if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_PROD_VERSION}" ]]; then
@@ -131,7 +131,7 @@ deploy-frontend-docker:
         docker push "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
       fi
     - |
-      if [[" ${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
+      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
         docker tag "${FE_BASE_IMAGE}" "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
         docker push "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}""
       fi
@@ -150,7 +150,7 @@ deploy-backend-docker:
   before_script:
     - VERSION="$(cat version.txt)"
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" "${CI_REGISTRY}"
-
+    - export
   script:
     - docker pull "${BE_TEST_IMAGE}"
     - docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:v${VERSION}"
