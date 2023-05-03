@@ -13,8 +13,8 @@ variables:
   FE_TEST_IMAGE: "${FE_BASE_IMAGE}:${CI_COMMIT_REF_NAME}"
   DEV_LATEST_IMAGE_TAG: "latest-dev"
   PROD_LATEST_IMAGE_TAG: "latest"
-  IS_PROD_VERSION: '^v(([0-9]+)\.)?([0-9]+)\.?([0-9]+)$'
-  IS_DEV_VERSION: '^v(([0-9]+)\.)?([0-9]+)\.?([0-9]+)?(-dev)\.?([0-9]+)$'
+  IS_PROD_VERSION: '^(v(([0-9]+)\.)?([0-9]+)\.?([0-9]+)|main)$'
+  IS_DEV_VERSION: '^(v(([0-9]+)\.)?([0-9]+)\.?([0-9]+)?(-dev)\.?([0-9]+)|dev)$'
 
 fetch-next-version:
   stage: fetch-version
