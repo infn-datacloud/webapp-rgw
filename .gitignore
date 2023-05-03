@@ -3,3 +3,4 @@
 nginx/cert/
 backend/envs/*
 !backend/envs/example.env
+frontend/public/env.js
