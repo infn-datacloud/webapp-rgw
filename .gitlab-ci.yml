@@ -152,7 +152,7 @@ deploy-backend-docker:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
 
   script:
-    - docker pull ${BE_TEST_IMAGE}"
+    - docker pull "${BE_TEST_IMAGE}"
     - docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:v${VERSION}"
     - docker push "${BE_BASE_IMAGE}:v${VERSION}"
     - |
