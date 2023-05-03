@@ -126,12 +126,12 @@ deploy-frontend-docker:
     - docker tag "${FE_TEST_IMAGE}" ${FE_BASE_IMAGE}:${VERSION}
     - docker push "${FE_BASE_IMAGE}:v${VERSION}"
     - |
-      if [[ ${CI_COMMIT_REF_NAME} =~ ${IS_PROD_VERSION} ]]; then
+      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_PROD_VERSION}" ]]; then
         docker tag "${FE_BASE_IMAGE}" "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
         docker push "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
       fi
     - |
-      if [[ ${CI_COMMIT_REF_NAME} =~ ${IS_DEV_VERSION} ]]; then
+      if [[" ${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
         docker tag "${FE_BASE_IMAGE}" "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
         docker push "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}""
       fi
@@ -149,21 +149,21 @@ deploy-backend-docker:
     - docker:dind
   before_script:
     - VERSION="$(cat version.txt)"
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" "${CI_REGISTRY}"
 
   script:
     - docker pull "${BE_TEST_IMAGE}"
     - docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:v${VERSION}"
     - docker push "${BE_BASE_IMAGE}:v${VERSION}"
     - |
-      if [[ ${CI_COMMIT_REF_NAME} =~ ${IS_PROD_VERSION} ]]; then
+      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_PROD_VERSION}" ]]; then
         docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
         docker push "${BE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
       fi
     - |
-      if [[ ${CI_COMMIT_REF_NAME} =~ ${IS_DEV_VERSION} ]]; then
+      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
         docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
-        docker push "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}""
+        docker push "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
       fi
   only:
     refs:
