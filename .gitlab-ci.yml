@@ -133,7 +133,7 @@ deploy-frontend-docker:
     - |
       if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
         docker tag "${FE_BASE_IMAGE}" "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
-        docker push "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}""
+        docker push "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
       fi
   only:
     refs:
