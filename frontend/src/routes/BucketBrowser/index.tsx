@@ -2,25 +2,17 @@ import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } fro
 import { Page } from '../../components/Page';
 import { BucketObject } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
-import { getHumanSize } from '../../commons/utils';
 import { Button } from '../../components/Button';
 import { BucketInspector } from '../../components/BucketInspector';
 import {
-  DocumentIcon,
-  PhotoIcon,
   ArrowLeftIcon,
-  FolderIcon,
   ArrowUpOnSquareIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { useS3Service } from '../../services/S3Service';
+import { S3ContextProps, useS3Service } from '../../services/S3Service';
 import { InputFile } from '../../components/InputFile';
-import {
-  ListObjectsV2Command,
-  PutObjectCommand,
-  DeleteObjectCommand
-} from '@aws-sdk/client-s3';
+import { getTableData, uploadFiles, deleteObjects, listObjects } from './services';
 
 
 type PropsType = {
@@ -42,67 +34,21 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     { id: "bucket_size", name: "Size" },
   ];
 
-  const tableData = bucketObjects.map((bucket: BucketObject) => {
-    const { Key } = bucket;
-
-    const isFolder = Key?.includes("/") || false;
-    const [name, extension] = (() => {
-      if (Key) {
-        const name = isFolder ? Key.split("/").slice()[0] : bucket.Key;
-        const ext = Key.split(".").slice(-1)[0];
-        return [name, ext];
-      }
-      return ["N/A", "N/A"];
-    })();
-
-    const getIcon = () => {
-      if (isFolder) return <FolderIcon />;
-      switch (extension) {
-        case "png":
-        case "jpeg":
-        case "jpg":
-          return <PhotoIcon />;
-        default:
-          return <DocumentIcon />
-      }
-    }
-
-    const Icon = () => {
-      return (
-        <div className='w-5'>
-          {getIcon()}
-        </div>
-      )
-    }
-    const bucketSize = bucket.Size ? getHumanSize(bucket.Size) : "N/A"
-    return [
-      { columnId: "icon", value: <Icon /> },
-      { columnId: "name", value: name },
-      { columnId: "last_modified", value: bucket.LastModified?.toString() ?? "N/A" },
-      { columnId: "bucket_size", value: bucketSize },
-    ]
-  });
+  const tableData = getTableData(bucketObjects);
 
   const refreshBucketObjects = useCallback(() => {
     const f = async () => {
-      if (!s3.isAuthenticated()) {
-        return;
-      }
-
-      console.log("List Bucket objects...")
-
-      const listObjCmd = new ListObjectsV2Command({ Bucket: bucketName });
-      const response = await s3.client.send(listObjCmd);
-      const { Contents } = response;
-
-      if (Contents) {
-        setBucketObjects(Contents);
-      } else {
-        console.warn("Warning: bucket looks empty.");
-      }
+      listObjects(s3, bucketName)
+        .then(contents => {
+          if (contents) {
+            setBucketObjects(contents);
+          } else {
+            console.warn("Warning: bucket looks empty.");
+          }
+        })
+        .catch(err => console.error(err));
     };
-
-    f().catch(err => console.error(err));
+    f();
   }, [s3, bucketName]);
 
 
@@ -120,46 +66,21 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       return;
     }
 
-    if (!s3.isAuthenticated()) {
-      console.warn(
-        "Warning: cannot upload file because S3 service not authenticated"
-      );
-      return;
-    }
-
     inputRef.current = e.target;
     const { files } = e.target;
 
-    // Upload all files FIXME: use different approach for multiple files
-    Array.from(files).forEach(file => {
-      const putObjCmd = new PutObjectCommand({
-        Bucket: bucketName,
-        Body: file,
-        Key: file.name
-      });
-
-      s3.client.send(putObjCmd)
-        .then(() => {
-          console.log("File uploaded");
-          if (inputRef.current) {
-            inputRef.current.files = null;
-            inputRef.current.value = "";
-          }
-        })
-        .then(refreshBucketObjects)
-        .catch(err => console.error(err));
-    });
+    uploadFiles(s3, bucketName, files)
+      .then(() => {
+        console.log("File(s) uploaded");
+        if (inputRef.current) {
+          inputRef.current.files = null;
+          inputRef.current.value = "";
+          refreshBucketObjects();
+        }
+      })
+      .catch(err => console.error(err));
   }
 
-  const deleteObject = async (bucketName: string, key: string) => {
-    const delObjCmd = new DeleteObjectCommand({ Bucket: bucketName, Key: key });
-    try {
-      await s3.client.send(delObjCmd);
-      console.log(`Object with key ${key} deleted.`);
-    } catch (err) {
-      console.error(err);
-    }
-  }
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
     const newState = new Set(selectedRows);
@@ -177,16 +98,13 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }
 
   const deleteSelectedObjects = () => {
-    // Queue all delete asynchronously
-    let promises: Promise<void>[] = [];
-    selectedRows.forEach(rowIndex => {
-      const { Key } = bucketObjects[rowIndex];
-      if (Key) {
-        promises.push(deleteObject(bucketName, Key));
-      }
+
+    const toDelete = Array.from(selectedRows).map((rowIndex: number) => {
+      return bucketObjects[rowIndex];
     });
-    // Wait untill all delete are done then refresh the UI.
-    Promise.all(promises)
+
+    // Queue all delete asynchronously
+    deleteObjects(s3, bucketName, toDelete)
       .then(() => {
         setSelectedRows(new Set());
         refreshBucketObjects();
@@ -237,4 +155,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
     </Page>
   )
+}
+
+function deleteObject(s3: S3ContextProps, bucketName: string, Key: string): Promise<void> {
+  throw new Error('Function not implemented.');
 }
