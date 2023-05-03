@@ -127,12 +127,12 @@ deploy-frontend-docker:
     - docker push "${FE_BASE_IMAGE}:v${VERSION}"
     - |
       if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_PROD_VERSION}" ]]; then
-        docker tag "${FE_BASE_IMAGE}" "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
+        docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
         docker push "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
       fi
     - |
       if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
-        docker tag "${FE_BASE_IMAGE}" "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
+        docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
         docker push "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
       fi
   only:
