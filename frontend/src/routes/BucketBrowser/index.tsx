@@ -18,6 +18,12 @@ import { getTableData, uploadFiles, deleteObjects, listObjects } from './service
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
 
+const columns: Column[] = [
+  { id: "icon" },
+  { id: "name", name: "Name" },
+  { id: "last_modified", name: "Last Modified" },
+  { id: "bucket_size", name: "Size" },
+];
 
 type PropsType = {
   bucketName: string
@@ -33,12 +39,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const inputRef = useRef<HTMLInputElement>();
   const lockRef = useRef<boolean>(false);
 
-  const columns: Column[] = [
-    { id: "icon" },
-    { id: "name", name: "Name" },
-    { id: "last_modified", name: "Last Modified" },
-    { id: "bucket_size", name: "Size" },
-  ];
+  console.log("Current path is", currentPath);
 
   let visibleObjects = bucketObjects.filter(el => {
     if (el.Key) {
@@ -47,7 +48,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     }
     return false;
   });
-  console.log("Current path is:", currentPath, visibleObjects);
+
 
   let tableData = getTableData(visibleObjects, currentPath);
 
