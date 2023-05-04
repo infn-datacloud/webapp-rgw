@@ -32,12 +32,12 @@ export const getTableData = (bucketObjects: BucketObject[], prefix?: string): Va
 
     name = '/' + Key;
     if (prefix && prefix !== '/') {
-      const re = new RegExp(`^${prefix}/`)
+      const re = new RegExp(`^${prefix}`)
       name = name.replace(re, "");
     }
 
     isFolder = name.split("/").length > 2;
-    name = isFolder ? name.split("/")[1] : name;
+    name = isFolder ? name.split("/")[1] : name.slice(1);
     ext = isFolder ? ext : name.split(".")[1]; // FIXME: bug if file has no extension?
 
     if (Object.keys(acc).includes(name)) {
