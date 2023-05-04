@@ -156,7 +156,3 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     </Page>
   )
 }
-
-function deleteObject(s3: S3ContextProps, bucketName: string, Key: string): Promise<void> {
-  throw new Error('Function not implemented.');
-}
