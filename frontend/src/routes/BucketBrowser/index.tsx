@@ -15,6 +15,7 @@ import { useS3Service } from '../../services/S3Service';
 import { InputFile } from '../../components/InputFile';
 import { getTableData, uploadFiles, deleteObjects, listObjects } from './services';
 import { NewPathModal } from './NewPathModal';
+import { PathViewer } from './PathViewer';
 
 
 type PropsType = {
@@ -25,7 +26,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const [bucketObjects, setBucketObjects] = useState<BucketObject[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentPath, setCurrentPath] = useState("/" + bucketName);
+  const [currentPath, setCurrentPath] = useState("");
   const s3 = useS3Service();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>();
@@ -136,6 +137,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       />
       <NewPathModal
         open={modalOpen}
+        bucketName={bucketName}
         currentPath={currentPath}
         onClose={handleModalClose}
       />
@@ -170,6 +172,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               />
             </div>
           </div>
+          {/* PathViewer */}
+          <PathViewer
+            className='mt-8'
+            path={currentPath}
+            prefix={bucketName + '/'}
+          />
           {/* Table */}
           <div className="flex place-content-center mt-4">
             <Table

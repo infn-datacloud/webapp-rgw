@@ -6,16 +6,17 @@ import { useState } from "react";
 
 interface ModalProps {
   open: boolean;
+  bucketName: string;
   currentPath: string;
   onClose: (path: string) => void;
 }
 
 export const NewPathModal = (props: ModalProps) => {
-  const { open, currentPath, onClose } = props;
+  const { open, bucketName, currentPath, onClose } = props;
   const [path, setPath] = useState<string>("");
 
   const handleClose = () => {
-    onClose(currentPath + '/' + path);
+    onClose(currentPath !== "" ? currentPath + '/' + path : path);
     setPath("");
   }
 
@@ -48,7 +49,7 @@ export const NewPathModal = (props: ModalProps) => {
           Current Path:
         </h2>
 
-        <p className="mb-16">{currentPath}</p>
+        <p className="mb-16">{bucketName + '/' + currentPath}</p>
         <div className="mt-16 flex space-x-8 content-center">
           <div className="lg:w-52 my-auto">
             New Folder Path
