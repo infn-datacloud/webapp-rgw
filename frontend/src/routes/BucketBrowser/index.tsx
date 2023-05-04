@@ -7,12 +7,14 @@ import { BucketInspector } from '../../components/BucketInspector';
 import {
   ArrowLeftIcon,
   ArrowUpOnSquareIcon,
+  FolderIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { S3ContextProps, useS3Service } from '../../services/S3Service';
+import { useS3Service } from '../../services/S3Service';
 import { InputFile } from '../../components/InputFile';
 import { getTableData, uploadFiles, deleteObjects, listObjects } from './services';
+import { NewPathModal } from './NewPathModal';
 
 
 type PropsType = {
@@ -22,6 +24,8 @@ type PropsType = {
 export const BucketBrowser = ({ bucketName }: PropsType) => {
   const [bucketObjects, setBucketObjects] = useState<BucketObject[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentPath, setCurrentPath] = useState("");
   const s3 = useS3Service();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>();
@@ -111,6 +115,18 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       });
   }
 
+  const createNewPath = () => {
+    setModalOpen(true);
+  }
+
+  const handleModalClose = (newPath: string) => {
+    setModalOpen(false);
+    if (newPath !== currentPath) {
+      console.log("Set new path", newPath);
+      setCurrentPath(newPath);
+    }
+  }
+
   return (
     <Page title={bucketName}>
       <Button
@@ -118,7 +134,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         icon={<ArrowLeftIcon />}
         onClick={() => navigate(-1)}
       />
-
+      <NewPathModal
+        open={modalOpen}
+        currentPath={currentPath}
+        onClose={handleModalClose}
+      />
+      {/* Inspector */}
       <div className='top-0 fixed z-10 right-0 w-64 bg-slate-300'>
         <BucketInspector
           isOpen={selectedRows.size > 0}
@@ -126,20 +147,30 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           objects={Array.from(selectedRows).map(index => bucketObjects[index])}
         />
       </div>
+      {/* Transition to open the right drawer */}
       <div className={`transition-all ease-in-out duration-200 ${selectedRows.size > 0 ? "mr-72" : "mr-0"}`}>
         <div className='container w-2/3'>
+          {/* Buttons */}
           <div className="flex mt-8 place-content-between">
             <InputFile
               icon={<ArrowUpOnSquareIcon />}
               onChange={handleFileChange}
             />
-            <Button
-              title="Delete file(s)"
-              icon={<TrashIcon />}
-              onClick={deleteSelectedObjects}
-              disabled={selectedRows.size === 0}
-            />
+            <div className='flex space-x-4'>
+              <Button
+                title="New path"
+                icon={<FolderIcon />}
+                onClick={createNewPath}
+              />
+              <Button
+                title="Delete file(s)"
+                icon={<TrashIcon />}
+                onClick={deleteSelectedObjects}
+                disabled={selectedRows.size === 0}
+              />
+            </div>
           </div>
+          {/* Table */}
           <div className="flex place-content-center mt-4">
             <Table
               selectable={true}
