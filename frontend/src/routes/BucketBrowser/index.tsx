@@ -7,6 +7,7 @@ import { BucketInspector } from '../../components/BucketInspector';
 import {
   ArrowLeftIcon,
   ArrowUpOnSquareIcon,
+  ChevronLeftIcon,
   FolderIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
@@ -128,6 +129,25 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     }
   }
 
+  interface PathBackButtonProps {
+    className?: string
+  }
+  const PathBackButton = ({ className }: PathBackButtonProps) => {
+    return (
+      <div className={className}>
+        <button className="w-8 h-8 p-[5px] text-neutral-500 hover:bg-neutral-200 rounded-full"
+          onClick={() => {
+            const pathArgs = currentPath.split('/');
+            pathArgs.pop();
+            console.log(pathArgs);
+            setCurrentPath(pathArgs.join('/'));
+          }}>
+          <ChevronLeftIcon />
+        </button>
+      </div>
+    )
+  }
+
   return (
     <Page title={bucketName}>
       <Button
@@ -173,11 +193,14 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             </div>
           </div>
           {/* PathViewer */}
-          <PathViewer
-            className='mt-8'
-            path={currentPath}
-            prefix={bucketName + '/'}
-          />
+          <div className='flex space-x-4 mt-8'>
+            <PathBackButton className='my-auto' />
+            <PathViewer
+              className='my-auto'
+              path={currentPath}
+              prefix={bucketName + '/'}
+            />
+          </div>
           {/* Table */}
           <div className="flex place-content-center mt-4">
             <Table
