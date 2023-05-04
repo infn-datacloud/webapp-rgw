@@ -11,24 +11,42 @@ import {
   FolderIcon,
   PhotoIcon
 } from "@heroicons/react/24/outline";
+import { Value } from "../../components/Table";
 
-export const getTableData = (bucketObjects: BucketObject[]) => {
-  return bucketObjects.map((bucket: BucketObject) => {
+export const getTableData = (bucketObjects: BucketObject[], prefix?: string): Value[][] => {
+  
+  interface Accumlator {
+    [name: string]: Value[]
+  }
+
+  const tempData = bucketObjects.reduce((acc: Accumlator, bucket: BucketObject) => {
     const { Key } = bucket;
+    if (!Key) {
+      console.warn("Warning: object has empty Key.")
+      return acc;
+    }
 
-    const isFolder = Key?.includes("/") || false;
-    const [name, extension] = (() => {
-      if (Key) {
-        const name = isFolder ? Key.split("/").slice()[0] : bucket.Key;
-        const ext = Key.split(".").slice(-1)[0];
-        return [name, ext];
-      }
-      return ["N/A", "N/A"];
-    })();
+    let isFolder = false;
+    let name = "N/A";
+    let ext = "N/A";
+
+    name = '/' + Key;
+    if (prefix && prefix !== '/') {
+      const re = new RegExp(`^${prefix}/`)
+      name = name.replace(re, "");
+    }
+
+    isFolder = name.split("/").length > 2;
+    name = isFolder ? name.split("/")[1] : name;
+    ext = isFolder ? ext : name.split(".")[1]; // FIXME: bug if file has no extension?
+
+    if (Object.keys(acc).includes(name)) {
+      return acc;
+    }
 
     const getIcon = () => {
       if (isFolder) return <FolderIcon />;
-      switch (extension) {
+      switch (ext) {
         case "png":
         case "jpeg":
         case "jpg":
@@ -48,13 +66,15 @@ export const getTableData = (bucketObjects: BucketObject[]) => {
 
     const bucketSize = bucket.Size ? getHumanSize(bucket.Size) : "N/A";
 
-    return [
+    acc[name] = [
       { columnId: "icon", value: <Icon /> },
       { columnId: "name", value: name },
       { columnId: "last_modified", value: bucket.LastModified?.toString() ?? "N/A" },
       { columnId: "bucket_size", value: bucketSize },
     ]
-  });
+    return acc;
+  }, {});
+  return Object.values(tempData);
 }
 
 export const listObjects = async (s3: S3ContextProps, bucketName: string) => {
@@ -64,12 +84,13 @@ export const listObjects = async (s3: S3ContextProps, bucketName: string) => {
   return response.Contents;
 }
 
-export const uploadFiles = (s3: S3ContextProps, bucketName: string, files: FileList) => {
+export const uploadFiles = (s3: S3ContextProps,
+  bucketName: string, files: FileList, prefix?: string) => {
   const requests = Array.from(files).map(file => {
     const putObjCmd = new PutObjectCommand({
       Bucket: bucketName,
       Body: file,
-      Key: file.name
+      Key: prefix ? prefix + '/' + file.name : file.name
     });
     return s3.client.send(putObjCmd);
   });

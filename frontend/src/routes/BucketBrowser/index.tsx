@@ -27,7 +27,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const [bucketObjects, setBucketObjects] = useState<BucketObject[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentPath, setCurrentPath] = useState("");
+  const [currentPath, setCurrentPath] = useState("/");
   const s3 = useS3Service();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>();
@@ -40,7 +40,16 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     { id: "bucket_size", name: "Size" },
   ];
 
-  const tableData = getTableData(bucketObjects);
+  let visibleObjects = bucketObjects.filter(el => {
+    if (el.Key) {
+      const abspath = '/' + el.Key;
+      return abspath.startsWith(currentPath);
+    }
+    return false;
+  });
+  console.log("Current path is:", currentPath, visibleObjects);
+
+  let tableData = getTableData(visibleObjects, currentPath);
 
   const refreshBucketObjects = useCallback(() => {
     const f = async () => {
@@ -75,7 +84,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     inputRef.current = e.target;
     const { files } = e.target;
 
-    uploadFiles(s3, bucketName, files)
+    const prefix = currentPath[0] === '/' ? currentPath.slice(1) : currentPath;
+    uploadFiles(s3, bucketName, files, prefix)
       .then(() => {
         console.log("File(s) uploaded");
         if (inputRef.current) {
@@ -99,6 +109,23 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }
 
   const onClick = (_: MouseEvent<HTMLTableRowElement>, index: number) => {
+    const { Key } = visibleObjects[index];
+    if (Key) {
+      const abspath = '/' + Key;
+      let path = abspath;
+      if (currentPath !== '/') {
+        path = path.replace(new RegExp(`^${currentPath}`), "");
+      }
+      const isFolder = path.split('/').length > 2;
+      if (isFolder) {
+        const child = path.split("/")[1];
+        const newPath = currentPath === '/' ? '/' + child : currentPath + '/' + child;
+        setCurrentPath(newPath);
+        setSelectedRows(new Set());
+        return;
+      }
+    }
+
     const newState = new Set([index]);
     setSelectedRows(newState);
   }
@@ -139,8 +166,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           onClick={() => {
             const pathArgs = currentPath.split('/');
             pathArgs.pop();
-            console.log(pathArgs);
-            setCurrentPath(pathArgs.join('/'));
+            if (pathArgs.length > 1) {
+              setCurrentPath(pathArgs.join('/'));
+            } else {
+              setCurrentPath("/");
+            }
+            setSelectedRows(new Set());
           }}>
           <ChevronLeftIcon />
         </button>
@@ -166,7 +197,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         <BucketInspector
           isOpen={selectedRows.size > 0}
           bucket={bucketName}
-          objects={Array.from(selectedRows).map(index => bucketObjects[index])}
+          objects={Array.from(selectedRows).map(index => visibleObjects[index])}
         />
       </div>
       {/* Transition to open the right drawer */}
@@ -198,7 +229,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             <PathViewer
               className='my-auto'
               path={currentPath}
-              prefix={bucketName + '/'}
+              prefix={bucketName}
             />
           </div>
           {/* Table */}
