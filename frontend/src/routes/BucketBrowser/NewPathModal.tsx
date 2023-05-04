@@ -15,8 +15,8 @@ export const NewPathModal = (props: ModalProps) => {
   const [path, setPath] = useState<string>("");
 
   const handleClose = () => {
-    onClose(path);
-    setPath(currentPath);
+    onClose(currentPath + '/' + path);
+    setPath("");
   }
 
   // TODO: expand
@@ -45,7 +45,7 @@ export const NewPathModal = (props: ModalProps) => {
         </div>
 
         <h2 className="mt-8 font-semibold">
-          Current Path: 
+          Current Path:
         </h2>
 
         <p className="mb-16">{currentPath}</p>
@@ -66,7 +66,7 @@ export const NewPathModal = (props: ModalProps) => {
               <Button
                 title="Clear"
                 icon={<XMarkIcon />}
-                onClick={() => setPath(currentPath)}
+                onClick={() => setPath("")}
               />
               <Button
                 title="Confirm"

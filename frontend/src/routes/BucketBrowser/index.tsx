@@ -25,7 +25,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const [bucketObjects, setBucketObjects] = useState<BucketObject[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentPath, setCurrentPath] = useState("");
+  const [currentPath, setCurrentPath] = useState("/" + bucketName);
   const s3 = useS3Service();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>();
