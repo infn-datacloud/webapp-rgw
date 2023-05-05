@@ -13,10 +13,10 @@ export const parseReadWriteAccess = (rwAccess: RWAccess) => {
 }
 
 interface PathI {
-  path: string,
   parent?: Path;
   name: string
   isAbsolute: boolean;
+  toStr: () => string;
   removePrefix: (prefix: string) => Path;
   concat: (_: Path) => Path;
 }
@@ -30,7 +30,7 @@ export class Path implements PathI {
     this.#pathElements = this.#rawPath.split('/');
   }
 
-  get path() {
+  toStr(): string {
     return this.#rawPath;
   }
 
@@ -41,19 +41,19 @@ export class Path implements PathI {
     prefix = prefix === "/" ? prefix : prefix.replace(/(\/+)$/, "/");
     prefix = !prefix.endsWith("/") ? prefix + '/' : prefix;
     const re = new RegExp(`^${prefix}`);
-    const newPath = this.path.replace(re, "");
+    const newPath = this.#rawPath.replace(re, "");
     return new Path(newPath);
   }
 
   get name() {
-    if (this.path === '/') {
+    if (this.#rawPath === '/') {
       return '/';
     }
     return this.#pathElements[this.#pathElements.length - 1];
   }
 
   get parent(): Path | undefined {
-    if (this.path === '/') {
+    if (this.#rawPath === '/') {
       return new Path('/');
     }
     switch (this.#pathElements.length) {
@@ -72,12 +72,12 @@ export class Path implements PathI {
   }
 
   get isAbsolute() {
-    return this.path.startsWith("/");
+    return this.#rawPath.startsWith("/");
   }
 
   concat(newPath: Path) {
     return newPath.isAbsolute ?
-      new Path(this.path + newPath.path) :
-      new Path(this.path + '/' + newPath.path);
+      new Path(this.#rawPath + newPath.#rawPath) :
+      new Path(this.#rawPath + '/' + newPath.#rawPath);
   }
 }
