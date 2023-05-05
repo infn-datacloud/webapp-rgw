@@ -22,21 +22,21 @@ interface PathI {
 }
 
 export class Path implements PathI {
-  rawPath: string;
-  pathElements: string[];
+  #rawPath: string;
+  #pathElements: string[];
 
   constructor(path: string) {
-    this.rawPath = path === "/" ? path : path.replace(/(\/+)$/, "");  // Remove trailing slashes
-    this.pathElements = this.rawPath.split('/');
+    this.#rawPath = path === "/" ? path : path.replace(/(\/+)$/, "");  // Remove trailing slashes
+    this.#pathElements = this.#rawPath.split('/');
   }
 
   get path() {
-    return this.rawPath;
+    return this.#rawPath;
   }
 
   removePrefix(prefix: string) {
-    if (!this.rawPath.startsWith(prefix)) {
-      throw new Error(`Prefix ${prefix} not found in path ${this.rawPath}`);
+    if (!this.#rawPath.startsWith(prefix)) {
+      throw new Error(`Prefix ${prefix} not found in path ${this.#rawPath}`);
     }
     prefix = prefix === "/" ? prefix : prefix.replace(/(\/+)$/, "/");
     prefix = !prefix.endsWith("/") ? prefix + '/' : prefix;
@@ -49,22 +49,22 @@ export class Path implements PathI {
     if (this.path === '/') {
       return '/';
     }
-    return this.pathElements[this.pathElements.length - 1];
+    return this.#pathElements[this.#pathElements.length - 1];
   }
 
   get parent(): Path | undefined {
     if (this.path === '/') {
       return new Path('/');
     }
-    switch (this.pathElements.length) {
+    switch (this.#pathElements.length) {
       case 0:
         throw new Error("Invalid path lenght: 0");
       case 1:
         return this.isAbsolute ? new Path("/") : undefined;
       case 2:
-        return new Path(this.isAbsolute ? "/" : this.pathElements[0]);
+        return new Path(this.isAbsolute ? "/" : this.#pathElements[0]);
       default:
-        let newPathElements = [...this.pathElements];
+        let newPathElements = [...this.#pathElements];
         newPathElements.pop();
         const newPathString = newPathElements.join("/")
         return new Path(newPathString);
@@ -77,7 +77,7 @@ export class Path implements PathI {
 
   concat(newPath: Path) {
     return newPath.isAbsolute ?
-      new Path(this.rawPath + newPath.path) :
-      new Path(this.rawPath + '/' + newPath.path);
+      new Path(this.path + newPath.path) :
+      new Path(this.path + '/' + newPath.path);
   }
 }
