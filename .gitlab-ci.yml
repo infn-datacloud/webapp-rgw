@@ -151,7 +151,6 @@ deploy-backend-docker:
   before_script:
     - VERSION="$(cat version.txt)"
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" "${CI_REGISTRY}"
-    - export
   script:
     - docker pull "${BE_TEST_IMAGE}"
     - docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:v${VERSION}"
@@ -179,6 +178,7 @@ restart-deployment:
     - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
     - chmod +x kubectl
     - mv ./kubectl /usr/bin/
+    - ls -lah .secure_files
   script:
     - kubectl rollout restart deployment -n rgw-gui rgw-s3 \
       --insecure-skip-tls-verify --kubeconfig .secure_files/kubeconfig.yaml
