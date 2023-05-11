@@ -1,5 +1,5 @@
 import { BucketObject } from "../../models/bucket";
-import { getHumanSize } from "../../commons/utils";
+import { NodePath, addPath, getHumanSize } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3Service";
 import {
   DeleteObjectCommand,
@@ -13,37 +13,20 @@ import {
 } from "@heroicons/react/24/outline";
 import { Value } from "../../components/Table";
 
-export const getTableData = (bucketObjects: BucketObject[], prefix?: string): Value[][] => {
-  
-  interface Accumlator {
-    [name: string]: Value[]
-  }
-
-  const tempData = bucketObjects.reduce((acc: Accumlator, bucket: BucketObject) => {
-    const { Key } = bucket;
-    if (!Key) {
+export const initNodePathTree = (bucketObjects: BucketObject[], node: NodePath<BucketObject>) => {
+  bucketObjects.forEach(object => {
+    if (object.Key) {
+      addPath(object.Key, node, object);
+    } else {
       console.warn("Warning: object has empty Key.")
-      return acc;
     }
+  });
+}
 
-    let isFolder = false;
-    let name = "N/A";
-    let ext = "N/A";
-
-    name = '/' + Key;
-    if (prefix && prefix !== '/') {
-      const re = new RegExp(`^${prefix}`)
-      name = name.replace(re, "");
-    }
-
-    isFolder = name.split("/").length > 2;
-    name = isFolder ? name.split("/")[1] : name.slice(1);
-    ext = isFolder ? ext : name.split(".")[1]; // FIXME: bug if file has no extension?
-
-    if (Object.keys(acc).includes(name)) {
-      return acc;
-    }
-
+export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
+  return nodePath.children.map(child => {
+    const isFolder = child.children.length > 0;
+    const ext = child.basename.includes(".") ? child.basename.split(".")[1] : ""
     const getIcon = () => {
       if (isFolder) return <FolderIcon />;
       switch (ext) {
@@ -64,17 +47,15 @@ export const getTableData = (bucketObjects: BucketObject[], prefix?: string): Va
       )
     };
 
-    const bucketSize = bucket.Size ? getHumanSize(bucket.Size) : "N/A";
+    const bucketSize = child.value?.Size ? getHumanSize(child.value.Size) : "N/A";
 
-    acc[name] = [
+    return [
       { columnId: "icon", value: <Icon /> },
-      { columnId: "name", value: name },
-      { columnId: "last_modified", value: bucket.LastModified?.toString() ?? "N/A" },
+      { columnId: "name", value: child.basename },
+      { columnId: "last_modified", value: child.value?.LastModified?.toString() ?? "N/A" },
       { columnId: "bucket_size", value: bucketSize },
     ]
-    return acc;
-  }, {});
-  return Object.values(tempData);
+  });
 }
 
 export const listObjects = async (s3: S3ContextProps, bucketName: string) => {

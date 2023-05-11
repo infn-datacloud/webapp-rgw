@@ -12,72 +12,92 @@ export const parseReadWriteAccess = (rwAccess: RWAccess) => {
     rwAccess.read ? "R" : rwAccess.write ? "R" : "Unknown";
 }
 
-interface PathI {
-  parent?: Path;
-  name: string
-  isAbsolute: boolean;
-  toStr: () => string;
-  removePrefix: (prefix: string) => Path;
-  concat: (_: Path) => Path;
-}
+export interface INodePath<T> {
+  parent?: INodePath<T>;
+  basename: string;
+  path: string;
+  value?: T;
+  children: INodePath<T>[];
+  addChild: (_: INodePath<T>) => void;
+  findChild: (_: string) => INodePath<T> | undefined;
+  removeChild: (_: NodePath<T>) => boolean;
+  print: (_: number) => void;
+  getAll: () => INodePath<T>[];
+};
 
-export class Path implements PathI {
-  #rawPath: string;
-  #pathElements: string[];
+export class NodePath<T> implements INodePath<T> {
+  parent?: INodePath<T>;
+  basename: string;
+  value?: T;
+  children: INodePath<T>[];
 
-  constructor(path: string) {
-    this.#rawPath = path === "/" ? path : path.replace(/(\/+)$/, "");  // Remove trailing slashes
-    this.#pathElements = this.#rawPath.split('/');
+  constructor(basename: string, value?: T) {
+    this.basename = basename;
+    this.value = value;
+    this.children = [];
   }
 
-  toStr(): string {
-    return this.#rawPath;
+  addChild(node: INodePath<T>) {
+    node.parent = this;
+    this.children.push(node);
   }
 
-  removePrefix(prefix: string) {
-    if (!this.#rawPath.startsWith(prefix)) {
-      throw new Error(`Prefix ${prefix} not found in path ${this.#rawPath}`);
+  findChild(basename: string): INodePath<T> | undefined {
+    const result = this.children.filter(c => c.basename === basename);
+    if (result.length) {
+      return result[0];
+    };
+    return undefined;
+  }
+
+  removeChild(node: INodePath<T>) {
+    const index = this.children.map(c => c.value).indexOf(node.value);
+    if (index >= 0) {
+      this.children.splice(index, 1);
+      return true;
     }
-    prefix = prefix === "/" ? prefix : prefix.replace(/(\/+)$/, "/");
-    prefix = !prefix.endsWith("/") ? prefix + '/' : prefix;
-    const re = new RegExp(`^${prefix}`);
-    const newPath = this.#rawPath.replace(re, "");
-    return new Path(newPath);
+    return false;
   }
 
-  get name() {
-    if (this.#rawPath === '/') {
-      return '/';
-    }
-    return this.#pathElements[this.#pathElements.length - 1];
-  }
-
-  get parent(): Path | undefined {
-    if (this.#rawPath === '/') {
-      return new Path('/');
-    }
-    switch (this.#pathElements.length) {
-      case 0:
-        throw new Error("Invalid path lenght: 0");
-      case 1:
-        return this.isAbsolute ? new Path("/") : undefined;
-      case 2:
-        return new Path(this.isAbsolute ? "/" : this.#pathElements[0]);
-      default:
-        let newPathElements = [...this.#pathElements];
-        newPathElements.pop();
-        const newPathString = newPathElements.join("/")
-        return new Path(newPathString);
+  get path() {
+    const { parent } = this;
+    if (parent) {
+      if (parent.path === '/' || parent.path === '') {
+        return parent.path + this.basename;
+      }
+      return parent.path + '/' + this.basename;
+    } else {
+      return this.basename;
     }
   }
 
-  get isAbsolute() {
-    return this.#rawPath.startsWith("/");
+  print(level = 0) {
+    console.log(" ".repeat(level * 2) + this.basename);
+    this.children.forEach(c => {
+      c.print(level + 1);
+    })
   }
 
-  concat(newPath: Path) {
-    return newPath.isAbsolute ?
-      new Path(this.#rawPath + newPath.#rawPath) :
-      new Path(this.#rawPath + '/' + newPath.#rawPath);
+  getAll() {
+    let result: NodePath<T>[] = this.children.filter(c => c.children.length === 0);
+    this.children.forEach(c => {
+      result = result.concat(c.getAll());
+    });
+    return result;
   }
+};
+
+export function addPath<T>(path: string, node: NodePath<T>, value?: T) {
+  const args = path.split("/");
+  let currentNode = node;
+  args.forEach(arg => {
+    const child = currentNode.findChild(arg);
+    if (child) {
+      currentNode = child;
+    } else {
+      const pArg = new NodePath(arg, value);
+      currentNode.addChild(pArg);
+      currentNode = pArg;
+    }
+  });
 }
