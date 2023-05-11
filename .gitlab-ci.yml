@@ -4,6 +4,7 @@ stages:
   - test
   - release
   - deploy
+  - k8s
 
 variables:
   PACKAGENAME: frontend-s3
@@ -150,7 +151,6 @@ deploy-backend-docker:
   before_script:
     - VERSION="$(cat version.txt)"
     - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" "${CI_REGISTRY}"
-    - export
   script:
     - docker pull "${BE_TEST_IMAGE}"
     - docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:v${VERSION}"
@@ -165,6 +165,24 @@ deploy-backend-docker:
         docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
         docker push "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
       fi
+  only:
+    refs:
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
+
+restart-deployment:
+  stage: k8s
+  image: ubuntu:latest
+  before_script:
+    - apt update && apt install curl -y
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - chmod +x kubectl
+    - mv ./kubectl /usr/bin/
+  script:
+    - kubectl rollout restart deployment -n rgw-gui rgw-s3 --insecure-skip-tls-verify --kubeconfig .secure_files/kubeconfig.yaml
   only:
     refs:
       - main
