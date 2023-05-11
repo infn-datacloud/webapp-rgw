@@ -16,7 +16,7 @@ export const NewPathModal = (props: ModalProps) => {
   const [path, setPath] = useState<string>("");
 
   const handleClose = () => {
-    onClose(currentPath === '/' ? currentPath + path : currentPath + '/' + path);
+    onClose(path);
     setPath("");
   }
 
@@ -29,7 +29,10 @@ export const NewPathModal = (props: ModalProps) => {
     return (
       <button className="w-8 p-[5px] text-neutral-500
       hover:bg-neutral-200 rounded-full"
-        onClick={() => handleClose()}>
+        onClick={() => {
+          onClose("");
+          setPath("");
+        }}>
         <XMarkIcon />
       </button>
     )
