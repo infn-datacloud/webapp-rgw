@@ -5,26 +5,41 @@ import { S3ServiceProvider } from './services/S3Service';
 import App from './App';
 import './index.css';
 
+// Add `env` namespace to window
+interface EnvInterface {
+  IAM_AUTHORITY: string;
+  IAM_CLIENT_ID: string;
+  IAM_REDIRECT_URI: string;
+  IAM_SCOPE: string;
+  IAM_AUDIENCE: string;
+  S3_ENDPOINT: string;
+  S3_REGION: string;
+}
+declare global {
+  interface Window { env: EnvInterface }
+};
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
 const OidcConfig = {
-  authority: "https://keycloak-demo.cloud.cnaf.infn.it:8222",
-  client_id: "66a8f7e8-a5ef-4ef1-8e2e-3389f1170ae7",
-  redirect_uri: `${window.location.href}callback`,
-  audience: "b573bc60-c58f-4924-90e5-ac0f5bcb576e",
-  scope: "openid email profile offline_access",
+  authority: window.env.IAM_AUTHORITY,
+  client_id: window.env.IAM_CLIENT_ID,
+  redirect_uri: window.env.IAM_REDIRECT_URI,
+  audience: window.env.IAM_AUDIENCE,
+  scope: window.env.IAM_SCOPE,
   grant_type: "authorization_code",
   response_type: "code"
 };
 
 const s3Config = {
   awsConfig: {
-    endpoint: "https://vm-131-154-97-121.cloud.cnaf.infn.it",
-    region: "nova"
+    endpoint: window.env.S3_ENDPOINT,
+    region: window.env.S3_REGION
   }
 }
+
 root.render(
   <React.StrictMode>
     <OAuthProvider {...OidcConfig}>
