@@ -4,6 +4,7 @@ stages:
   - test
   - release
   - deploy
+  - k8s
 
 variables:
   PACKAGENAME: frontend-s3
@@ -171,3 +172,15 @@ deploy-backend-docker:
       - dev
       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
       - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
+
+restart-deployment:
+  stage: k8s
+  variables:
+    SECURE_FILES_DOWNLOAD_PATH: "./secure-files/"
+  before_script:
+    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - chmod +x kubectl
+    - move ./kubectl /usr/bin/
+  script:
+    - kubectl rollout restart deployment -n rgw-gui rgw-s3 \
+      --insecure-skip-tls-verify --kubeconfig ./secure-files/kubeconfig.txt
