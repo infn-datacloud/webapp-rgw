@@ -83,9 +83,8 @@ export const Table = (props: TableParams) => {
               }
               {columnIds.map((colId, index) => {
                 return <td
-                  className="border-b border-slate-100 
-                  p-4 first:pl-8 last:pr-8 text-left"
-                  id={colId}
+                  className={"border-b border-slate-100 p-4 first:pl-8 " +
+                    "last:pr-8 text-left " + colId}
                   key={index}>
                   {row[colId]}
                 </td>
