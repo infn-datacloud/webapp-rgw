@@ -237,7 +237,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       />
       <NewPathModal
         open={modalOpen}
-        bucketName={bucketName}
+        prefix={bucketName + '/'}
         currentPath={currentPath.path}
         onClose={handleModalClose}
       />
