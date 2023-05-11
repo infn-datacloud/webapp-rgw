@@ -183,4 +183,4 @@ restart-deployment:
     - mv ./kubectl /usr/bin/
   script:
     - kubectl rollout restart deployment -n rgw-gui rgw-s3 \
-      --insecure-skip-tls-verify --kubeconfig ./secure-files/kubeconfig.txt
+      --insecure-skip-tls-verify --kubeconfig ./secure-files/kubeconfig.yaml
