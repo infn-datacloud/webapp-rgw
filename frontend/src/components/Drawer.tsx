@@ -39,12 +39,16 @@ export const Drawer = () => {
           </ul>
         </nav>
       </div>
-      <Button
-        className='absolute inset-x-0 mx-4 bottom-20'
-        title='Logout'
-        icon={<ArrowLeftOnRectangleIcon />}
-        onClick={logoutAndRedirect}
-      />
+      <div className='absolute inset-x-0 mx-4 bottom-20'>
+        <Button
+          className='w-full'
+          title='Logout'
+          icon={<ArrowLeftOnRectangleIcon />}
+          onClick={logoutAndRedirect}
+        />
+      </div>
+      <div className="absolute bottom-2 w-full text-sm text-center">
+        v{process.env.REACT_APP_VERSION}</div>
     </div>
   )
 }

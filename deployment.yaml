@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: rgw-s3
+  name: rgw-s3
+  namespace: rgw-gui
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: rgw-s3
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: rgw-s3
+    spec:
+      containers:
+        - image: baltig.infn.it:4567/jgasparetto/ceph-webapp-poc/frontend
+          imagePullPolicy: Always
+          name: frontend
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 1G
+            limits:
+              cpu: 1
+              memory: 2G
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          env:
+            - name: IAM_AUTHORITY
+              value: "https://keycloak-demo.cloud.cnaf.infn.it:8222"
+            - name: IAM_CLIENT_ID
+              valueFrom: 
+                secretKeyRef:
+                  name: iam-client-secret
+                  key: IAM_CLIENT_ID
+            - name: IAM_REDIRECT_URI
+              value: "https://cloud-vm22.cloud.cnaf.infn.it/callback"
+            - name: IAM_SCOPE
+              value: "openid email profile offline_access"
+            - name: IAM_AUDIENCE
+              value: "b573bc60-c58f-4924-90e5-ac0f5bcb576e"
+            - name: S3_ENDPOINT
+              value: "https://vm-131-154-97-121.cloud.cnaf.infn.it"
+            - name: S3_ROLE_ARN
+              value: "arn:aws:iam:::role/S3AccessIAM200"
+            - name: S3_REGION
+              value: "nova"
+        - image: baltig.infn.it:4567/jgasparetto/ceph-webapp-poc/backend
+          imagePullPolicy: Always
+          name: backend
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 1G
+            limits:
+              cpu: 1
+              memory: 2G
+          env:
+            - name: IAM_AUTHORITY
+              value: https://keycloak-demo.cloud.cnaf.infn.it:8222
+            - name: IAM_CLIENT_ID
+              valueFrom: 
+                secretKeyRef:
+                  name: iam-client-secret
+                  key: IAM_CLIENT_ID
+            - name: IAM_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iam-client-secret
+                  key: IAM_CLIENT_SECRET
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
