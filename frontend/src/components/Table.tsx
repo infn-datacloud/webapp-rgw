@@ -71,19 +71,20 @@ export const Table = (props: TableParams) => {
               key={rowIndex}>
               {
                 selectable ?
-                  <th className="pl-4">
+                  <td className="pl-4">
                     <input
                       type="checkbox"
                       onChange={(el) => (onSelect && onSelect(el, rowIndex))}
                       checked={selectedRows && selectedRows.has(rowIndex)}
+                      id="table-checkbox"
                     >
                     </input>
-                  </th> : null
+                  </td> : null
               }
               {columnIds.map((colId, index) => {
                 return <td
-                  className="border-b border-slate-100 
-                  p-4 first:pl-8 last:pr-8 text-left"
+                  className={"border-b border-slate-100 p-4 first:pl-8 " +
+                    "last:pr-8 text-left " + colId}
                   key={index}>
                   {row[colId]}
                 </td>
