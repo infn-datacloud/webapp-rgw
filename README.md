@@ -99,3 +99,37 @@ docker run \
   -e ... \
   backend
 ```
+
+## Deployment with Kubernetes
+
+This project is shipped with a preconfigured ready to use
+[`deployment.yaml`](deployment.yaml) file.
+
+### Create Secret
+
+Before apply the deployment, you need to create a secret for the IAM client. To
+create the secret, run
+
+```bash
+kubectl create secret generic iam-client-secret \
+--from-literal=IAM_CLIENT_ID=<you-client-id> \
+--from-literal=IAM_CLIENT_SECRET=<your-client-secret>
+```
+
+### Apply the deployment
+
+Once the secret is created, apply the deployment with
+
+```bash
+kubectl apply -f demployment.yaml
+```
+
+### Restart the deployment
+
+The CI/CD pipeline is configured to automatically restart the
+deployment after new images are build and pushed.
+If you want to manually restart the deployment, run
+
+```bash
+kubectl rollout restart deployment rgw-s3
+```
