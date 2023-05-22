@@ -17,6 +17,7 @@ import { InputFile } from '../../components/InputFile';
 import {
   initNodePathTree,
   getTableData,
+  downloadFiles,
   uploadFiles,
   deleteObjects,
   listObjects
@@ -195,6 +196,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     // Queue all delete asynchronously
     deleteObjects(s3, bucketName, toDelete)
       .then(() => {
+        selectedObjects.current = new Map();
         setSelectedRows(new Set());
         refreshBucketObjects();
       });
@@ -212,6 +214,17 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       console.log("Set new path", newPath);
       setCurrentPath(newNode);
     }
+  }
+
+  const handleBucketInspectorClose = () => {
+    selectedObjects.current = new Map();
+    setSelectedRows(new Set());
+  }
+
+  const handleDownloadFiles = () => {
+    downloadFiles(s3, bucketName, Array.from(selectedObjects.current.values()));
+    selectedObjects.current = new Map();
+    setSelectedRows(new Set());
   }
 
   const goBack = useCallback(() => {
@@ -245,8 +258,10 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       <div className='top-0 fixed z-10 right-0 w-64 bg-slate-300'>
         <BucketInspector
           isOpen={selectedObjects.current.size > 0}
-          bucket={bucketName}
           objects={Array.from(selectedObjects.current.values())}
+          onClose={handleBucketInspectorClose}
+          onDownload={handleDownloadFiles}
+          onDelete={deleteSelectedObjects}
         />
       </div>
       {/* Transition to open the right drawer */}

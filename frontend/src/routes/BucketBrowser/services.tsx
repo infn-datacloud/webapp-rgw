@@ -65,6 +65,25 @@ export const listObjects = async (s3: S3ContextProps, bucketName: string) => {
   return response.Contents;
 }
 
+export const downloadFiles = async (s3: S3ContextProps, bucketName: string, 
+  objects: BucketObject[]) => {
+  for (const object of objects) {
+    try {
+      const url = await s3.getPresignedUrl(bucketName, object.Key!);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', object.Key!);
+      link.setAttribute('id', object.Key!);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
+
 export const uploadFiles = (s3: S3ContextProps,
   bucketName: string, files: FileList, prefix?: string) => {
   const requests = Array.from(files).map(file => {

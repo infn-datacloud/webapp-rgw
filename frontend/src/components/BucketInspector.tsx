@@ -8,13 +8,28 @@ import {
   TrashIcon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
-import { useS3Service } from "../services/S3Service";
 
-interface BucketInspectorProps extends InspectorProps {
-  bucket: string;
-  objects: BucketObject[]
+interface TitleProps {
+  className?: string;
+  title?: string;
 }
 
+const Title = ({ className, title }: TitleProps) => {
+  return (
+    <div className={className}>
+      <div className="text-lg font-semibold break-words">
+        {title}
+      </div>
+    </div>
+  )
+}
+
+interface BucketInspectorProps extends InspectorProps {
+  objects: BucketObject[]
+  onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
+  onDownload?: () => void;
+  onDelete?: () => void;
+}
 
 interface DetailProps {
   title: string;
@@ -46,64 +61,43 @@ const ObjectDetail = (object: BucketObject) => {
   )
 }
 
-
 export const BucketInspector = (props: BucketInspectorProps) => {
 
-  const { bucket, objects } = props;
+  const { objects, onClose, onDelete, onDownload } = props;
   const title = objects.length === 1 ? objects[0].Key : "Multiple objects";
   const object = objects[0];
-  const { getPresignedUrl } = useS3Service();
-
-  const downloadObject = async () => {
-    try {
-      const url = await getPresignedUrl(bucket, object.Key!);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', object.Key!);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  const Title = () => {
-    return (
-      <div className="text-xl font-semibold">
-        {title}
-      </div>
-    )
-  }
-
 
   return (
     <Inspector
       isOpen={props.isOpen}>
-      <div className="flex items-center p-4">
-        <Title />
-        <button>
+      <div className="flex p-4 flex-row-reverse">
+        <button onClick={onClose}>
           <div
-            className="w-8 p-[5px] bg-neutral-300 text-neutral-500
+            className="w-5 p-[5px] bg-neutral-300 text-neutral-500
              hover:bg-neutral-400 rounded-full">
             <XMarkIcon />
           </div>
         </button>
       </div>
-      <div className="p-4">
+      <div className="px-4">
+        <Title className="w-5/6" title={title} />
+        <hr className="mt-4 mb-8"></hr>
         <Button
           className="w-full"
           title="Download"
           icon={<ArrowDownCircleIcon />}
-          onClick={downloadObject}
+          onClick={onDownload}
         />
-        <Button className="w-full mt-4" title="Delete" icon={<TrashIcon />} />
+        <Button
+          className="w-full mt-4"
+          title="Delete"
+          icon={<TrashIcon />}
+          onClick={onDelete}
+        />
         <hr className="h-px w-full my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
         <ObjectDetail {...object} />
       </div>
       {props.children}
-
     </Inspector>
   )
 }
