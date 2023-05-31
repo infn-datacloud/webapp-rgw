@@ -168,11 +168,20 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       throw new Error("Object name is undefined");
     }
 
+    if (selectedRows.has(index)) {
+      const newState = new Set(selectedRows);
+      newState.delete(index);
+      selectedObjects.current = new Map(
+        Object.entries(selectedObjects.current)
+          .filter(([key]) => key.startsWith(objectName)));
+      setSelectedRows(newState);
+      return;
+    }
+
     const next = currentPath.findChild(objectName);
     if (!next) {
       throw new Error(`Child with name ${objectName} not found.`);
     }
-
     const isDir = next.children.length > 0;
 
     if (isDir) {
