@@ -54,18 +54,32 @@ const ObjectDetail = (object: BucketObject) => {
       </div>
       <Detail title={"Key"} value={object.Key} />
       <Detail title={"ETag"} value={object.ETag} />
-      <Detail title={"Last Modified"} value={object.LastModified?.toString()} />
-      <Detail title={"Owner"} value={object.Owner?.ID} />
+      <Detail title={"Last Modified"} value={object.LastModified?.toString() ?? "Multiple values"} />
+      <Detail title={"Owner"} value={object.Owner?.ID ?? "Multiple values"} />
       <Detail title={"Size"} value={getHumanSize(object.Size ?? 0)} />
     </>
   )
 }
 
 export const BucketInspector = (props: BucketInspectorProps) => {
-
   const { objects, onClose, onDelete, onDownload } = props;
-  const title = objects.length === 1 ? objects[0].Key : "Multiple objects";
-  const object = objects[0];
+  if (objects.length == 0) {
+    return;
+  }
+
+  const areMultipleObjects = objects.length > 1;
+  const title = areMultipleObjects ? "Multiple objects" : objects[0].Key;
+  const size = !areMultipleObjects ? objects[0].Size : objects.reduce((acc: number, value: BucketObject) => {
+    return acc += value.Size ?? 0;
+  }, 0);
+
+  const object: BucketObject = {
+    Key: areMultipleObjects ? "Multiple values" : objects[0].Key,
+    ETag: areMultipleObjects ? "Multiple values" : objects[0].ETag,
+    LastModified: areMultipleObjects ? undefined : objects[0].LastModified,
+    Owner: areMultipleObjects ? undefined : objects[0].Owner,
+    Size: size
+  }
 
   return (
     <Inspector
