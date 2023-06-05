@@ -7,7 +7,6 @@ export interface RWAccess {
 export interface BucketInfo {
   name: string,
   creation_date: string;
-  detail: Object
   rw_access: RWAccess
   objects: number,
   size: number

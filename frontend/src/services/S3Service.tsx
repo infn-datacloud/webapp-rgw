@@ -5,7 +5,9 @@ import {
   Bucket,
   ListBucketsCommand,
   GetObjectCommand,
-  S3Client
+  S3Client,
+  ListObjectsV2Command,
+  _Object
 } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -38,6 +40,7 @@ export interface S3ContextProps {
   client: S3Client;
   isAuthenticated: () => boolean;
   fetchBucketList: () => Promise<Bucket[]>;
+  listObjects: (bucket: Bucket) => Promise<_Object[]>;
   getPresignedUrl: (bucket: string, key: string) => Promise<any>;
 }
 
@@ -131,6 +134,19 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
     }
   };
 
+  const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
+    const cmd = new ListObjectsV2Command({ Bucket: bucket.Name });
+    const client = getS3Client();
+    const response = await client.send(cmd);
+    const { Contents } = response;
+    if (Contents) {
+      return Contents;
+    } else {
+      console.warn(`Warning: bucket ${bucket.Name} has no content`);
+      return [];
+    }
+  }
+
   const getPresignedUrl = async (bucket: string, key: string) => {
     const cmdGetObj = new GetObjectCommand({ Bucket: bucket, Key: key });
     const client = getS3Client();
@@ -143,6 +159,7 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
       client: getS3Client(),
       isAuthenticated: () => isAuthenticated(),
       fetchBucketList: () => fetchBucketList(),
+      listObjects: (bucket: Bucket) => listObjects(bucket),
       getPresignedUrl: getPresignedUrl
     }}>
       {children}
