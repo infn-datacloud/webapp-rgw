@@ -6,3 +6,4 @@ backend/envs/*
 frontend/public/env.js
 frontend/envs/*
 !frontend/envs/example.env
+__pycache__/
