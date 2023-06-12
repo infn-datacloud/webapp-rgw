@@ -4,36 +4,8 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { BucketInfo } from "../../models/bucket";
 import { BucketListContext } from "../../services/BucketListContext";
 import { _Object } from "@aws-sdk/client-s3";
-import { ClockIcon, CubeIcon, ChartPieIcon } from "@heroicons/react/24/outline";
-import { getHumanSize } from "../../commons/utils";
-
-
-const BucketSummaryView = ({ name, creation_date, rw_access, size, objects }: BucketInfo) => {
-  interface SubviewProps {
-    title: string,
-    text: string,
-    icon: JSX.Element
-  }
-
-  const Subview = ({ title, text, icon }: SubviewProps) => {
-    return (
-      <div className="flex mt-2 content-center">
-        <div className="w-5 my-auto mr-2">{icon}</div>
-        <div className="font-semibold mr-1 my-auto">{title}</div>
-        {text}
-      </div>
-    )
-  }
-
-  return (
-    <div className="bg-neutral-100 border p-2">
-      <div className="text-xl font-semibold">{name}</div>
-      <Subview title="Created at:" text={creation_date} icon={<ClockIcon />} />
-      <Subview title="Usage:" text={getHumanSize(size) ?? "N/A"} icon={<ChartPieIcon />} />
-      <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
-    </div>
-  )
-};
+import { Toolbar } from "./Toolbar";
+import { BucketSummaryView } from "./BucketSummaryView";
 
 export const BucketAdministration = () => {
   const { bucketList } = useContext(BucketListContext);
@@ -78,15 +50,21 @@ export const BucketAdministration = () => {
         lockRef.current = true;
       })
     }
-  }, [bucketList, fetchBucketInfos])
+  }, [bucketList, fetchBucketInfos]);
 
-  const BucketInfoViews = bucketInfos.map(el => {
-    return <BucketSummaryView key={el.name} {...el} />
-  })
+  const BucketInfos = () => {
+    return (
+      <div>
+        {bucketInfos.map(el => {
+          return <BucketSummaryView key={el.name} {...el} />
+        })}
+      </div>)
+  };
 
   return (
     <Page title="Buckets">
-      {BucketInfoViews}
+      <Toolbar className="px-4" />
+      <BucketInfos />
     </Page>
   )
 }
