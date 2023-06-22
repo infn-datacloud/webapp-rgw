@@ -127,6 +127,7 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
     let response = await client.send(listBucketCmd)
     const { Buckets } = response;
     if (Buckets) {
+      console.log("Buckets fetched");
       return Buckets;
     } else {
       console.warn("Warning: Expected Bucket[], got undefined");
