@@ -1,22 +1,31 @@
 interface TextFieldProps {
   placeholder?: string;
-  value: string | number | readonly string[] | undefined;
+  className?: string;
+  value: string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onBlur?: React.ChangeEventHandler<HTMLInputElement>;
+  error?: any;
 }
 
 export const TextField = (props: TextFieldProps) => {
-  const { placeholder, value, onChange } = props;
-  const className = " placeholder:text-slate-400 " +
-    "block bg-white w-full border border-slate-300 rounded-md py-2 pl-4 " +
-    "pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 " +
-    "focus:ring-1 smbre:text-sm"
+  const { placeholder, value, className, onChange, onBlur, error } = props;
+  const inputClassName =
+    `placeholder:${error ? "text-red-400" : "text-slate-400"} ` +
+    `block bg-white w-full border ${error ? "border-red-400" : "border-slate-400"} ` +
+    `rounded-md py-2 pl-4 pr-3 shadow-sm focus:outline-none ` +
+    `focus:${error ? "border-red-400" : "border-sky-500"}` +
+    `focus:${error ? "ring-red-400" : "ring-sky-500"} focus:ring-1 smbre:text-sm`
   return (
-    <input
-      className={className}
-      placeholder={placeholder}
-      type="text"
-      value={value}
-      onChange={onChange}
-    />
+    <div className={className}>
+      <input
+        className={inputClassName}
+        placeholder={placeholder}
+        type="text"
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+      />
+      {error ? <div className="text-red-400">{error}</div> : null}
+    </div>
   )
 }
