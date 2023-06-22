@@ -6,11 +6,13 @@ import { BucketListContext } from "../../services/BucketListContext";
 import { _Object } from "@aws-sdk/client-s3";
 import { Toolbar } from "./Toolbar";
 import { BucketSummaryView } from "./BucketSummaryView";
+import { NewBucketModal } from "./NewBucketModal";
 
 export const BucketAdministration = () => {
   const { bucketList } = useContext(BucketListContext);
   const lockRef = useRef<boolean>(false);
   const [bucketInfos, setBucketInfos] = useState<BucketInfo[]>([]);
+  const [showNewBucketModal, setShowNewBucketModal] = useState(false);
   const { listObjects } = useS3Service();
 
   const fetchBucketInfos = useCallback(() => {
@@ -61,9 +63,20 @@ export const BucketAdministration = () => {
       </div>)
   };
 
+  const onCloseNewBucketModal = () => {
+    setShowNewBucketModal(false);
+  }
+  
   return (
     <Page title="Buckets">
-      <Toolbar className="px-4" />
+      <NewBucketModal
+        open={showNewBucketModal}
+        onClose={onCloseNewBucketModal}
+      />
+      <Toolbar
+        className="mb-4"
+        onClickNewBucket={() => setShowNewBucketModal(true)}
+      />
       <BucketInfos />
     </Page>
   )

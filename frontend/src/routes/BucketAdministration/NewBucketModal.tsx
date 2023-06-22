@@ -1,0 +1,166 @@
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { Modal } from "../../components/Modal"
+import { TextField } from "../../components/TextField";
+import { useState } from "react";
+import { Button } from "../../components/Button";
+
+interface NewBucketModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const bucketValidator = new RegExp("(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$");
+const bucketInvalidErrorMessage = () => {
+  return (
+    <>
+      <p className="text-xs font-bold mt-1">Bucket name is not valid.</p>
+      <p className="text-xs">Bucket name must:</p>
+      <ul className="list-disc text-xs ml-3">
+        <li>be between 3(min) and 63(max) characters long.</li>
+        <li>consist only of lowercase letters, numbers, dots(.), and hyphens(-).</li>
+        <li>begin and end with a letter or number.</li>
+        <li>not contain two adjacent periods.</li>
+        <li>not be formatted as an IP addressa(for example, 192.168.5.4).</li>
+        <li>not start with the prefix xn--.</li>
+        <li>not end with the suffix - s3alias.</li>
+        <li>not end with the suffix--ol - s3.</li>
+      </ul>
+    </>
+  )
+}
+
+interface ToggleSwitchProps {
+  checked: boolean;
+  onClick: () => void;
+};
+
+const ToggleSwitch = ({ checked, onClick }: ToggleSwitchProps) => {
+  return (
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input type="checkbox" value="" className="sr-only peer" checked={checked} onClick={onClick} />
+      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+    </label>
+  );
+}
+
+export const NewBucketModal = (props: NewBucketModalProps) => {
+  const { open, onClose } = props;
+  const [bucketName, setBucketName] = useState<string>("");
+  const [error, setError] = useState<any | undefined>();
+  const [versioningEnabled, setVersioningEnabled] = useState(false);
+  const [objectLockingEnabled, setObjectLockingEnabled] = useState(false);
+  const [quotaEnabled, setQuotaEnabled] = useState(false);
+
+  const isBuketNameValid = (): boolean => {
+    return bucketValidator.test(bucketName);
+  }
+
+  const validateBucketName = () => {
+    setError(isBuketNameValid() ? undefined : bucketInvalidErrorMessage);
+  }
+
+  const clear = () => {
+    setBucketName("");
+    setError(null);
+    setVersioningEnabled(false);
+    setObjectLockingEnabled(false);
+    setQuotaEnabled(false);
+  }
+
+  // Components
+  const CloseButton = () => {
+    return (
+      <button className="w-8 p-[5px] text-neutral-500
+      hover:bg-neutral-200 rounded-full"
+        onClick={() => {
+          onClose();
+        }}>
+        <XMarkIcon />
+      </button>
+    )
+  }
+
+  const Title = () => {
+    return (
+      <div className="flex place-content-between">
+        <h1 className="text-2xl font-semibold">Create Bucket</h1>
+        <CloseButton />
+      </div>
+    );
+  }
+
+  const BucketNameTextField = () => {
+    return (
+      <div className="flex justify-between mt-16">
+        <div className="lg:w-52 my-auto">
+          Bucket Name*
+        </div>
+        <TextField
+          className="w-2/3 px-4"
+          placeholder={"Enter a name for your bucket"}
+          value={bucketName}
+          onChange={(e) => setBucketName(e.target.value)}
+          onBlur={() => validateBucketName()}
+          error={error}
+        />
+      </div>
+    );
+  };
+
+  interface BucketFeatureProps extends ToggleSwitchProps {
+    name: string;
+  };
+
+  const BucketFeature = ({ name, checked, onClick }: BucketFeatureProps) => {
+    return (
+      <div className="flex justify-between">
+        <p>{name}</p>
+        <ToggleSwitch checked={checked} onClick={onClick} />
+      </div>
+    );
+  };
+
+  const BucketFeatures = () => {
+    return (
+      <div className="mt-4 space-y-4">
+        <p className="font-bold">Features</p>
+        <BucketFeature
+          name="Versioning"
+          checked={versioningEnabled}
+          onClick={() => setVersioningEnabled(!versioningEnabled)}
+        />
+        <BucketFeature
+          name="Object Locking"
+          checked={objectLockingEnabled}
+          onClick={() => setObjectLockingEnabled(!objectLockingEnabled)}
+        />
+        <BucketFeature
+          name="Quota"
+          checked={quotaEnabled}
+          onClick={() => setQuotaEnabled(!quotaEnabled)}
+        />
+      </div>
+    );
+  };
+
+  const Buttons = () => {
+    return (
+      <div className="flex justify-end p-4 space-x-4">
+        <Button title="Clear" onClick={clear}/>
+        <Button title="Create Bucket" disabled={!isBuketNameValid()} />
+      </div>
+    )
+  }
+
+  const bucketNameTextField = BucketNameTextField();
+  return (
+    <Modal open={open}>
+      <div className="p-6">
+        <Title />
+        {bucketNameTextField}
+        <BucketFeatures />
+        <Buttons />
+      </div>
+    </Modal>
+  );
+};
