@@ -1,5 +1,5 @@
 import { Page } from "../../components/Page";
-import { useS3Service } from "../../services/S3Service";
+import { useS3Service, CreateBucketArgs } from "../../services/S3Service";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { BucketInfo } from "../../models/bucket";
 import { BucketListContext } from "../../services/BucketListContext";
@@ -13,7 +13,7 @@ export const BucketAdministration = () => {
   const lockRef = useRef<boolean>(false);
   const [bucketInfos, setBucketInfos] = useState<BucketInfo[]>([]);
   const [showNewBucketModal, setShowNewBucketModal] = useState(false);
-  const { listObjects } = useS3Service();
+  const { listObjects, createBucket } = useS3Service();
 
   const fetchBucketInfos = useCallback(() => {
     const promisesMap = bucketList.reduce<Map<string, Promise<_Object[]>>>((acc, bucket) => {
@@ -66,12 +66,20 @@ export const BucketAdministration = () => {
   const onCloseNewBucketModal = () => {
     setShowNewBucketModal(false);
   }
-  
+
+  const handleCreateBucket = (args: CreateBucketArgs) => {
+    createBucket(args)
+      .then(() => console.log("Bucket successfully created"))
+      .catch((err) => console.error(err));
+    setShowNewBucketModal(false);
+  }
+
   return (
     <Page title="Buckets">
       <NewBucketModal
         open={showNewBucketModal}
         onClose={onCloseNewBucketModal}
+        onCreateBucket={(args: CreateBucketArgs) => handleCreateBucket(args)}
       />
       <Toolbar
         className="mb-4"

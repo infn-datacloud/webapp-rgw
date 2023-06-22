@@ -7,7 +7,10 @@ import {
   GetObjectCommand,
   S3Client,
   ListObjectsV2Command,
-  _Object
+  _Object,
+  CreateBucketCommand,
+  PutBucketVersioningCommand,
+  VersioningConfiguration
 } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -34,6 +37,11 @@ export const initialS3ServiceState: IS3ServiceState = {
 }
 
 // ***** Context *****
+export interface CreateBucketArgs {
+  bucketName: string;
+  versioningConfigutaion: VersioningConfiguration | undefined;
+  objectLockingEnabled: boolean
+};
 
 export interface S3ContextProps {
   awsConfig: AWSConfig;
@@ -42,6 +50,7 @@ export interface S3ContextProps {
   fetchBucketList: () => Promise<Bucket[]>;
   listObjects: (bucket: Bucket) => Promise<_Object[]>;
   getPresignedUrl: (bucket: string, key: string) => Promise<any>;
+  createBucket: (args: CreateBucketArgs) => Promise<any>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -135,6 +144,26 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
     }
   };
 
+  const createBucket = async (args: CreateBucketArgs) => {
+    const { bucketName, objectLockingEnabled, versioningConfigutaion } = args;
+    const createBucketCommand = new CreateBucketCommand({
+      Bucket: bucketName,
+      ObjectLockEnabledForBucket: objectLockingEnabled
+    });
+    const client = getS3Client();
+    const result = await client.send(createBucketCommand);
+
+    if (versioningConfigutaion) {
+      const putVersioningCommand = new PutBucketVersioningCommand({
+        Bucket: bucketName,
+        VersioningConfiguration: versioningConfigutaion
+      });
+      return await client.send(putVersioningCommand);
+    }
+
+    return result;
+  };
+
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
     const cmd = new ListObjectsV2Command({ Bucket: bucket.Name });
     const client = getS3Client();
@@ -161,7 +190,8 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
       isAuthenticated: () => isAuthenticated(),
       fetchBucketList: () => fetchBucketList(),
       listObjects: (bucket: Bucket) => listObjects(bucket),
-      getPresignedUrl: getPresignedUrl
+      getPresignedUrl: getPresignedUrl,
+      createBucket: (args: CreateBucketArgs) => createBucket(args)
     }}>
       {children}
     </S3ServiceContext.Provider>

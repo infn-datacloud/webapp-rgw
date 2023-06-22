@@ -3,10 +3,13 @@ import { Modal } from "../../components/Modal"
 import { TextField } from "../../components/TextField";
 import { useState } from "react";
 import { Button } from "../../components/Button";
+import { CreateBucketArgs } from "../../services/S3Service";
+import { VersioningConfiguration } from "@aws-sdk/client-s3";
 
 interface NewBucketModalProps {
   open: boolean;
   onClose: () => void;
+  onCreateBucket: (args: CreateBucketArgs) => void;
 }
 
 const bucketValidator = new RegExp("(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$");
@@ -37,14 +40,14 @@ interface ToggleSwitchProps {
 const ToggleSwitch = ({ checked, onClick }: ToggleSwitchProps) => {
   return (
     <label className="relative inline-flex items-center cursor-pointer">
-      <input type="checkbox" value="" className="sr-only peer" checked={checked} onClick={onClick} />
+      <input type="checkbox" value="" className="sr-only peer" checked={checked} onChange={onClick} onClick={onClick} />
       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
     </label>
   );
 }
 
 export const NewBucketModal = (props: NewBucketModalProps) => {
-  const { open, onClose } = props;
+  const { open, onClose, onCreateBucket } = props;
   const [bucketName, setBucketName] = useState<string>("");
   const [error, setError] = useState<any | undefined>();
   const [versioningEnabled, setVersioningEnabled] = useState(false);
@@ -65,6 +68,21 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
     setVersioningEnabled(false);
     setObjectLockingEnabled(false);
     setQuotaEnabled(false);
+  }
+
+  const createBucket = () => {
+    console.log("click")
+    const versioningConfigutaion: VersioningConfiguration = {
+      Status: "Enabled"
+    };
+
+    const args: CreateBucketArgs = {
+      bucketName: bucketName,
+      versioningConfigutaion: versioningEnabled ? versioningConfigutaion : undefined,
+      objectLockingEnabled: objectLockingEnabled
+    };
+
+    onCreateBucket(args);
   }
 
   // Components
@@ -146,8 +164,15 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
   const Buttons = () => {
     return (
       <div className="flex justify-end p-4 space-x-4">
-        <Button title="Clear" onClick={clear}/>
-        <Button title="Create Bucket" disabled={!isBuketNameValid()} />
+        <Button
+          title="Clear"
+          onClick={clear}
+        />
+        <Button
+          title="Create Bucket"
+          disabled={!isBuketNameValid()}
+          onClick={createBucket}
+        />
       </div>
     )
   }
