@@ -5,7 +5,7 @@ import {
   RouterProvider,
   Routes
 } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Login } from './routes/Login';
 import { staticRoutes } from './routes';
 import { useOAuth, OAuthPopup } from './services/OAuth2';
@@ -34,11 +34,15 @@ function App() {
       console.log(err);
     }
   };
-
+  
+  const fetchBucketLock = useRef<boolean>(false);
   useEffect(() => {
-    if (isAuthenticated() && bucketList.length === 0) {
+    if (isAuthenticated() && !fetchBucketLock.current) {
       fetchBuckets();
     }
+    return (() => {
+      fetchBucketLock.current = isAuthenticated();
+    })
   });
 
   if (oAuth.error) {
