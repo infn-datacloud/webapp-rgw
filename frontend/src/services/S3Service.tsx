@@ -10,7 +10,9 @@ import {
   _Object,
   CreateBucketCommand,
   PutBucketVersioningCommand,
-  VersioningConfiguration
+  GetBucketVersioningCommand,
+  VersioningConfiguration,
+  DeleteBucketCommand,
 } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -51,6 +53,7 @@ export interface S3ContextProps {
   listObjects: (bucket: Bucket) => Promise<_Object[]>;
   getPresignedUrl: (bucket: string, key: string) => Promise<any>;
   createBucket: (args: CreateBucketArgs) => Promise<any>;
+  deleteBucket: (bucket: string) => Promise<any>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -130,13 +133,11 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
 
 
   const fetchBucketList = async () => {
-    console.log("Fetching Buckets List");
     const listBucketCmd = new ListBucketsCommand({});
     const client = getS3Client();
     let response = await client.send(listBucketCmd)
     const { Buckets } = response;
     if (Buckets) {
-      console.log("Buckets fetched");
       return Buckets;
     } else {
       console.warn("Warning: Expected Bucket[], got undefined");
@@ -148,7 +149,7 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
     const { bucketName, objectLockingEnabled, versioningConfigutaion } = args;
     const createBucketCommand = new CreateBucketCommand({
       Bucket: bucketName,
-      ObjectLockEnabledForBucket: objectLockingEnabled
+      ObjectLockEnabledForBucket: objectLockingEnabled,
     });
     const client = getS3Client();
     const result = await client.send(createBucketCommand);
@@ -158,10 +159,21 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
         Bucket: bucketName,
         VersioningConfiguration: versioningConfigutaion
       });
-      return await client.send(putVersioningCommand);
+      await client.send(putVersioningCommand);
+      const getBucketVersioningCommand = new GetBucketVersioningCommand({
+        Bucket: bucketName
+      });
+      const result = await client.send(getBucketVersioningCommand);
+      console.log("Versioning", result.Status);
     }
 
     return result;
+  };
+
+  const deleteBucket = async (bucket: string) => {
+    const cmd = new DeleteBucketCommand({ Bucket: bucket });
+    const client = getS3Client();
+    return await client.send(cmd);
   };
 
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
@@ -175,13 +187,13 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
       console.warn(`Warning: bucket ${bucket.Name} has no content`);
       return [];
     }
-  }
+  };
 
   const getPresignedUrl = async (bucket: string, key: string) => {
     const cmdGetObj = new GetObjectCommand({ Bucket: bucket, Key: key });
     const client = getS3Client();
     return getSignedUrl(client, cmdGetObj);
-  }
+  };
 
   return (
     <S3ServiceContext.Provider value={{
@@ -191,12 +203,13 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
       fetchBucketList: () => fetchBucketList(),
       listObjects: (bucket: Bucket) => listObjects(bucket),
       getPresignedUrl: getPresignedUrl,
-      createBucket: (args: CreateBucketArgs) => createBucket(args)
+      createBucket: (args: CreateBucketArgs) => createBucket(args),
+      deleteBucket: (bucket: string) => deleteBucket(bucket)
     }}>
       {children}
     </S3ServiceContext.Provider>
   );
-}
+};
 
 // **** useS3Service *****
 
