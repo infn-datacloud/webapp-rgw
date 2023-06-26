@@ -10,5 +10,5 @@ export type Route = {
 
 export const staticRoutes: Route[] = [
   { title: "Home", path: "/", element: <Home /> },
-  { title: "Buckets", path: "/buckets", element: <BucketAdministration/> }
+  { title: "Buckets", path: "/buckets", element: <BucketAdministration /> }
 ];

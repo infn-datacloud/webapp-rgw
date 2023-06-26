@@ -1,13 +1,12 @@
 import { Page } from '../../components/Page';
 import { Table, Column } from '../../components/Table';
-import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BucketListContext } from '../../services/BucketListContext';
 import { Bucket } from '@aws-sdk/client-s3';
+import { useBucketStore } from '../../services/BucketStore';
 
 export const Home = () => {
   const navigate = useNavigate();
-  const { bucketList } = useContext(BucketListContext);
+  const { bucketList } = useBucketStore();
 
   const columns: Column[] = [
     { id: "bucket", name: "Bucket" },
