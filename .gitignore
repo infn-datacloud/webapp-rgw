@@ -4,3 +4,6 @@ nginx/cert/
 backend/envs/*
 !backend/envs/example.env
 frontend/public/env.js
+frontend/envs/*
+!frontend/envs/example.env
+__pycache__/

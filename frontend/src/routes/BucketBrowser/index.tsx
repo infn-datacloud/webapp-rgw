@@ -17,6 +17,7 @@ import { InputFile } from '../../components/InputFile';
 import {
   initNodePathTree,
   getTableData,
+  downloadFiles,
   uploadFiles,
   deleteObjects,
   listObjects
@@ -24,6 +25,8 @@ import {
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
 import { NodePath } from '../../commons/utils';
+import { NotificationType, useNotifications } from '../../services/Notification';
+
 
 const columns: Column[] = [
   { id: "icon" },
@@ -63,6 +66,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const lockRef = useRef<boolean>(false);
   const rootNodeRef = useRef<NodePath<BucketObject>>(new NodePath(""));
   const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
+  const { notify } = useNotifications();
 
   let tableData = getTableData(currentPath);
   console.log(selectedObjects.current);
@@ -86,7 +90,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             // Otherwise, set current path to root
             setCurrentPath(rootNodeRef.current);
           } else {
-            console.warn("Warning: bucket looks empty.");
+            rootNodeRef.current = new NodePath("");
+            setCurrentPath(rootNodeRef.current);
           }
         })
         .catch(err => console.error(err));
@@ -116,14 +121,14 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     const prefix = currentPath.path.replace(/^\//, "");
     uploadFiles(s3, bucketName, files, prefix)
       .then(() => {
-        console.log("File(s) uploaded");
+        notify("File(s) uploaded", undefined, NotificationType.success);
         if (inputRef.current) {
           inputRef.current.files = null;
           inputRef.current.value = "";
           refreshBucketObjects();
         }
       })
-      .catch(err => console.error(err));
+      .catch((err: Error) => notify("Cannot upload file", err.name, NotificationType.error));
   }
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
@@ -167,11 +172,20 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       throw new Error("Object name is undefined");
     }
 
+    if (selectedRows.has(index)) {
+      const newState = new Set(selectedRows);
+      newState.delete(index);
+      selectedObjects.current = new Map(
+        Object.entries(selectedObjects.current)
+          .filter(([key]) => key.startsWith(objectName)));
+      setSelectedRows(newState);
+      return;
+    }
+
     const next = currentPath.findChild(objectName);
     if (!next) {
       throw new Error(`Child with name ${objectName} not found.`);
     }
-
     const isDir = next.children.length > 0;
 
     if (isDir) {
@@ -195,6 +209,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     // Queue all delete asynchronously
     deleteObjects(s3, bucketName, toDelete)
       .then(() => {
+        selectedObjects.current = new Map();
         setSelectedRows(new Set());
         refreshBucketObjects();
       });
@@ -212,6 +227,17 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       console.log("Set new path", newPath);
       setCurrentPath(newNode);
     }
+  }
+
+  const handleBucketInspectorClose = () => {
+    selectedObjects.current = new Map();
+    setSelectedRows(new Set());
+  }
+
+  const handleDownloadFiles = () => {
+    downloadFiles(s3, bucketName, Array.from(selectedObjects.current.values()));
+    selectedObjects.current = new Map();
+    setSelectedRows(new Set());
   }
 
   const goBack = useCallback(() => {
@@ -245,8 +271,10 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       <div className='top-0 fixed z-10 right-0 w-64 bg-slate-300'>
         <BucketInspector
           isOpen={selectedObjects.current.size > 0}
-          bucket={bucketName}
           objects={Array.from(selectedObjects.current.values())}
+          onClose={handleBucketInspectorClose}
+          onDownload={handleDownloadFiles}
+          onDelete={deleteSelectedObjects}
         />
       </div>
       {/* Transition to open the right drawer */}

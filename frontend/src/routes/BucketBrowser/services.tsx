@@ -47,13 +47,15 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
       )
     };
 
-    const bucketSize = child.value?.Size ? getHumanSize(child.value.Size) : "N/A";
+    const bucketSize = child.children.length > 0 ? child.children.reduce((acc, c) => {
+      return acc += c.value?.Size ?? 0;
+    }, 0) : child.value?.Size ?? 0;
 
     return [
       { columnId: "icon", value: <Icon /> },
       { columnId: "name", value: child.basename },
       { columnId: "last_modified", value: child.value?.LastModified?.toString() ?? "N/A" },
-      { columnId: "bucket_size", value: bucketSize },
+      { columnId: "bucket_size", value: getHumanSize(bucketSize) },
     ]
   });
 }
@@ -63,6 +65,25 @@ export const listObjects = async (s3: S3ContextProps, bucketName: string) => {
   const listObjCmd = new ListObjectsV2Command({ Bucket: bucketName });
   const response = await s3.client.send(listObjCmd)
   return response.Contents;
+}
+
+export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
+  objects: BucketObject[]) => {
+  for (const object of objects) {
+    try {
+      const url = await s3.getPresignedUrl(bucketName, object.Key!);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', object.Key!);
+      link.setAttribute('id', object.Key!);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 }
 
 export const uploadFiles = (s3: S3ContextProps,

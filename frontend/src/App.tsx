@@ -5,41 +5,16 @@ import {
   RouterProvider,
   Routes
 } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import { Login } from './routes/Login';
 import { staticRoutes } from './routes';
 import { useOAuth, OAuthPopup } from './services/OAuth2';
-import { BucketListContext } from './services/BucketListContext';
 import { BucketBrowser } from './routes/BucketBrowser';
 import { Bucket } from '@aws-sdk/client-s3';
-import { useS3Service } from './services/S3Service';
+import { useBucketStore, withBucketStore } from './services/BucketStore';
 
 function App() {
-
-  const [bucketList, setBucketList] = useState<Bucket[]>([]);
   const oAuth = useOAuth();
-  const { isAuthenticated, fetchBucketList } = useS3Service();
-
-  const bucketContextValue = {
-    bucketList: bucketList,
-    setBuckets: setBucketList
-  }
-
-  // Fetch bucket lists
-  const fetchBuckets = async () => {
-    try {
-      const buckets = await fetchBucketList();
-      setBucketList(buckets);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  useEffect(() => {
-    if (isAuthenticated() && bucketList.length === 0) {
-      fetchBuckets();
-    }
-  });
+  const { bucketList } = useBucketStore();
 
   if (oAuth.error) {
     return <div>Ops... {oAuth.error.message}</div>;
@@ -84,11 +59,9 @@ function App() {
 
   return (
     <div className="flex mb-4">
-      <BucketListContext.Provider value={bucketContextValue}>
-        <RouterProvider router={router} />
-      </BucketListContext.Provider>
+      <RouterProvider router={router} />
     </div>
   )
 }
 
-export default App;
+export default withBucketStore(App);

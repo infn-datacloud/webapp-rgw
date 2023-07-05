@@ -19,26 +19,26 @@ export const Button = (props: ButtonProps) => {
     onClick
   } = props;
 
-  let buttonClasses = className + " border border-color rounded p-4 "
-  buttonClasses +=
-    (disabled === true) ? "text-neutral-200" : "hover:bg-neutral-200";
+  let buttonClasses = `border border-color rounded p-4 ` +
+    `${disabled ? "text-neutral-200" : "hover:bg-neutral-200"}`;
 
   return (
-    <button
-      className={buttonClasses}
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      <div className="flex w-full">
-        {icon ?
-          <div className="w-5">{icon}</div>
-          : null}
-        <div className="ml-4">
-          {title}
+    <div className={className}>
+      <button
+        className={buttonClasses}
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+      >
+        <div className="flex w-full">
+          {icon ?
+            <div className="w-5 mr-4">{icon}</div>
+            : null}
+          <div>
+            {title}
+          </div>
         </div>
-      </div>
-
-    </button>
+      </button>
+    </div>
   )
 }

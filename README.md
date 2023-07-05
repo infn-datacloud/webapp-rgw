@@ -5,20 +5,14 @@ Storage.
 
 Frontend is made React and backend with FastAPI and boto3.
 
-## Run the project
-
-To run the project, use
-
-```bash
-docker compose up
-```
-
 ## Development Endpoints
 
 The following endpoint are available
 
-- Webapp [localhost:3000](localhost:3000)
-- API [localhost:3000/api/v1/](localhost:3000/api/v1/)
+- Webapp dev [localhost:3000](localhost:3000)
+- Webapp prod [localhost:8080](localhost:8080)
+- API dev [localhost:3000/api/v1/](localhost:3000/api/v1/)
+- API prod [localhost:8080/api/v1/](localhost:8080/api/v1/)
 - Minio [localhost:9000](localhost:9000)
 
 ## Deployment
@@ -26,6 +20,43 @@ The following endpoint are available
 This project is configured with a CI/CD pipeline which builds two Docker images
 for backend and frontend services. The images are stored
 [here](https://baltig.infn.it/jgasparetto/ceph-webapp-poc/container_registry).
+
+## Deployment with docker-compose
+
+This project is provided with a ready to use `docker-compose.yaml` file which
+deploy both a development server a static compiled version of the frontend
+service. All the networking is handled by an instance of NGINX.
+
+Before running the deployment, you must create a set of environemnt files for
+both the backend and frontend(s) services. You can start from the example files
+located at `backend/envs/example.dev` and `frontend/envs/example.dev`.
+
+For example, to configure both the development and production frontend services
+and the backend, create the following files
+
+```bash
+cp backend/envs/example.env  backend/envs/dev.env
+cp frontend/envs/example.env frontend/envs/dev.env
+cp frontend/envs/example.env frontend/envs/prod.env
+```
+
+Edit these files with your settings and ajust the paths in the `docker-file.yaml`
+accordingly.
+
+Now you must build the production version of the frontend
+
+```bash
+cd frontend && npm run build
+```
+
+Finally, run your deployment with
+
+```bash
+cp ..   # To the project root
+docker compose up -d
+```
+
+## Manual Deployment
 
 ### Frontend Configuration
 

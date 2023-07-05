@@ -1,18 +1,25 @@
-import { ReactNode, createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { useOAuth } from "./OAuth2";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
 import {
   Bucket,
   ListBucketsCommand,
   GetObjectCommand,
-  S3Client
+  S3Client,
+  ListObjectsV2Command,
+  _Object,
+  CreateBucketCommand,
+  PutBucketVersioningCommand,
+  GetBucketVersioningCommand,
+  VersioningConfiguration,
+  DeleteBucketCommand,
 } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { OidcToken } from "./OAuth2/OidcConfig";
-
+import { useNotifications, NotificationType } from "./Notification";
 
 // **** AWS Config ****
 export interface AWSConfig {
@@ -32,13 +39,21 @@ export const initialS3ServiceState: IS3ServiceState = {
 }
 
 // ***** Context *****
+export interface CreateBucketArgs {
+  bucketName: string;
+  versioningConfigutaion: VersioningConfiguration | undefined;
+  objectLockingEnabled: boolean
+};
 
 export interface S3ContextProps {
   awsConfig: AWSConfig;
   client: S3Client;
   isAuthenticated: () => boolean;
   fetchBucketList: () => Promise<Bucket[]>;
+  listObjects: (bucket: Bucket) => Promise<_Object[]>;
   getPresignedUrl: (bucket: string, key: string) => Promise<any>;
+  createBucket: (args: CreateBucketArgs) => Promise<any>;
+  deleteBucket: (bucket: string) => Promise<any>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -47,11 +62,10 @@ export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefi
 
 interface S3ServiceProviderProps {
   awsConfig: AWSConfig;
-  children?: ReactNode;
 }
 
-export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element => {
-  const { children, awsConfig } = props;
+const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
+  const { awsConfig } = props;
   const [
     s3ServiceState,
     setS3ServiceState
@@ -59,6 +73,7 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
 
   const oAuth = useOAuth();
   const { awsCredentials } = s3ServiceState;
+  const { notify } = useNotifications();
 
   // Factory method
   const getS3Client = useCallback(() => {
@@ -104,10 +119,10 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
         } else {
           console.warn("Warning: some one or more AWS Credentials member is empty");
         }
-      }).catch(err => {
-        console.error("Cannot retrieve AWS Credentials from STS", err);
+      }).catch((err: Error) => {
+        notify("Cannot retrieve AWS Credentials from STS", err.name, NotificationType.error);
       });
-  }, [awsConfig]);
+  }, [awsConfig, notify]);
 
   useEffect(() => {
     oAuth.subscribe(getAWSCretentials);
@@ -118,7 +133,6 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
 
 
   const fetchBucketList = async () => {
-    console.log("Fetching Buckets List");
     const listBucketCmd = new ListBucketsCommand({});
     const client = getS3Client();
     let response = await client.send(listBucketCmd)
@@ -131,24 +145,67 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
     }
   };
 
+  const createBucket = async (args: CreateBucketArgs) => {
+    const { bucketName, objectLockingEnabled, versioningConfigutaion } = args;
+    const createBucketCommand = new CreateBucketCommand({
+      Bucket: bucketName,
+      ObjectLockEnabledForBucket: objectLockingEnabled,
+    });
+    const client = getS3Client();
+    const result = await client.send(createBucketCommand);
+
+    if (versioningConfigutaion) {
+      const putVersioningCommand = new PutBucketVersioningCommand({
+        Bucket: bucketName,
+        VersioningConfiguration: versioningConfigutaion
+      });
+      await client.send(putVersioningCommand);
+      const getBucketVersioningCommand = new GetBucketVersioningCommand({
+        Bucket: bucketName
+      });
+      const result = await client.send(getBucketVersioningCommand);
+      console.log("Versioning", result.Status);
+    }
+
+    return result;
+  };
+
+  const deleteBucket = async (bucket: string) => {
+    const cmd = new DeleteBucketCommand({ Bucket: bucket });
+    const client = getS3Client();
+    return await client.send(cmd);
+  };
+
+  const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
+    const cmd = new ListObjectsV2Command({ Bucket: bucket.Name });
+    const client = getS3Client();
+    const response = await client.send(cmd);
+    const { Contents } = response;
+    if (Contents) {
+      return Contents;
+    } else {
+      console.warn(`Warning: bucket ${bucket.Name} has no content`);
+      return [];
+    }
+  };
+
   const getPresignedUrl = async (bucket: string, key: string) => {
     const cmdGetObj = new GetObjectCommand({ Bucket: bucket, Key: key });
     const client = getS3Client();
     return getSignedUrl(client, cmdGetObj);
-  }
+  };
 
-  return (
-    <S3ServiceContext.Provider value={{
-      awsConfig: awsConfig,
-      client: getS3Client(),
-      isAuthenticated: () => isAuthenticated(),
-      fetchBucketList: () => fetchBucketList(),
-      getPresignedUrl: getPresignedUrl
-    }}>
-      {children}
-    </S3ServiceContext.Provider>
-  );
-}
+  return {
+    awsConfig: awsConfig,
+    client: getS3Client(),
+    isAuthenticated: () => isAuthenticated(),
+    fetchBucketList: () => fetchBucketList(),
+    listObjects: (bucket: Bucket) => listObjects(bucket),
+    getPresignedUrl: getPresignedUrl,
+    createBucket: (args: CreateBucketArgs) => createBucket(args),
+    deleteBucket: (bucket: string) => deleteBucket(bucket)
+  };
+};
 
 // **** useS3Service *****
 
@@ -158,8 +215,19 @@ export const useS3Service = (): S3ContextProps => {
     throw new Error(
       "S3ServiceProvider context is undefined, " +
       "please verify you are calling useS3Service " +
-      "as a child of <S3ServicePrivder> comonent."
+      "as a child of <S3ServicePrivder> component."
     );
   }
   return context;
 }
+
+export function withS3(WrappedComponent: React.FunctionComponent, s3Config: S3ServiceProviderProps) {
+  return function (props: any) {
+    const serviceProvider = CreateS3ServiceProvider(s3Config);
+    return (
+      <S3ServiceContext.Provider value={serviceProvider}>
+        <WrappedComponent {...props} />;
+      </S3ServiceContext.Provider>
+    );
+  };
+};

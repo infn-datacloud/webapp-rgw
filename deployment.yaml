@@ -23,7 +23,7 @@ spec:
         app: rgw-s3
     spec:
       containers:
-        - image: baltig.infn.it:4567/jgasparetto/ceph-webapp-poc/frontend
+        - image: baltig.infn.it:4567/jgasparetto/ceph-webapp-poc/frontend:latest-dev
           imagePullPolicy: Always
           name: frontend
           ports:
@@ -57,7 +57,7 @@ spec:
             - name: S3_ROLE_ARN
               value: "arn:aws:iam:::role/S3AccessIAM200"
             - name: S3_REGION
-              value: "nova"
+              value: "ceph-objectstore"
         - image: baltig.infn.it:4567/jgasparetto/ceph-webapp-poc/backend
           imagePullPolicy: Always
           name: backend
