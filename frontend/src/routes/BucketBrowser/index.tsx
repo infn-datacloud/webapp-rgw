@@ -90,7 +90,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             // Otherwise, set current path to root
             setCurrentPath(rootNodeRef.current);
           } else {
-            console.warn("Warning: bucket looks empty.");
+            rootNodeRef.current = new NodePath("");
+            setCurrentPath(rootNodeRef.current);
           }
         })
         .catch(err => console.error(err));
