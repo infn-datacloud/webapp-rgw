@@ -25,6 +25,8 @@ import {
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
 import { NodePath } from '../../commons/utils';
+import { NotificationType, useNotifications } from '../../services/Notification';
+
 
 const columns: Column[] = [
   { id: "icon" },
@@ -64,6 +66,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const lockRef = useRef<boolean>(false);
   const rootNodeRef = useRef<NodePath<BucketObject>>(new NodePath(""));
   const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
+  const { notify } = useNotifications();
 
   let tableData = getTableData(currentPath);
   console.log(selectedObjects.current);
@@ -117,14 +120,14 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     const prefix = currentPath.path.replace(/^\//, "");
     uploadFiles(s3, bucketName, files, prefix)
       .then(() => {
-        console.log("File(s) uploaded");
+        notify("File(s) uploaded", undefined, NotificationType.success);
         if (inputRef.current) {
           inputRef.current.files = null;
           inputRef.current.value = "";
           refreshBucketObjects();
         }
       })
-      .catch(err => console.error(err));
+      .catch((err: Error) => notify("Cannot upload file", err.name, NotificationType.error));
   }
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
