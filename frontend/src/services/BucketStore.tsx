@@ -1,5 +1,5 @@
 import { Bucket, _Object } from "@aws-sdk/client-s3";
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useS3Service } from "./S3Service";
 import { BucketInfo } from "../models/bucket";
 
@@ -33,9 +33,8 @@ export function CreateBucketStore() {
     }
   };
 
-  const fetchBucketsInfos = useCallback(() => {
-    console.debug("Fetching bucket infos");
-    const promisesMap = bucketList.reduce<Map<string, Promise<_Object[]>>>((acc, bucket) => {
+  const fetchBucketsInfos = (buckets: Bucket[]) => {
+    const promisesMap = buckets.reduce<Map<string, Promise<_Object[]>>>((acc, bucket) => {
       if (!bucket.Name) return acc;
       acc.set(bucket.Name, listObjects(bucket));
       return acc;
@@ -50,8 +49,8 @@ export function CreateBucketStore() {
             acc.objects++;
             return acc;
           }, {
-            name: bucketList[i].Name ?? "N/A",
-            creation_date: bucketList[i].CreationDate?.toString() ?? "N/A",
+            name: buckets[i].Name ?? "N/A",
+            creation_date: buckets[i].CreationDate?.toString() ?? "N/A",
             rw_access: { read: true, write: true },
             objects: 0,
             size: 0
@@ -60,26 +59,30 @@ export function CreateBucketStore() {
         }
         setBucketInfos(_bucketInfos);
       });
-  }, [bucketList, listObjects]);
+  };
 
   const fetchBucketLock = useRef<boolean>(false);
 
+  const fetchAll = async () => {
+    const buckets = await fetchBuckets();
+    if (buckets && buckets.length > 0) {
+      fetchBucketsInfos(buckets);
+    } else {
+      setBucketInfos([]);
+    }
+  }
+
   useEffect(() => {
     if (isAuthenticated() && !fetchBucketLock.current) {
-      fetchBuckets();
+      fetchAll();
     }
-
-    if (bucketList.length > 0 && bucketInfos.length === 0) {
-      fetchBucketsInfos();
-    }
-
     return (() => {
       fetchBucketLock.current = isAuthenticated();
     })
   });
 
   const updateStore = () => {
-    fetchBucketList();
+    fetchAll();
   }
 
   return {
