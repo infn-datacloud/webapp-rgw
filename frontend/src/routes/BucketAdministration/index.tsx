@@ -5,11 +5,13 @@ import { Toolbar } from "./Toolbar";
 import { BucketSummaryView } from "./BucketSummaryView";
 import { NewBucketModal } from "./NewBucketModal";
 import { useBucketStore } from "../../services/BucketStore";
+import { NotificationType, useNotifications } from "../../services/Notification";
 
 export const BucketAdministration = () => {
   const { bucketsInfos, updateStore } = useBucketStore();
   const [showNewBucketModal, setShowNewBucketModal] = useState(false);
   const { createBucket, deleteBucket } = useS3Service();
+  const { notify } = useNotifications();
 
   const onCloseNewBucketModal = () => {
     setShowNewBucketModal(false);
@@ -18,20 +20,20 @@ export const BucketAdministration = () => {
   const handleCreateBucket = (args: CreateBucketArgs) => {
     createBucket(args)
       .then(() => {
-        console.log("Bucket successfully created")
+        notify("Success!", "Bucket successfully created", NotificationType.success);
         updateStore();
       })
-      .catch((err) => console.error(err));
+      .catch((err: Error) => notify("Cannot create Bucket", err.name, NotificationType.error));
     setShowNewBucketModal(false);
   };
 
   const handleDeleteBucket = (bucket: string) => {
     deleteBucket(bucket)
       .then(() => {
-        console.log(`Bucket ${bucket} successfully deleted`);
+        notify("Success!", "Bucket successfully deleted", NotificationType.success);
         updateStore();
       })
-      .catch(err => console.error(err));
+      .catch((err: Error) => notify("Cannot delete Bucket", err.name, NotificationType.error));
   };
 
   const BucketInfos = () => {

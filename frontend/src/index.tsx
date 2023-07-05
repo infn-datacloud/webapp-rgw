@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { OAuthProvider } from './services/OAuth2';
-import { S3ServiceProvider } from './services/S3Service';
+import { withS3 } from './services/S3Service';
 import App from './App';
 import './index.css';
+import { withNotifications } from './services/Notification';
 
 // Add `env` namespace to window
 interface EnvInterface {
@@ -40,12 +41,13 @@ const s3Config = {
   }
 }
 
+let ExtendedApp = withS3(App, s3Config);
+ExtendedApp = withNotifications(ExtendedApp);
+
 root.render(
   <React.StrictMode>
     <OAuthProvider {...OidcConfig}>
-      <S3ServiceProvider {...s3Config}>
-        <App />
-      </S3ServiceProvider>
+      <ExtendedApp />
     </OAuthProvider>
   </React.StrictMode>
 );

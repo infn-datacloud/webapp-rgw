@@ -1,0 +1,12 @@
+.notification {
+  max-height: 200px;
+  transition: max-height 0.3s;
+}
+
+.notification:not(:last-child) {
+  margin-bottom: 8px;
+}
+ 
+.notification.shrink {
+  max-height: 0;
+}

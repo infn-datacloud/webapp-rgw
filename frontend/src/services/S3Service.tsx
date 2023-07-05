@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { useOAuth } from "./OAuth2";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
 import {
@@ -19,7 +19,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { useCallback } from "react";
 import { useEffect } from "react";
 import { OidcToken } from "./OAuth2/OidcConfig";
-
+import { useNotifications, NotificationType } from "./Notification";
 
 // **** AWS Config ****
 export interface AWSConfig {
@@ -62,11 +62,10 @@ export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefi
 
 interface S3ServiceProviderProps {
   awsConfig: AWSConfig;
-  children?: ReactNode;
 }
 
-export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element => {
-  const { children, awsConfig } = props;
+const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
+  const { awsConfig } = props;
   const [
     s3ServiceState,
     setS3ServiceState
@@ -74,6 +73,7 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
 
   const oAuth = useOAuth();
   const { awsCredentials } = s3ServiceState;
+  const { notify } = useNotifications();
 
   // Factory method
   const getS3Client = useCallback(() => {
@@ -119,10 +119,10 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
         } else {
           console.warn("Warning: some one or more AWS Credentials member is empty");
         }
-      }).catch(err => {
-        console.error("Cannot retrieve AWS Credentials from STS", err);
+      }).catch((err: Error) => {
+        notify("Cannot retrieve AWS Credentials from STS", err.name, NotificationType.error);
       });
-  }, [awsConfig]);
+  }, [awsConfig, notify]);
 
   useEffect(() => {
     oAuth.subscribe(getAWSCretentials);
@@ -195,20 +195,16 @@ export const S3ServiceProvider = (props: S3ServiceProviderProps): JSX.Element =>
     return getSignedUrl(client, cmdGetObj);
   };
 
-  return (
-    <S3ServiceContext.Provider value={{
-      awsConfig: awsConfig,
-      client: getS3Client(),
-      isAuthenticated: () => isAuthenticated(),
-      fetchBucketList: () => fetchBucketList(),
-      listObjects: (bucket: Bucket) => listObjects(bucket),
-      getPresignedUrl: getPresignedUrl,
-      createBucket: (args: CreateBucketArgs) => createBucket(args),
-      deleteBucket: (bucket: string) => deleteBucket(bucket)
-    }}>
-      {children}
-    </S3ServiceContext.Provider>
-  );
+  return {
+    awsConfig: awsConfig,
+    client: getS3Client(),
+    isAuthenticated: () => isAuthenticated(),
+    fetchBucketList: () => fetchBucketList(),
+    listObjects: (bucket: Bucket) => listObjects(bucket),
+    getPresignedUrl: getPresignedUrl,
+    createBucket: (args: CreateBucketArgs) => createBucket(args),
+    deleteBucket: (bucket: string) => deleteBucket(bucket)
+  };
 };
 
 // **** useS3Service *****
@@ -219,8 +215,19 @@ export const useS3Service = (): S3ContextProps => {
     throw new Error(
       "S3ServiceProvider context is undefined, " +
       "please verify you are calling useS3Service " +
-      "as a child of <S3ServicePrivder> comonent."
+      "as a child of <S3ServicePrivder> component."
     );
   }
   return context;
 }
+
+export function withS3(WrappedComponent: React.FunctionComponent, s3Config: S3ServiceProviderProps) {
+  return function (props: any) {
+    const serviceProvider = CreateS3ServiceProvider(s3Config);
+    return (
+      <S3ServiceContext.Provider value={serviceProvider}>
+        <WrappedComponent {...props} />;
+      </S3ServiceContext.Provider>
+    );
+  };
+};
