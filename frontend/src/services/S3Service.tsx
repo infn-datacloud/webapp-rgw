@@ -13,6 +13,10 @@ import {
   GetBucketVersioningCommand,
   VersioningConfiguration,
   DeleteBucketCommand,
+  GetBucketVersioningCommandOutput,
+  GetObjectLockConfigurationCommand,
+  PutObjectLockConfigurationCommand,
+  GetObjectLockConfigurationCommandOutput,
 } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -56,6 +60,9 @@ export interface S3ContextProps {
   deleteBucket: (bucket: string) => Promise<any>;
   downloadObject: (bucket: string, key: string) => Promise<Blob>;
   getBucketVersioning: (bucket: string) => Promise<GetBucketVersioningCommandOutput>;
+  setBucketVersioning: (bucket: string, enabled: boolean) => Promise<any>;
+  getBucketObjectLock: (bucket: string) => Promise<GetObjectLockConfigurationCommandOutput>;
+  setBucketObjectLock: (bucket: string, enabled: boolean) => Promise<any>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -125,7 +132,6 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
 
   const fetchBucketList = async () => {
     const listBucketCmd = new ListBucketsCommand({});
-    const client = getS3Client();
     let response = await client.send(listBucketCmd)
     const { Buckets } = response;
     if (Buckets) {
@@ -274,6 +280,10 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     createBucket: (args: CreateBucketArgs) => createBucket(args),
     deleteBucket: (bucket: string) => deleteBucket(bucket),
     downloadObject: downloadInChunks,
+    getBucketVersioning: (bucket: string) => getBucketVersioning(bucket),
+    setBucketVersioning: (bucket: string, enabled: boolean) => setBucketVersioning(bucket, enabled),
+    getBucketObjectLock: (bucket: string) => getBucketObjectLock(bucket),
+    setBucketObjectLock: (bucket: string, enabled: boolean) => setBucketObjectLock(bucket, enabled)
   };
 };
 
