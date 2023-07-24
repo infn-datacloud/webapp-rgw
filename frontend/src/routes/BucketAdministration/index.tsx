@@ -10,7 +10,9 @@ import { NotificationType, useNotifications } from "../../services/Notification"
 export const BucketAdministration = () => {
   const { bucketsInfos, updateStore } = useBucketStore();
   const [showNewBucketModal, setShowNewBucketModal] = useState(false);
-  const { createBucket, deleteBucket } = useS3Service();
+  const [versioning, setVersioning] = useState(false);
+  const [objectLock, setObjectLock] = useState(false);
+  const [selectedBucket, setSelectedBucket] = useState<string | undefined>();
   const { notify } = useNotifications();
 
   const onCloseNewBucketModal = () => {
@@ -23,7 +25,8 @@ export const BucketAdministration = () => {
         notify("Success!", "Bucket successfully created", NotificationType.success);
         updateStore();
       })
-      .catch((err: Error) => notify("Cannot create Bucket", err.name, NotificationType.error));
+      .catch((err: Error) =>
+        notify("Cannot create Bucket", err.name, NotificationType.error));
     setShowNewBucketModal(false);
   };
 
@@ -33,7 +36,8 @@ export const BucketAdministration = () => {
         notify("Success!", "Bucket successfully deleted", NotificationType.success);
         updateStore();
       })
-      .catch((err: Error) => notify("Cannot delete Bucket", err.name, NotificationType.error));
+      .catch((err: Error) =>
+        notify("Cannot delete Bucket", err.name, NotificationType.error));
   };
 
   const BucketInfos = () => {

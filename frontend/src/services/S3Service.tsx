@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { useOAuth } from "./OAuth2";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
 import {
@@ -16,10 +16,10 @@ import {
 } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { useCallback } from "react";
-import { useEffect } from "react";
 import { OidcToken } from "./OAuth2/OidcConfig";
 import { useNotifications, NotificationType } from "./Notification";
+
+const ONE_MB = 1024 * 1024;
 
 // **** AWS Config ****
 export interface AWSConfig {
@@ -41,19 +41,21 @@ export const initialS3ServiceState: IS3ServiceState = {
 // ***** Context *****
 export interface CreateBucketArgs {
   bucketName: string;
-  versioningConfigutaion: VersioningConfiguration | undefined;
-  objectLockingEnabled: boolean
+  versioningEnabled: boolean;
+  objectLockEnabled: boolean;
 };
 
 export interface S3ContextProps {
   awsConfig: AWSConfig;
   client: S3Client;
-  isAuthenticated: () => boolean;
+  isAuthenticated: boolean;
   fetchBucketList: () => Promise<Bucket[]>;
   listObjects: (bucket: Bucket) => Promise<_Object[]>;
-  getPresignedUrl: (bucket: string, key: string) => Promise<any>;
+  getPresignedUrl: (bucket: string, key: string) => Promise<string>;
   createBucket: (args: CreateBucketArgs) => Promise<any>;
   deleteBucket: (bucket: string) => Promise<any>;
+  downloadObject: (bucket: string, key: string) => Promise<Blob>;
+  getBucketVersioning: (bucket: string) => Promise<GetBucketVersioningCommandOutput>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
@@ -66,29 +68,11 @@ interface S3ServiceProviderProps {
 
 const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   const { awsConfig } = props;
-  const [
-    s3ServiceState,
-    setS3ServiceState
-  ] = useState<IS3ServiceState>(initialS3ServiceState);
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [client, setClient] = useState<S3Client>(new S3Client({}));
   const oAuth = useOAuth();
-  const { awsCredentials } = s3ServiceState;
   const { notify } = useNotifications();
 
-  // Factory method
-  const getS3Client = useCallback(() => {
-    const { endpoint, region } = awsConfig;
-    return new S3Client({
-      endpoint: endpoint,
-      region: region,
-      credentials: awsCredentials,
-      forcePathStyle: true
-    });
-  }, [awsCredentials, awsConfig]);
-
-  const isAuthenticated = () => {
-    return oAuth.isAuthenticated && !!awsCredentials;
-  }
 
   // Exchange token for AWS Credentiasl with AssumeRoleWebIdendity
   const getAWSCretentials = useCallback((token: OidcToken) => {
@@ -109,18 +93,25 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
         }
         const { AccessKeyId, SecretAccessKey, SessionToken } = Credentials;
         if (AccessKeyId && SecretAccessKey && SessionToken) {
-          setS3ServiceState({
-            awsCredentials: {
-              accessKeyId: AccessKeyId,
-              secretAccessKey: SecretAccessKey,
-              sessionToken: SessionToken
-            }
-          });
+          const awsCredentials = {
+            accessKeyId: AccessKeyId,
+            secretAccessKey: SecretAccessKey,
+            sessionToken: SessionToken
+          }
+          const { endpoint, region } = awsConfig;
+          setClient(new S3Client({
+            endpoint: endpoint,
+            region: region,
+            credentials: awsCredentials,
+            forcePathStyle: true
+          }));
+          setIsAuthenticated(true);
         } else {
           console.warn("Warning: some one or more AWS Credentials member is empty");
         }
       }).catch((err: Error) => {
         notify("Cannot retrieve AWS Credentials from STS", err.name, NotificationType.error);
+        setIsAuthenticated(false);
       });
   }, [awsConfig, notify]);
 
@@ -146,39 +137,27 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   };
 
   const createBucket = async (args: CreateBucketArgs) => {
-    const { bucketName, objectLockingEnabled, versioningConfigutaion } = args;
+    const { bucketName, objectLockEnabled, versioningEnabled } = args;
     const createBucketCommand = new CreateBucketCommand({
       Bucket: bucketName,
-      ObjectLockEnabledForBucket: objectLockingEnabled,
+      ObjectLockEnabledForBucket: objectLockEnabled,
     });
-    const client = getS3Client();
+
     const result = await client.send(createBucketCommand);
 
-    if (versioningConfigutaion) {
-      const putVersioningCommand = new PutBucketVersioningCommand({
-        Bucket: bucketName,
-        VersioningConfiguration: versioningConfigutaion
-      });
-      await client.send(putVersioningCommand);
-      const getBucketVersioningCommand = new GetBucketVersioningCommand({
-        Bucket: bucketName
-      });
-      const result = await client.send(getBucketVersioningCommand);
-      console.log("Versioning", result.Status);
+    if (versioningEnabled) {
+      setBucketVersioning(bucketName, versioningEnabled);
     }
-
     return result;
   };
 
   const deleteBucket = async (bucket: string) => {
     const cmd = new DeleteBucketCommand({ Bucket: bucket });
-    const client = getS3Client();
     return await client.send(cmd);
   };
 
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
     const cmd = new ListObjectsV2Command({ Bucket: bucket.Name });
-    const client = getS3Client();
     const response = await client.send(cmd);
     const { Contents } = response;
     if (Contents) {
@@ -190,20 +169,111 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   };
 
   const getPresignedUrl = async (bucket: string, key: string) => {
-    const cmdGetObj = new GetObjectCommand({ Bucket: bucket, Key: key });
-    const client = getS3Client();
+    const cmdGetObj = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${key}"`,
+      ResponseContentType: "application/octet-stream"
+    });
     return getSignedUrl(client, cmdGetObj);
   };
 
+
+  const getObjectRange = (bucket: string, key: string, start: number, end: number) => {
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Range: `bytes=${start}-${end}`
+    });
+    return client.send(command);
+  };
+
+  const getRangeAndLength = (contentRange: string) => {
+    const [range, length] = contentRange.split("/");
+    const [start, end] = range.split("-");
+    return {
+      start: parseInt(start),
+      end: parseInt(end),
+      length: parseInt(length)
+    };
+  };
+
+  interface DownloadLengthRange {
+    start: number;
+    end: number;
+    length: number;
+  }
+
+  const getBucketVersioning = async (bucket: string): Promise<GetBucketVersioningCommandOutput> => {
+    const getBucketVersioningCommand = new GetBucketVersioningCommand({
+      Bucket: bucket
+    });
+    return await client.send(getBucketVersioningCommand);
+  };
+
+  const isDownloadComplete = ({ end, length }: DownloadLengthRange) => {
+    return end === length - 1;
+  }
+
+  const downloadInChunks = async (bucket: string, key: string) => {
+    let blob = new Blob();
+    let rangeAndLength: DownloadLengthRange = { start: - 1, end: -1, length: -1 };
+
+    while (!isDownloadComplete(rangeAndLength)) {
+      const { end } = rangeAndLength;
+      const nextRange = { start: end + 1, end: end + ONE_MB };
+      console.log(`Downloading bytes ${nextRange.start} to ${nextRange.end}`);
+
+      const { ContentRange, Body } = await getObjectRange(bucket, key,
+        nextRange.start, nextRange.end);
+      if (!(ContentRange && Body)) {
+        break;
+      }
+      blob = new Blob([blob, await Body.transformToByteArray()]);
+      rangeAndLength = getRangeAndLength(ContentRange);
+    }
+
+    console.log("Download completed");
+    return blob;
+  }
+
+  const setBucketVersioning = async (bucket: string, enabled: boolean) => {
+    // const client = getS3Client();
+    const versioningConfigutaion: VersioningConfiguration = {
+      Status: enabled ? "Enabled" : "Disabled"
+    };
+    const putVersioningCommand = new PutBucketVersioningCommand({
+      Bucket: bucket,
+      VersioningConfiguration: versioningConfigutaion
+    });
+    return await client.send(putVersioningCommand);
+  }
+
+  const getBucketObjectLock = async (bucket: string) => {
+    const cmd = new GetObjectLockConfigurationCommand({ Bucket: bucket });
+    return await client.send(cmd);
+  }
+
+  const setBucketObjectLock = async (bucket: string, enabled: boolean) => {
+    // const client = getS3Client();
+    const configuration = { ObjectLockEnabled: enabled ? "Enabled" : "Disabled" };
+    const cmd = new PutObjectLockConfigurationCommand({
+      Bucket: bucket,
+      ObjectLockConfiguration: configuration
+    });
+    return await client.send(cmd);
+  }
+
   return {
     awsConfig: awsConfig,
-    client: getS3Client(),
-    isAuthenticated: () => isAuthenticated(),
+    client: client,
+    isAuthenticated: isAuthenticated,
     fetchBucketList: () => fetchBucketList(),
     listObjects: (bucket: Bucket) => listObjects(bucket),
     getPresignedUrl: getPresignedUrl,
     createBucket: (args: CreateBucketArgs) => createBucket(args),
-    deleteBucket: (bucket: string) => deleteBucket(bucket)
+    deleteBucket: (bucket: string) => deleteBucket(bucket),
+    downloadObject: downloadInChunks,
   };
 };
 

@@ -12,6 +12,7 @@ import {
   PhotoIcon
 } from "@heroicons/react/24/outline";
 import { Value } from "../../components/Table";
+import JSZip from 'jszip';
 
 export const initNodePathTree = (bucketObjects: BucketObject[], node: NodePath<BucketObject>) => {
   bucketObjects.forEach(object => {
@@ -67,23 +68,53 @@ export const listObjects = async (s3: S3ContextProps, bucketName: string) => {
   return response.Contents;
 }
 
+interface BlobFile {
+  name: string,
+  blob: Blob
+}
+
+const zipBlobs = async (blobs: BlobFile[]) => {
+  const zip = new JSZip();
+  blobs.forEach(o => {
+    zip.file(o.name, o.name);
+  });
+  return zip.generateAsync({ type: "blob" });
+}
+
+const downloadFile = async (name: string, blob: Blob) => {
+  try {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', name);
+    link.setAttribute('id', name);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
   objects: BucketObject[]) => {
-  for (const object of objects) {
-    try {
-      const url = await s3.getPresignedUrl(bucketName, object.Key!);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', object.Key!);
-      link.setAttribute('id', object.Key!);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  const { downloadObject } = s3;
+  const result = Promise.all(objects.map(o => {
+    return downloadObject(bucketName, o.Key!);
+  }));
+  
+  result.then(blobs => {
+    const blobFiles = blobs.map((b, i) => {
+      return { name: objects[i].Key!, blob: b };
+    });
+    return zipBlobs(blobFiles);
+  })
+    .then(blob => {
+      const now = new Date();
+      const filename = `${now.toISOString()}.zip`
+      downloadFile(filename, blob);
+    });
 }
 
 export const uploadFiles = (s3: S3ContextProps,

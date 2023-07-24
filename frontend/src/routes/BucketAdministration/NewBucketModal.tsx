@@ -4,7 +4,6 @@ import { TextField } from "../../components/TextField";
 import { useState } from "react";
 import { Button } from "../../components/Button";
 import { CreateBucketArgs } from "../../services/S3Service";
-import { VersioningConfiguration } from "@aws-sdk/client-s3";
 
 interface NewBucketModalProps {
   open: boolean;
@@ -51,7 +50,7 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
   const [bucketName, setBucketName] = useState<string>("");
   const [error, setError] = useState<any | undefined>();
   const [versioningEnabled, setVersioningEnabled] = useState(false);
-  const [objectLockingEnabled, setObjectLockingEnabled] = useState(false);
+  const [objectLockEnabled, setObjectLockEnabled] = useState(false);
   const [quotaEnabled, setQuotaEnabled] = useState(false);
 
   const isBuketNameValid = (): boolean => {
