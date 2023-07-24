@@ -38,7 +38,6 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
   const [error, setError] = useState<any | undefined>();
   const [versioningEnabled, setVersioningEnabled] = useState(false);
   const [objectLockEnabled, setObjectLockEnabled] = useState(false);
-  const [quotaEnabled, setQuotaEnabled] = useState(false);
 
   const isBuketNameValid = (): boolean => {
     return bucketValidator.test(bucketName);
@@ -53,7 +52,6 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
     setError(null);
     setVersioningEnabled(false);
     setObjectLockEnabled(false);
-    setQuotaEnabled(false);
   }
 
   const createBucket = () => {

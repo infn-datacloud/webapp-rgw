@@ -81,6 +81,9 @@ export const BucketAdministration = () => {
     if (config.versioningEnabled !== versioning) {
       setBucketVersioning(bucket, config.versioningEnabled);
     }
+    if (config.objectLockEnabled !== objectLock) {
+      setBucketObjectLock(bucket, config.objectLockEnabled);
+    }
     setSelectedBucket(undefined);
   }
 
