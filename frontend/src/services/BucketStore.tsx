@@ -61,7 +61,6 @@ export function CreateBucketStore() {
       });
   };
 
-  const fetchBucketLock = useRef<boolean>(false);
 
   const fetchAll = async () => {
     const buckets = await fetchBuckets();
