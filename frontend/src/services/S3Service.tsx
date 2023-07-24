@@ -181,7 +181,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
       ResponseContentDisposition: `attachment; filename="${key}"`,
       ResponseContentType: "application/octet-stream"
     });
-    return getSignedUrl(client, cmdGetObj);
+    return getSignedUrl(client, cmdGetObj, {expiresIn: 60});
   };
 
 
