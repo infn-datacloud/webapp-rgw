@@ -112,7 +112,7 @@ export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
 
   const result = await zipBlobs(blobsMap);
   const now = new Date();
-  const filename = `${now.toISOString().replace(" ", "_")}.zip`
+  const filename = `${now.toISOString()}.zip`.replaceAll(":", "-");
 
   downloadFile(filename, result);
 }
