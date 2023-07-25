@@ -1,6 +1,6 @@
 import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Page } from '../../components/Page';
-import { BucketObject } from '../../models/bucket';
+import { BucketObject, BucketObjectWithProgress } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
 import { Button } from '../../components/Button';
 import { BucketInspector } from '../../components/BucketInspector';
@@ -26,7 +26,8 @@ import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
 import { NodePath } from '../../commons/utils';
 import { NotificationType, useNotifications } from '../../services/Notification';
-
+import { ProgressBar } from "../../components/ProgressBar";
+import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
 
 const columns: Column[] = [
   { id: "icon" },
@@ -66,10 +67,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const lockRef = useRef<boolean>(false);
   const rootNodeRef = useRef<NodePath<BucketObject>>(new NodePath(""));
   const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
+  const toDownload = useRef<BucketObjectWithProgress[]>([]);
+  const [downloading, setDownloading] = useState<BucketObjectWithProgress[]>([]);
   const { notify } = useNotifications();
 
   let tableData = getTableData(currentPath);
-  console.log(selectedObjects.current);
 
   const refreshBucketObjects = useCallback(() => {
     const f = async () => {
@@ -235,9 +237,21 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }
 
   const handleDownloadFiles = () => {
-    downloadFiles(s3, bucketName, Array.from(selectedObjects.current.values()));
+    toDownload.current = Array.from(selectedObjects.current.values())
+      .map(el => new BucketObjectWithProgress(el));
+    downloadFiles(s3, bucketName, toDownload.current, handleDownloadChanges);
     selectedObjects.current = new Map();
     setSelectedRows(new Set());
+  }
+
+  const handleDownloadChanges = () => {
+    const t = [...toDownload.current];
+    setDownloading(t);
+  }
+
+  const handleCloseDownloadPopup = () => {
+    setDownloading([]);
+    toDownload.current = [];
   }
 
   const goBack = useCallback(() => {
@@ -322,7 +336,18 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           </div>
         </div>
       </div>
-
+      <DownloadStatusPopup
+        show={downloading.length > 0}
+        onClose={handleCloseDownloadPopup}
+      >
+        {downloading.map(el => {
+          return <ProgressBar
+            key={el.object.Key!}
+            title={el.object.Key!}
+            value={el.progress}
+          />
+        })}
+      </DownloadStatusPopup>
     </Page>
   )
 }

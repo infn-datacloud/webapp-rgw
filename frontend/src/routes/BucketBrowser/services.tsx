@@ -1,4 +1,4 @@
-import { BucketObject } from "../../models/bucket";
+import { BucketObject, BucketObjectWithProgress } from "../../models/bucket";
 import { NodePath, addPath, getHumanSize } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3Service";
 import {
@@ -73,10 +73,10 @@ interface BlobFile {
   blob: Blob
 }
 
-const zipBlobs = async (blobs: BlobFile[]) => {
+const zipBlobs = (blobs: BlobFile[]) => {
   const zip = new JSZip();
   blobs.forEach(o => {
-    zip.file(o.name, o.name);
+    zip.file(o.name, o.blob);
   });
   return zip.generateAsync({ type: "blob" });
 }
@@ -97,24 +97,24 @@ const downloadFile = async (name: string, blob: Blob) => {
   }
 }
 
+
 export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
-  objects: BucketObject[]) => {
+  objects: BucketObjectWithProgress[], onChange?: () => void) => {
   const { downloadObject } = s3;
-  const result = Promise.all(objects.map(o => {
-    return downloadObject(bucketName, o.Key!);
+
+  let blobs = await Promise.all(objects.map(o => {
+    return downloadObject(bucketName, o, onChange);
   }));
-  
-  result.then(blobs => {
-    const blobFiles = blobs.map((b, i) => {
-      return { name: objects[i].Key!, blob: b };
-    });
-    return zipBlobs(blobFiles);
-  })
-    .then(blob => {
-      const now = new Date();
-      const filename = `${now.toISOString()}.zip`
-      downloadFile(filename, blob);
-    });
+
+  const blobsMap = blobs.map((b, i) => {
+    return { name: objects[i].object.Key!, blob: b };
+  });
+
+  const result = await zipBlobs(blobsMap);
+  const now = new Date();
+  const filename = `${now.toISOString().replace(" ", "_")}.zip`
+
+  downloadFile(filename, result);
 }
 
 export const uploadFiles = (s3: S3ContextProps,

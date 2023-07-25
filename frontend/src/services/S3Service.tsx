@@ -22,6 +22,7 @@ import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { OidcToken } from "./OAuth2/OidcConfig";
 import { useNotifications, NotificationType } from "./Notification";
+import { BucketObjectWithProgress } from "../models/bucket";
 
 const ONE_MB = 1024 * 1024;
 
@@ -58,7 +59,7 @@ export interface S3ContextProps {
   getPresignedUrl: (bucket: string, key: string) => Promise<string>;
   createBucket: (args: CreateBucketArgs) => Promise<any>;
   deleteBucket: (bucket: string) => Promise<any>;
-  downloadObject: (bucket: string, key: string) => Promise<Blob>;
+  downloadObject: (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => Promise<Blob>;
   getBucketVersioning: (bucket: string) => Promise<GetBucketVersioningCommandOutput>;
   setBucketVersioning: (bucket: string, enabled: boolean) => Promise<any>;
   getBucketObjectLock: (bucket: string) => Promise<GetObjectLockConfigurationCommandOutput>;
@@ -181,9 +182,8 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
       ResponseContentDisposition: `attachment; filename="${key}"`,
       ResponseContentType: "application/octet-stream"
     });
-    return getSignedUrl(client, cmdGetObj, {expiresIn: 60});
+    return getSignedUrl(client, cmdGetObj, { expiresIn: 60 });
   };
-
 
   const getObjectRange = (bucket: string, key: string, start: number, end: number) => {
     const command = new GetObjectCommand({
@@ -194,20 +194,34 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     return client.send(command);
   };
 
-  const getRangeAndLength = (contentRange: string) => {
-    const [range, length] = contentRange.split("/");
-    const [start, end] = range.split("-");
-    return {
-      start: parseInt(start),
-      end: parseInt(end),
-      length: parseInt(length)
-    };
-  };
 
-  interface DownloadLengthRange {
-    start: number;
-    end: number;
-    length: number;
+  const downloadInChunks = async (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => {
+    let key = object.object.Key!;
+    let blob = new Blob();
+    const length = object.object.Size!;
+    let range = { start: -1, end: -1 };
+
+    while (length - range.end !== 1) {
+      const { end } = range;
+      const nextRange = { start: end + 1, end: end + ONE_MB };
+      const { Body, ContentLength } = await getObjectRange(bucket, key,
+        nextRange.start, nextRange.end);
+
+      if (!(Body && ContentLength)) {
+        console.error("Cannot retrieved objectet");
+        break;
+      }
+
+      blob = new Blob([blob, await Body.transformToByteArray()]);
+      object.progress = blob.size / length;
+      range.end += ContentLength
+      if (onChange) {
+        onChange();
+      }
+    }
+
+    console.log("Download completed", blob.size, "bytes");
+    return blob;
   }
 
   const getBucketVersioning = async (bucket: string): Promise<GetBucketVersioningCommandOutput> => {
@@ -217,34 +231,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     return await client.send(getBucketVersioningCommand);
   };
 
-  const isDownloadComplete = ({ end, length }: DownloadLengthRange) => {
-    return end === length - 1;
-  }
-
-  const downloadInChunks = async (bucket: string, key: string) => {
-    let blob = new Blob();
-    let rangeAndLength: DownloadLengthRange = { start: - 1, end: -1, length: -1 };
-
-    while (!isDownloadComplete(rangeAndLength)) {
-      const { end } = rangeAndLength;
-      const nextRange = { start: end + 1, end: end + ONE_MB };
-      console.log(`Downloading bytes ${nextRange.start} to ${nextRange.end}`);
-
-      const { ContentRange, Body } = await getObjectRange(bucket, key,
-        nextRange.start, nextRange.end);
-      if (!(ContentRange && Body)) {
-        break;
-      }
-      blob = new Blob([blob, await Body.transformToByteArray()]);
-      rangeAndLength = getRangeAndLength(ContentRange);
-    }
-
-    console.log("Download completed");
-    return blob;
-  }
-
   const setBucketVersioning = async (bucket: string, enabled: boolean) => {
-    // const client = getS3Client();
     const versioningConfigutaion: VersioningConfiguration = {
       Status: enabled ? "Enabled" : "Disabled"
     };
