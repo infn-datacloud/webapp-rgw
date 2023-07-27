@@ -61,7 +61,6 @@ export function CreateBucketStore() {
       });
   };
 
-  const fetchBucketLock = useRef<boolean>(false);
 
   const fetchAll = async () => {
     const buckets = await fetchBuckets();
@@ -72,13 +71,12 @@ export function CreateBucketStore() {
     }
   }
 
+  const fetchBucketLock = useRef<boolean>(false);
   useEffect(() => {
-    if (isAuthenticated() && !fetchBucketLock.current) {
+    if (isAuthenticated && !fetchBucketLock.current) {
       fetchAll();
-    }
-    return (() => {
-      fetchBucketLock.current = isAuthenticated();
-    })
+      fetchBucketLock.current = true;
+    };
   });
 
   const updateStore = () => {

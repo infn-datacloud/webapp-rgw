@@ -6,12 +6,17 @@ import { BucketSummaryView } from "./BucketSummaryView";
 import { NewBucketModal } from "./NewBucketModal";
 import { useBucketStore } from "../../services/BucketStore";
 import { NotificationType, useNotifications } from "../../services/Notification";
+import { BucketConfiguration, EditBucketModal } from "./EditBucketModal";
 
 export const BucketAdministration = () => {
   const { bucketsInfos, updateStore } = useBucketStore();
   const [showNewBucketModal, setShowNewBucketModal] = useState(false);
-  const { createBucket, deleteBucket } = useS3Service();
+  const [versioning, setVersioning] = useState(false);
+  const [objectLock, setObjectLock] = useState(false);
+  const [selectedBucket, setSelectedBucket] = useState<string | undefined>();
   const { notify } = useNotifications();
+  const { createBucket, deleteBucket, getBucketVersioning, setBucketVersioning,
+    getBucketObjectLock, setBucketObjectLock } = useS3Service();
 
   const onCloseNewBucketModal = () => {
     setShowNewBucketModal(false);
@@ -23,7 +28,8 @@ export const BucketAdministration = () => {
         notify("Success!", "Bucket successfully created", NotificationType.success);
         updateStore();
       })
-      .catch((err: Error) => notify("Cannot create Bucket", err.name, NotificationType.error));
+      .catch((err: Error) =>
+        notify("Cannot create Bucket", err.name, NotificationType.error));
     setShowNewBucketModal(false);
   };
 
@@ -33,8 +39,53 @@ export const BucketAdministration = () => {
         notify("Success!", "Bucket successfully deleted", NotificationType.success);
         updateStore();
       })
-      .catch((err: Error) => notify("Cannot delete Bucket", err.name, NotificationType.error));
+      .catch((err: Error) =>
+        notify("Cannot delete Bucket", err.name, NotificationType.error));
   };
+
+  const handleSelectBucket = (bucketName: string) => {
+    setSelectedBucket(bucketName);
+    fetchObjectLock(bucketName); // https://stackoverflow.com/a/63919993
+    fetchVersioning(bucketName);
+  }
+
+  const fetchVersioning = async (bucket: string) => {
+    try {
+      const result = await getBucketVersioning(bucket);
+      setVersioning(result.Status === "Enabled");
+    } catch (err) {
+      if (err instanceof Error) {
+        notify("Cannot retrieve bucket versioning", err.name, NotificationType.error);
+      } else {
+        console.error(err);
+      }
+    }
+  }
+
+  const fetchObjectLock = async (bucket: string) => {
+    try {
+      const result = await getBucketObjectLock(bucket);
+      const enabled = result.ObjectLockConfiguration?.ObjectLockEnabled === "Enabled"
+      setObjectLock(enabled);
+    } catch (err) {
+      if (err instanceof Error) {
+        notify("Cannot retrieve bucket versioning", err.name, NotificationType.error);
+      } else {
+        console.error(err);
+      }
+    }
+  }
+
+  const handleBucketUpdateConfiguration = async (bucket: string,
+    config: BucketConfiguration) => {
+    if (config.versioningEnabled !== versioning) {
+      setBucketVersioning(bucket, config.versioningEnabled);
+    }
+    if (config.objectLockEnabled !== objectLock) {
+      setBucketObjectLock(bucket, config.objectLockEnabled);
+    }
+    setSelectedBucket(undefined);
+  }
 
   const BucketInfos = () => {
     return (
@@ -42,7 +93,8 @@ export const BucketAdministration = () => {
         {bucketsInfos.map(el => {
           return <BucketSummaryView
             key={el.name}
-            onDeleteBucket={handleDeleteBucket}
+            onSelect={handleSelectBucket}
+            onDelete={handleDeleteBucket}
             {...el} />
         })}
       </div>)
@@ -54,6 +106,13 @@ export const BucketAdministration = () => {
         open={showNewBucketModal}
         onClose={onCloseNewBucketModal}
         onCreateBucket={(args: CreateBucketArgs) => handleCreateBucket(args)}
+      />
+      <EditBucketModal
+        bucketName={selectedBucket}
+        versioningEnabled={versioning}
+        objectLockEnabled={objectLock}
+        onClose={() => setSelectedBucket(undefined)}
+        onUpdateBucket={handleBucketUpdateConfiguration}
       />
       <Toolbar
         className="mb-4"

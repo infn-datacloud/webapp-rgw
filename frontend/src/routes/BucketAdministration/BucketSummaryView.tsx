@@ -4,11 +4,12 @@ import { BucketInfo } from "../../models/bucket";
 import { Button } from "../../components/Button";
 
 export interface BucketSummaryViewProps extends BucketInfo {
-  onDeleteBucket: (bucket: string) => void;
+  onSelect: (bucket: string) => void;
+  onDelete: (bucket: string) => void;
 }
 
 export const BucketSummaryView = (props: BucketSummaryViewProps) => {
-  const { name, creation_date, size, objects, onDeleteBucket } = props;
+  const { name, creation_date, size, objects, onSelect, onDelete } = props;
   interface SubviewProps {
     title: string,
     text: string,
@@ -34,7 +35,10 @@ export const BucketSummaryView = (props: BucketSummaryViewProps) => {
           <Subview title="Usage:" text={getHumanSize(size) ?? "N/A"} icon={<ChartPieIcon />} />
           <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
         </div>
-        <Button className="my-auto p-4" title="Delete Bucket" onClick={() => onDeleteBucket(name)} />
+        <div className="flex flex-col space-y-2">
+          <Button className="my-auto pr-4" title="Edit Bucket" onClick={() => onSelect(name)} />
+          <Button className="my-auto pr-4" title="Delete Bucket" onClick={() => onDelete(name)} />
+        </div>
       </div>
     </div>
   )

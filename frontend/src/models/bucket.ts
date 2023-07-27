@@ -1,4 +1,5 @@
 import { Owner } from "@aws-sdk/client-s3";
+
 export interface RWAccess {
   read: boolean
   write: boolean
@@ -13,10 +14,24 @@ export interface BucketInfo {
 }
 
 export interface BucketObject {
-  Key?: string,
+  Key?: string,         // TODO: remove optional
   LastModified?: Date,
   ETag?: string,
   Size?: number,
   StorageClass?: string,
   Owner?: Owner
+}
+
+export class BucketObjectWithProgress {
+  object: BucketObject;
+  progress: number;
+
+  constructor(bucket: BucketObject) {
+    this.object = bucket;
+    this.progress = 0;
+  };
+
+  setProgress(value: number) {
+    this.progress = value;
+  }
 }
