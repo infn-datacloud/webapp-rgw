@@ -12,6 +12,10 @@ export const parseReadWriteAccess = (rwAccess: RWAccess) => {
     rwAccess.read ? "R" : rwAccess.write ? "R" : "Unknown";
 }
 
+export const camelToWords = (s: string) => {
+  return s.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
+}
+
 export interface INodePath<T> {
   parent?: INodePath<T>;
   basename: string;
