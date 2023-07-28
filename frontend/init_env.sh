@@ -28,4 +28,5 @@ sed -i -e "s|S3_ENDPOINT_VALUE|${S3_ENDPOINT}|g" "$TMP_FILE"
 sed -i -e "s|S3_REGION_VALUE|${S3_REGION}|g" "$TMP_FILE"
 sed -i -e "s|S3_ROLE_ARN_VALUE|${S3_ROLE_ARN}|g" "$TMP_FILE"
 
-mv "$TMP_FILE" "$ENV_FILE"
+cp "$TMP_FILE" "$ENV_FILE"
+rm "$TMP_FILE"
