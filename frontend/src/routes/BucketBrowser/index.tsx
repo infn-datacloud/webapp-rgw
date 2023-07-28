@@ -1,5 +1,4 @@
 import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { Page } from '../../components/Page';
 import { BucketObject, BucketObjectWithProgress } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
 import { Button } from '../../components/Button';
@@ -24,7 +23,7 @@ import {
 } from './services';
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
-import { NodePath } from '../../commons/utils';
+import { NodePath, camelToWords } from '../../commons/utils';
 import { NotificationType, useNotifications } from '../../services/Notification';
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
@@ -96,20 +95,21 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             setCurrentPath(rootNodeRef.current);
           }
         })
-        .catch(err => console.error(err));
+        .catch((err: Error) => notify("Cannot fetch bucket content",
+          camelToWords(err.name), NotificationType.error));
     };
     f();
   }, [s3, bucketName, currentPath.path]);
 
 
   useEffect(() => {
-    if (!lockRef.current) {
+    if (!lockRef.current && s3.isAuthenticated) {
       refreshBucketObjects()
     }
     return () => {
-      lockRef.current = true;
+      lockRef.current = s3.isAuthenticated;
     }
-  }, [s3, refreshBucketObjects])
+  }, [s3, s3.isAuthenticated, refreshBucketObjects])
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -130,7 +130,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           refreshBucketObjects();
         }
       })
-      .catch((err: Error) => notify("Cannot upload file", err.name, NotificationType.error));
+      .catch((err: Error) => notify("Cannot upload file", camelToWords(err.name),
+        NotificationType.error));
   }
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
@@ -236,12 +237,21 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     setSelectedRows(new Set());
   }
 
-  const handleDownloadFiles = () => {
-    toDownload.current = Array.from(selectedObjects.current.values())
-      .map(el => new BucketObjectWithProgress(el));
-    downloadFiles(s3, bucketName, toDownload.current, handleDownloadChanges);
-    selectedObjects.current = new Map();
-    setSelectedRows(new Set());
+  const handleDownloadFiles = async () => {
+    try {
+      toDownload.current = Array.from(selectedObjects.current.values())
+        .map(el => new BucketObjectWithProgress(el));
+      await downloadFiles(s3, bucketName, toDownload.current, handleDownloadChanges);
+      selectedObjects.current = new Map();
+      setSelectedRows(new Set());
+    } catch (err) {
+      if (err instanceof Error) {
+        notify("Cannot download file(s)", camelToWords(err.name),
+          NotificationType.error);
+      } else {
+        console.error(err);
+      }
+    }
   }
 
   const handleDownloadChanges = () => {
@@ -269,12 +279,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }, [currentPath]);
 
   return (
-    <Page title={bucketName}>
-      <Button
-        title="Back"
-        icon={<ArrowLeftIcon />}
-        onClick={() => navigate(-1)}
-      />
+    <>
       <NewPathModal
         open={modalOpen}
         prefix={bucketName + '/'}
@@ -292,14 +297,22 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         />
       </div>
       {/* Transition to open the right drawer */}
-      <div className={`transition-all ease-in-out duration-200 ${selectedRows.size > 0 ? "mr-72" : "mr-0"}`}>
-        <div className='container w-2/3'>
+      <div className={`w-full transition-all ease-in-out duration-200 
+        ${selectedRows.size > 0 ? "mr-72" : "mr-0"}`}>
+        <div className='container'>
           {/* Buttons */}
           <div className="flex mt-8 place-content-between">
-            <InputFile
-              icon={<ArrowUpOnSquareIcon />}
-              onChange={handleFileChange}
-            />
+            <div className='flex space-x-4'>
+              <Button
+                title="Back"
+                icon={<ArrowLeftIcon />}
+                onClick={() => navigate(-1)}
+              />
+              <InputFile
+                icon={<ArrowUpOnSquareIcon />}
+                onChange={handleFileChange}
+              />
+            </div>
             <div className='flex space-x-4'>
               <Button
                 title="New path"
@@ -348,6 +361,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           />
         })}
       </DownloadStatusPopup>
-    </Page>
+    </>
   )
 }
