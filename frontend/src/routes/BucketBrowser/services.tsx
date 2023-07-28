@@ -29,14 +29,14 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
     const isFolder = child.children.length > 0;
     const ext = child.basename.includes(".") ? child.basename.split(".")[1] : ""
     const getIcon = () => {
-      if (isFolder) return <FolderIcon />;
+      if (isFolder) return (<FolderIcon />);
       switch (ext) {
         case "png":
         case "jpeg":
         case "jpg":
-          return <PhotoIcon />;
+          return (<PhotoIcon />);
         default:
-          return <DocumentIcon />
+          return (<DocumentIcon />);
       }
     }
 

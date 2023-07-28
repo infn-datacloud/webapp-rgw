@@ -99,7 +99,7 @@ export function withBucketStore(WrappedComponent: React.FunctionComponent) {
     const store = CreateBucketStore();
     return (
       <BucketStore.Provider value={store}>
-        <WrappedComponent {...props} />;
+        <WrappedComponent {...props} />
       </BucketStore.Provider>
     );
   };

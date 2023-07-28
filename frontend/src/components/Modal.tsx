@@ -10,7 +10,7 @@ export const Modal = (props: ModalProps) => {
   const { open, children } = props;
   
   if (!open) {
-    return <></>;
+    return <></>
   }
 
   return (
