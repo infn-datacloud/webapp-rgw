@@ -48,7 +48,7 @@ export const Drawer = () => {
         />
       </div>
       <div className="absolute bottom-2 w-full text-sm text-center">
-        v{__APP_VERSION__}</div>
+        v{APP_VERSION}</div>
     </div>
   )
 }
