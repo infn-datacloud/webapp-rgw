@@ -12,6 +12,10 @@ export const parseReadWriteAccess = (rwAccess: RWAccess) => {
     rwAccess.read ? "R" : rwAccess.write ? "R" : "Unknown";
 }
 
+export const camelToWords = (s: string) => {
+  return s.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
+}
+
 export interface INodePath<T> {
   parent?: INodePath<T>;
   basename: string;
@@ -23,6 +27,7 @@ export interface INodePath<T> {
   removeChild: (_: NodePath<T>) => boolean;
   print: (_: number) => void;
   getAll: () => INodePath<T>[];
+  clone: () => INodePath<T>;
 };
 
 export class NodePath<T> implements INodePath<T> {
@@ -35,6 +40,12 @@ export class NodePath<T> implements INodePath<T> {
     this.basename = basename;
     this.value = value;
     this.children = [];
+  }
+
+  clone() {
+    let newNode = new NodePath<T>(this.basename, this.value);
+    newNode.parent = this.parent;
+    return newNode;
   }
 
   addChild(node: INodePath<T>) {

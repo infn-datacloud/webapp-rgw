@@ -22,6 +22,7 @@ export const InputFile = ({ onChange, icon }: InputFileProps) => {
         className="hidden"
         type="file"
         id="fileSelector"
+        multiple={true}
       />
       <Button
         title="Upload File"

@@ -89,7 +89,7 @@ export const Table = (props: TableParams) => {
                   {row[colId]}
                 </td>
               })}
-            </tr>;
+            </tr>
           })
         }
       </tbody>

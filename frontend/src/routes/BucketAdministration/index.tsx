@@ -7,6 +7,7 @@ import { NewBucketModal } from "./NewBucketModal";
 import { useBucketStore } from "../../services/BucketStore";
 import { NotificationType, useNotifications } from "../../services/Notification";
 import { BucketConfiguration, EditBucketModal } from "./EditBucketModal";
+import { camelToWords } from "../../commons/utils";
 
 export const BucketAdministration = () => {
   const { bucketsInfos, updateStore } = useBucketStore();
@@ -29,7 +30,8 @@ export const BucketAdministration = () => {
         updateStore();
       })
       .catch((err: Error) =>
-        notify("Cannot create Bucket", err.name, NotificationType.error));
+        notify("Cannot create Bucket", camelToWords(err.name),
+          NotificationType.error));
     setShowNewBucketModal(false);
   };
 
@@ -40,7 +42,8 @@ export const BucketAdministration = () => {
         updateStore();
       })
       .catch((err: Error) =>
-        notify("Cannot delete Bucket", err.name, NotificationType.error));
+        notify("Cannot delete Bucket", camelToWords(err.name),
+          NotificationType.error));
   };
 
   const handleSelectBucket = (bucketName: string) => {
@@ -55,7 +58,8 @@ export const BucketAdministration = () => {
       setVersioning(result.Status === "Enabled");
     } catch (err) {
       if (err instanceof Error) {
-        notify("Cannot retrieve bucket versioning", err.name, NotificationType.error);
+        notify("Cannot retrieve bucket versioning", camelToWords(err.name),
+          NotificationType.error);
       } else {
         console.error(err);
       }
@@ -69,7 +73,8 @@ export const BucketAdministration = () => {
       setObjectLock(enabled);
     } catch (err) {
       if (err instanceof Error) {
-        notify("Cannot retrieve bucket versioning", err.name, NotificationType.error);
+        notify("Cannot retrieve bucket object lock", camelToWords(err.name),
+          NotificationType.error);
       } else {
         console.error(err);
       }

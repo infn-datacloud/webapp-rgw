@@ -1,10 +1,9 @@
-import { BucketObject, BucketObjectWithProgress } from "../../models/bucket";
+import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
 import { NodePath, addPath, getHumanSize } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3Service";
 import {
   DeleteObjectCommand,
   ListObjectsV2Command,
-  PutObjectCommand
 } from "@aws-sdk/client-s3";
 import {
   DocumentIcon,
@@ -15,13 +14,7 @@ import { Value } from "../../components/Table";
 import JSZip from 'jszip';
 
 export const initNodePathTree = (bucketObjects: BucketObject[], node: NodePath<BucketObject>) => {
-  bucketObjects.forEach(object => {
-    if (object.Key) {
-      addPath(object.Key, node, object);
-    } else {
-      console.warn("Warning: object has empty Key.")
-    }
-  });
+  bucketObjects.forEach(object => addPath(object.Key, node, object));
 }
 
 export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
@@ -29,14 +22,14 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
     const isFolder = child.children.length > 0;
     const ext = child.basename.includes(".") ? child.basename.split(".")[1] : ""
     const getIcon = () => {
-      if (isFolder) return <FolderIcon />;
+      if (isFolder) return (<FolderIcon />);
       switch (ext) {
         case "png":
         case "jpeg":
         case "jpg":
-          return <PhotoIcon />;
+          return (<PhotoIcon />);
         default:
-          return <DocumentIcon />
+          return (<DocumentIcon />);
       }
     }
 
@@ -117,17 +110,12 @@ export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
   downloadFile(filename, result);
 }
 
-export const uploadFiles = (s3: S3ContextProps,
-  bucketName: string, files: FileList, prefix?: string) => {
-  const requests = Array.from(files).map(file => {
-    const putObjCmd = new PutObjectCommand({
-      Bucket: bucketName,
-      Body: file,
-      Key: prefix ? prefix + '/' + file.name : file.name
-    });
-    return s3.client.send(putObjCmd);
-  });
-  return Promise.all(requests);
+export const uploadFiles = async (s3: S3ContextProps, bucketName: string,
+  objects: FileObjectWithProgress[], onChange?: () => void) => {
+  const { uploadObject } = s3;
+  return Promise.all(objects.map(o => {
+    return uploadObject(bucketName, o, onChange);
+  }));
 }
 
 const deleteObject = async (s3: S3ContextProps, bucketName: string, object: BucketObject) => {

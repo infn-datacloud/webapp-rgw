@@ -1,11 +1,12 @@
 import { Page } from '../../components/Page';
 import { Table, Column } from '../../components/Table';
-import { useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Bucket } from '@aws-sdk/client-s3';
 import { useBucketStore } from '../../services/BucketStore';
+import { BucketBrowser } from '../BucketBrowser';
 
 export const Home = () => {
-  const navigate = useNavigate();
+  const [serachParams, setSearchParams] = useSearchParams();
   const { bucketList } = useBucketStore();
 
   const columns: Column[] = [
@@ -22,20 +23,31 @@ export const Home = () => {
 
   const onClick = (_: React.MouseEvent<HTMLTableRowElement>, index: number) => {
     const bucketName = bucketList[index].Name;
-    navigate("/" + bucketName)
-    console.log(bucketName);
+    if (bucketName) {
+      setSearchParams(new URLSearchParams({ bucket: bucketName }));
+    } else {
+      console.warn("Bucket's Name is empty");
+    }
   }
 
+  const bucketName = serachParams.get("bucket");
+
   return (
-    <Page title="Home">
+    <Page title={bucketName ?? "Home"}>
       <div className="Home">
         <div className="flex place-content-center">
           <div className="flex w-2/3">
-            <Table
-              columns={columns}
-              data={tableData}
-              onClick={onClick}
-            />
+            {
+              bucketName ?
+                <BucketBrowser
+                  bucketName={bucketName}
+                /> :
+                <Table
+                  columns={columns}
+                  data={tableData}
+                  onClick={onClick}
+                />
+            }
           </div>
         </div>
       </div>

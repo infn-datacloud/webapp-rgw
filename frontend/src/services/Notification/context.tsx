@@ -55,7 +55,7 @@ export function withNotifications(WrappedComponent: React.FunctionComponent) {
     const { notifications } = context;
     return (
       <notificationContext.Provider value={context}>
-        <WrappedComponent {...props} />;
+        <WrappedComponent {...props} />
         {notifications.map(
           (n, i) => <Notification key={`notification-${i}`} {...n} />
         )}

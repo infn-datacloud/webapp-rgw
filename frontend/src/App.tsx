@@ -8,13 +8,10 @@ import {
 import { Login } from './routes/Login';
 import { staticRoutes } from './routes';
 import { useOAuth, OAuthPopup } from './services/OAuth2';
-import { BucketBrowser } from './routes/BucketBrowser';
-import { Bucket } from '@aws-sdk/client-s3';
-import { useBucketStore, withBucketStore } from './services/BucketStore';
+import { withBucketStore } from './services/BucketStore';
 
 function App() {
   const oAuth = useOAuth();
-  const { bucketList } = useBucketStore();
 
   if (oAuth.error) {
     return <div>Ops... {oAuth.error.message}</div>;
@@ -43,17 +40,6 @@ function App() {
     path: "/login",
     element: <Login onClick={oAuth.signinPopup} />,
   });
-
-  // Add /{bucket_name} routes dynamically
-  routes = routes.concat(bucketList.reduce((acc: any[], bucket: Bucket) => {
-    if (bucket.Name) {
-      acc.push({
-        path: "/" + bucket.Name,
-        element: <BucketBrowser bucketName={bucket.Name} />
-      });
-    }
-    return acc;
-  }, []));
 
   const router = createBrowserRouter(routes);
 

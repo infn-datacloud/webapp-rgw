@@ -55,7 +55,6 @@ const ObjectDetail = (object: BucketObject) => {
       <Detail title={"Key"} value={object.Key} />
       <Detail title={"ETag"} value={object.ETag} />
       <Detail title={"Last Modified"} value={object.LastModified?.toString() ?? "N/A"} />
-      <Detail title={"Owner"} value={object.Owner?.ID ?? "N/A"} />
       <Detail title={"Size"} value={getHumanSize(object.Size ?? 0)} />
     </>
   )
@@ -69,12 +68,12 @@ export const BucketInspector = (props: BucketInspectorProps) => {
 
   switch (objects.length) {
     case 0:
-      object = {};
+      object = { Key: "N/A" };
       title = "N/A";
       break;
     case 1:
       object = objects[0];
-      title = object.Key ?? "N/A";
+      title = object.Key;
       break;
     default:
       object = {

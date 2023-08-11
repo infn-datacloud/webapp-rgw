@@ -1,6 +1,5 @@
 import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { Page } from '../../components/Page';
-import { BucketObject, BucketObjectWithProgress } from '../../models/bucket';
+import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
 import { Button } from '../../components/Button';
 import { BucketInspector } from '../../components/BucketInspector';
@@ -24,10 +23,11 @@ import {
 } from './services';
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
-import { NodePath } from '../../commons/utils';
+import { NodePath, camelToWords } from '../../commons/utils';
 import { NotificationType, useNotifications } from '../../services/Notification';
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
+import { _Object } from '@aws-sdk/client-s3';
 
 const columns: Column[] = [
   { id: "icon" },
@@ -68,7 +68,9 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const rootNodeRef = useRef<NodePath<BucketObject>>(new NodePath(""));
   const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
   const toDownload = useRef<BucketObjectWithProgress[]>([]);
+  const toUpload = useRef<FileObjectWithProgress[]>([]);
   const [downloading, setDownloading] = useState<BucketObjectWithProgress[]>([]);
+  const [uploading, setUploading] = useState<BucketObjectWithProgress[]>([]);
   const { notify } = useNotifications();
 
   let tableData = getTableData(currentPath);
@@ -79,14 +81,27 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         .then(contents => {
           if (contents) {
             rootNodeRef.current = new NodePath("");
-            initNodePathTree(contents, rootNodeRef.current);
-            const allFiles = rootNodeRef.current.getAll();
-            // Reset current path in the new tree
-            for (const f of allFiles) {
-              const { parent } = f;
-              if (parent && parent.path === currentPath.path) {
-                setCurrentPath(parent);
-                return;
+            var c = contents.reduce((acc: BucketObject[], el) => {
+              if (el.Key) {
+                acc.push({
+                  Key: el.Key,
+                  LastModified: el.LastModified ? new Date(el.LastModified) : undefined,
+                  ETag: el.ETag,
+                  Size: el.Size
+                });
+              }
+              return acc;
+            }, [])
+            initNodePathTree(c, rootNodeRef.current);
+
+            // If a node different than root was set, set it back
+            if (currentPath.path != "") {
+              const allFiles = rootNodeRef.current.getAll();
+              for (const file of allFiles) {
+                if (file.parent && file.parent.path == currentPath.path) {
+                  setCurrentPath(file.parent);
+                  return;
+                }
               }
             }
             // Otherwise, set current path to root
@@ -96,42 +111,22 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             setCurrentPath(rootNodeRef.current);
           }
         })
-        .catch(err => console.error(err));
+        .catch((err: Error) => notify("Cannot fetch bucket content",
+          camelToWords(err.name), NotificationType.error));
     };
     f();
   }, [s3, bucketName, currentPath.path]);
 
 
   useEffect(() => {
-    if (!lockRef.current) {
+    if (!lockRef.current && s3.isAuthenticated) {
       refreshBucketObjects()
     }
     return () => {
-      lockRef.current = true;
+      lockRef.current = s3.isAuthenticated;
     }
-  }, [s3, refreshBucketObjects])
+  }, [s3, s3.isAuthenticated, refreshBucketObjects])
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
-      return;
-    }
-
-    inputRef.current = e.target;
-    const { files } = e.target;
-
-    // Remove leading '/'
-    const prefix = currentPath.path.replace(/^\//, "");
-    uploadFiles(s3, bucketName, files, prefix)
-      .then(() => {
-        notify("File(s) uploaded", undefined, NotificationType.success);
-        if (inputRef.current) {
-          inputRef.current.files = null;
-          inputRef.current.value = "";
-          refreshBucketObjects();
-        }
-      })
-      .catch((err: Error) => notify("Cannot upload file", err.name, NotificationType.error));
-  }
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
     const { checked } = el.target;
@@ -236,26 +231,86 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     setSelectedRows(new Set());
   }
 
-  const handleDownloadFiles = () => {
-    toDownload.current = Array.from(selectedObjects.current.values())
-      .map(el => new BucketObjectWithProgress(el));
-    downloadFiles(s3, bucketName, toDownload.current, handleDownloadChanges);
-    selectedObjects.current = new Map();
-    setSelectedRows(new Set());
+  const handleDownloadFiles = async () => {
+    try {
+      toDownload.current = Array.from(selectedObjects.current.values())
+        .map(el => new BucketObjectWithProgress(el));
+      await downloadFiles(s3, bucketName, toDownload.current, handleDownloadsUpdates);
+      selectedObjects.current = new Map();
+      setSelectedRows(new Set());
+    } catch (err) {
+      if (err instanceof Error) {
+        notify("Cannot download file(s)", camelToWords(err.name),
+          NotificationType.error);
+      } else {
+        console.error(err);
+      }
+    }
   }
 
-  const handleDownloadChanges = () => {
+  function handleDownloadsUpdates() {
     const t = [...toDownload.current];
     setDownloading(t);
   }
 
+  const handleSelectFilesToUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      return;
+    }
+
+    inputRef.current = e.target;
+    const { files } = e.target;
+    const n_files = files.length;
+
+    toUpload.current = [];
+    const path = currentPath.clone();
+
+    for (let i = 0; i < n_files; ++i) {
+      const node = new NodePath<BucketObject>(files[i].name, { Key: files[i].name });
+      path.addChild(node);
+      toUpload.current.push(
+        new FileObjectWithProgress({ Key: node.path }, files[i]));
+    }
+
+    const startUpload = async () => {
+      try {
+        await uploadFiles(s3, bucketName, toUpload.current, handleUploadsUpdates)
+        notify("File(s) uploaded", undefined, NotificationType.success);
+        if (inputRef.current) {
+          inputRef.current.files = null;
+          inputRef.current.value = "";
+          refreshBucketObjects();
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          notify("Cannot upload file(s)", camelToWords(err.name),
+            NotificationType.error);
+        }
+        (err: Error) => notify("Cannot upload file", camelToWords(err.name),
+          NotificationType.error);
+      }
+    }
+    startUpload();
+  }
+
+
+  const handleUploadsUpdates = () => {
+    const t = [...toUpload.current];
+    setUploading(t);
+  }
+
   const handleCloseDownloadPopup = () => {
     setDownloading([]);
-    toDownload.current = [];
+    toDownload.current = [];    // TODO: not sure about this
+  }
+
+  const handleCloseUploadPopup = () => {
+    setUploading([]);
+    toUpload.current = [];      // TODO: not sure about this
   }
 
   const goBack = useCallback(() => {
-    const newPath = currentPath.parent && currentPath.parent.basename !== "" ?
+    const newPath: NodePath<BucketObject> = currentPath.parent && currentPath.parent.basename !== "" ?
       currentPath.parent : rootNodeRef.current;
 
     // No file was uploaded, remove the path
@@ -269,12 +324,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }, [currentPath]);
 
   return (
-    <Page title={bucketName}>
-      <Button
-        title="Back"
-        icon={<ArrowLeftIcon />}
-        onClick={() => navigate(-1)}
-      />
+    <>
       <NewPathModal
         open={modalOpen}
         prefix={bucketName + '/'}
@@ -292,14 +342,22 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         />
       </div>
       {/* Transition to open the right drawer */}
-      <div className={`transition-all ease-in-out duration-200 ${selectedRows.size > 0 ? "mr-72" : "mr-0"}`}>
-        <div className='container w-2/3'>
+      <div className={`w-full transition-all ease-in-out duration-200 
+        ${selectedRows.size > 0 ? "mr-72" : "mr-0"}`}>
+        <div className='container'>
           {/* Buttons */}
           <div className="flex mt-8 place-content-between">
-            <InputFile
-              icon={<ArrowUpOnSquareIcon />}
-              onChange={handleFileChange}
-            />
+            <div className='flex space-x-4'>
+              <Button
+                title="Back"
+                icon={<ArrowLeftIcon />}
+                onClick={() => navigate(-1)}
+              />
+              <InputFile
+                icon={<ArrowUpOnSquareIcon />}
+                onChange={handleSelectFilesToUpload}
+              />
+            </div>
             <div className='flex space-x-4'>
               <Button
                 title="New path"
@@ -336,6 +394,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           </div>
         </div>
       </div>
+      {/* Downloads */}
       <DownloadStatusPopup
         show={downloading.length > 0}
         onClose={handleCloseDownloadPopup}
@@ -348,6 +407,20 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           />
         })}
       </DownloadStatusPopup>
-    </Page>
+      {/* Uploads */}
+      <DownloadStatusPopup
+        show={uploading.length > 0}
+        onClose={handleCloseUploadPopup}
+        upload={true}
+      >
+        {uploading.map(el => {
+          return <ProgressBar
+            key={el.object.Key!}
+            title={el.object.Key!}
+            value={el.progress}
+          />
+        })}
+      </DownloadStatusPopup>
+    </>
   )
 }
