@@ -18,11 +18,12 @@ import {
   PutObjectLockConfigurationCommand,
   GetObjectLockConfigurationCommandOutput,
 } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { OidcToken } from "./OAuth2/OidcConfig";
 import { useNotifications, NotificationType } from "./Notification";
-import { BucketObjectWithProgress } from "../models/bucket";
+import { BucketObjectWithProgress, FileObjectWithProgress } from "../models/bucket";
 import { camelToWords } from "../commons/utils";
 
 const ONE_MB = 1024 * 1024;
@@ -61,6 +62,7 @@ export interface S3ContextProps {
   createBucket: (args: CreateBucketArgs) => Promise<any>;
   deleteBucket: (bucket: string) => Promise<any>;
   downloadObject: (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => Promise<Blob>;
+  uploadObject: (bucket: string, object: FileObjectWithProgress, onChange?: () => void) => void;
   getBucketVersioning: (bucket: string) => Promise<GetBucketVersioningCommandOutput>;
   setBucketVersioning: (bucket: string, enabled: boolean) => Promise<any>;
   getBucketObjectLock: (bucket: string) => Promise<GetObjectLockConfigurationCommandOutput>;
@@ -82,7 +84,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   const authRef = useRef<boolean>(false);
   const oAuth = useOAuth();
   const { notify } = useNotifications();
-  
+
   authRef.current = isAuthenticated;
 
   // Exchange token for AWS Credentiasl with AssumeRoleWebIdendity
@@ -230,6 +232,28 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     return blob;
   }
 
+  const uploadManaged = async (bucket: string,
+    fileObject: FileObjectWithProgress, onChange?: () => void) => {
+    let upload = new Upload({
+      client: client,
+      params: {
+        Bucket: bucket,
+        Key: fileObject.file.name,
+        Body: fileObject.file
+      }
+    });
+    upload.on("httpUploadProgress", (progress) => {
+      if (onChange) {
+        let { loaded, total } = progress;
+        loaded = loaded ?? 0;
+        total = total ?? 1;
+        fileObject.setProgress(loaded / total);
+        onChange();
+      }
+    })
+    return upload.done();
+  }
+
   const getBucketVersioning = async (bucket: string): Promise<GetBucketVersioningCommandOutput> => {
     const getBucketVersioningCommand = new GetBucketVersioningCommand({
       Bucket: bucket
@@ -273,6 +297,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     createBucket: (args: CreateBucketArgs) => createBucket(args),
     deleteBucket: (bucket: string) => deleteBucket(bucket),
     downloadObject: downloadInChunks,
+    uploadObject: uploadManaged,
     getBucketVersioning: (bucket: string) => getBucketVersioning(bucket),
     setBucketVersioning: (bucket: string, enabled: boolean) => setBucketVersioning(bucket, enabled),
     getBucketObjectLock: (bucket: string) => getBucketObjectLock(bucket),
