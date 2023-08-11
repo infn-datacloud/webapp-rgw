@@ -93,12 +93,15 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               return acc;
             }, [])
             initNodePathTree(c, rootNodeRef.current);
-            const allFiles = rootNodeRef.current.getAll();
-            // Reset current path in the new tree
-            for (const parent of allFiles) {
-              if (parent && parent.path === currentPath.path) {
-                setCurrentPath(parent);
-                return;
+
+            // If a node different than root was set, set it back
+            if (currentPath.path != "") {
+              const allFiles = rootNodeRef.current.getAll();
+              for (const file of allFiles) {
+                if (file.parent && file.parent.path == currentPath.path) {
+                  setCurrentPath(file.parent);
+                  return;
+                }
               }
             }
             // Otherwise, set current path to root
