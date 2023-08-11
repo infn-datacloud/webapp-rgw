@@ -238,7 +238,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
       client: client,
       params: {
         Bucket: bucket,
-        Key: fileObject.file.name,
+        Key: fileObject.object.Key,
         Body: fileObject.file
       }
     });
