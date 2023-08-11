@@ -1,5 +1,5 @@
 import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { BucketObject, BucketObjectWithProgress } from '../../models/bucket';
+import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
 import { Button } from '../../components/Button';
 import { BucketInspector } from '../../components/BucketInspector';
@@ -27,6 +27,7 @@ import { NodePath, camelToWords } from '../../commons/utils';
 import { NotificationType, useNotifications } from '../../services/Notification';
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
+import { _Object } from '@aws-sdk/client-s3';
 
 const columns: Column[] = [
   { id: "icon" },
@@ -67,7 +68,9 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const rootNodeRef = useRef<NodePath<BucketObject>>(new NodePath(""));
   const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
   const toDownload = useRef<BucketObjectWithProgress[]>([]);
+  const toUpload = useRef<FileObjectWithProgress[]>([]);
   const [downloading, setDownloading] = useState<BucketObjectWithProgress[]>([]);
+  const [uploading, setUploading] = useState<BucketObjectWithProgress[]>([]);
   const { notify } = useNotifications();
 
   let tableData = getTableData(currentPath);
@@ -122,28 +125,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     }
   }, [s3, s3.isAuthenticated, refreshBucketObjects])
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
-      return;
-    }
-
-    inputRef.current = e.target;
-    const { files } = e.target;
-
-    // Remove leading '/'
-    const prefix = currentPath.path.replace(/^\//, "");
-    uploadFiles(s3, bucketName, files, prefix)
-      .then(() => {
-        notify("File(s) uploaded", undefined, NotificationType.success);
-        if (inputRef.current) {
-          inputRef.current.files = null;
-          inputRef.current.value = "";
-          refreshBucketObjects();
-        }
-      })
-      .catch((err: Error) => notify("Cannot upload file", camelToWords(err.name),
-        NotificationType.error));
-  }
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
     const { checked } = el.target;
@@ -252,7 +233,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     try {
       toDownload.current = Array.from(selectedObjects.current.values())
         .map(el => new BucketObjectWithProgress(el));
-      await downloadFiles(s3, bucketName, toDownload.current, handleDownloadChanges);
+      await downloadFiles(s3, bucketName, toDownload.current, handleDownloadsUpdates);
       selectedObjects.current = new Map();
       setSelectedRows(new Set());
     } catch (err) {
@@ -265,14 +246,61 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     }
   }
 
-  const handleDownloadChanges = () => {
+  function handleDownloadsUpdates() {
     const t = [...toDownload.current];
     setDownloading(t);
   }
 
+  const handleSelectFilesToUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      return;
+    }
+
+    inputRef.current = e.target;
+    const { files } = e.target;
+    const n_files = files.length;
+
+    toUpload.current = [];
+    for (let i = 0; i < n_files; ++i) {
+      toUpload.current.push(
+        new FileObjectWithProgress({ Key: files[i].name }, files[i]));
+    }
+
+    const startUpload = async () => {
+      try {
+        await uploadFiles(s3, bucketName, toUpload.current, handleUploadsUpdates)
+        notify("File(s) uploaded", undefined, NotificationType.success);
+        if (inputRef.current) {
+          inputRef.current.files = null;
+          inputRef.current.value = "";
+          refreshBucketObjects();
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          notify("Cannot upload file(s)", camelToWords(err.name),
+            NotificationType.error);
+        }
+        (err: Error) => notify("Cannot upload file", camelToWords(err.name),
+          NotificationType.error);
+      }
+    }
+    startUpload();
+  }
+
+
+  const handleUploadsUpdates = () => {
+    const t = [...toUpload.current];
+    setUploading(t);
+  }
+
   const handleCloseDownloadPopup = () => {
     setDownloading([]);
-    toDownload.current = [];
+    toDownload.current = [];    // TODO: not sure about this
+  }
+
+  const handleCloseUploadPopup = () => {
+    setUploading([]);
+    toUpload.current = [];      // TODO: not sure about this
   }
 
   const goBack = useCallback(() => {
@@ -321,7 +349,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               />
               <InputFile
                 icon={<ArrowUpOnSquareIcon />}
-                onChange={handleFileChange}
+                onChange={handleSelectFilesToUpload}
               />
             </div>
             <div className='flex space-x-4'>
@@ -360,11 +388,26 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           </div>
         </div>
       </div>
+      {/* Downloads */}
       <DownloadStatusPopup
         show={downloading.length > 0}
         onClose={handleCloseDownloadPopup}
       >
         {downloading.map(el => {
+          return <ProgressBar
+            key={el.object.Key!}
+            title={el.object.Key!}
+            value={el.progress}
+          />
+        })}
+      </DownloadStatusPopup>
+      {/* Uploads */}
+      <DownloadStatusPopup
+        show={uploading.length > 0}
+        onClose={handleCloseUploadPopup}
+        upload={true}
+      >
+        {uploading.map(el => {
           return <ProgressBar
             key={el.object.Key!}
             title={el.object.Key!}

@@ -1,10 +1,9 @@
-import { BucketObject, BucketObjectWithProgress } from "../../models/bucket";
+import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
 import { NodePath, addPath, getHumanSize } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3Service";
 import {
   DeleteObjectCommand,
   ListObjectsV2Command,
-  PutObjectCommand
 } from "@aws-sdk/client-s3";
 import {
   DocumentIcon,
@@ -111,17 +110,12 @@ export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
   downloadFile(filename, result);
 }
 
-export const uploadFiles = (s3: S3ContextProps,
-  bucketName: string, files: FileList, prefix?: string) => {
-  const requests = Array.from(files).map(file => {
-    const putObjCmd = new PutObjectCommand({
-      Bucket: bucketName,
-      Body: file,
-      Key: prefix ? prefix + '/' + file.name : file.name
-    });
-    return s3.client.send(putObjCmd);
-  });
-  return Promise.all(requests);
+export const uploadFiles = async (s3: S3ContextProps, bucketName: string,
+  objects: FileObjectWithProgress[], onChange?: () => void) => {
+  const { uploadObject } = s3;
+  return Promise.all(objects.map(o => {
+    return uploadObject(bucketName, o, onChange);
+  }));
 }
 
 const deleteObject = async (s3: S3ContextProps, bucketName: string, object: BucketObject) => {

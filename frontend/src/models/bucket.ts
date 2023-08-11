@@ -1,5 +1,3 @@
-import { Owner } from "@aws-sdk/client-s3";
-
 export interface RWAccess {
   read: boolean
   write: boolean
@@ -31,5 +29,13 @@ export class BucketObjectWithProgress {
 
   setProgress(value: number) {
     this.progress = value;
+  }
+}
+
+export class FileObjectWithProgress extends BucketObjectWithProgress {
+  file: File;
+  constructor(bucket: BucketObject, file: File) {
+    super(bucket);
+    this.file = file;
   }
 }
