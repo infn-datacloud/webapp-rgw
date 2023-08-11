@@ -43,7 +43,9 @@ export class NodePath<T> implements INodePath<T> {
   }
 
   clone() {
-    return new NodePath<T>(this.basename, this.value);
+    let newNode = new NodePath<T>(this.basename, this.value);
+    newNode.parent = this.parent;
+    return newNode;
   }
 
   addChild(node: INodePath<T>) {
