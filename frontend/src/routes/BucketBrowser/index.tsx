@@ -78,7 +78,18 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         .then(contents => {
           if (contents) {
             rootNodeRef.current = new NodePath("");
-            initNodePathTree(contents, rootNodeRef.current);
+            var c = contents.reduce((acc: BucketObject[], el) => {
+              if (el.Key) {
+                acc.push({
+                  Key: el.Key,
+                  LastModified: el.LastModified ? new Date(el.LastModified) : undefined,
+                  ETag: el.ETag,
+                  Size: el.Size
+                });
+              }
+              return acc;
+            }, [])
+            initNodePathTree(c, rootNodeRef.current);
             const allFiles = rootNodeRef.current.getAll();
             // Reset current path in the new tree
             for (const f of allFiles) {

@@ -15,13 +15,7 @@ import { Value } from "../../components/Table";
 import JSZip from 'jszip';
 
 export const initNodePathTree = (bucketObjects: BucketObject[], node: NodePath<BucketObject>) => {
-  bucketObjects.forEach(object => {
-    if (object.Key) {
-      addPath(object.Key, node, object);
-    } else {
-      console.warn("Warning: object has empty Key.")
-    }
-  });
+  bucketObjects.forEach(object => addPath(object.Key, node, object));
 }
 
 export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {

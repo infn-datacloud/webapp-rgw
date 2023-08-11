@@ -14,12 +14,10 @@ export interface BucketInfo {
 }
 
 export interface BucketObject {
-  Key?: string,         // TODO: remove optional
+  Key: string,
   LastModified?: Date,
   ETag?: string,
   Size?: number,
-  StorageClass?: string,
-  Owner?: Owner
 }
 
 export class BucketObjectWithProgress {
