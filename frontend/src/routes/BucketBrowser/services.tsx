@@ -1,5 +1,5 @@
 import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
-import { NodePath, addPath, getHumanSize } from "../../commons/utils";
+import { NodePath, addPath, getHumanSize, truncateString } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3Service";
 import {
   DeleteObjectCommand,

@@ -16,6 +16,13 @@ export const camelToWords = (s: string) => {
   return s.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
 }
 
+export const truncateString = (s: string, length: number) => {
+  if (s.length <= length) {
+    return s;
+  }
+  return s.slice(0, length) + "..."
+}
+
 export interface INodePath<T> {
   parent?: INodePath<T>;
   basename: string;
