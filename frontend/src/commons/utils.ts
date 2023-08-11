@@ -27,6 +27,7 @@ export interface INodePath<T> {
   removeChild: (_: NodePath<T>) => boolean;
   print: (_: number) => void;
   getAll: () => INodePath<T>[];
+  clone: () => INodePath<T>;
 };
 
 export class NodePath<T> implements INodePath<T> {
@@ -39,6 +40,10 @@ export class NodePath<T> implements INodePath<T> {
     this.basename = basename;
     this.value = value;
     this.children = [];
+  }
+
+  clone() {
+    return new NodePath<T>(this.basename, this.value);
   }
 
   addChild(node: INodePath<T>) {

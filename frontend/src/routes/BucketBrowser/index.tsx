@@ -95,8 +95,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             initNodePathTree(c, rootNodeRef.current);
             const allFiles = rootNodeRef.current.getAll();
             // Reset current path in the new tree
-            for (const f of allFiles) {
-              const { parent } = f;
+            for (const parent of allFiles) {
               if (parent && parent.path === currentPath.path) {
                 setCurrentPath(parent);
                 return;
@@ -261,9 +260,13 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     const n_files = files.length;
 
     toUpload.current = [];
+    const path = currentPath.clone();
+
     for (let i = 0; i < n_files; ++i) {
+      const node = new NodePath<BucketObject>(files[i].name, { Key: files[i].name });
+      path.addChild(node);
       toUpload.current.push(
-        new FileObjectWithProgress({ Key: files[i].name }, files[i]));
+        new FileObjectWithProgress({ Key: node.path }, files[i]));
     }
 
     const startUpload = async () => {
@@ -304,7 +307,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }
 
   const goBack = useCallback(() => {
-    const newPath = currentPath.parent && currentPath.parent.basename !== "" ?
+    const newPath: NodePath<BucketObject> = currentPath.parent && currentPath.parent.basename !== "" ?
       currentPath.parent : rootNodeRef.current;
 
     // No file was uploaded, remove the path
