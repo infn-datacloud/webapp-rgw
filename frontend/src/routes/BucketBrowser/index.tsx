@@ -28,6 +28,7 @@ import { NotificationType, useNotifications } from '../../services/Notification'
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
 import { _Object } from '@aws-sdk/client-s3';
+import { SearchFiled } from '../../components/SearchField';
 
 const columns: Column[] = [
   { id: "icon" },
@@ -58,6 +59,7 @@ type PropsType = {
 }
 
 export const BucketBrowser = ({ bucketName }: PropsType) => {
+  const bucketObjects = useRef<BucketObject[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState(new NodePath<BucketObject>(""));
@@ -73,15 +75,13 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const [uploading, setUploading] = useState<BucketObjectWithProgress[]>([]);
   const { notify } = useNotifications();
 
-  let tableData = getTableData(currentPath);
-
   const refreshBucketObjects = useCallback(() => {
     const f = async () => {
       listObjects(s3, bucketName)
         .then(contents => {
           if (contents) {
             rootNodeRef.current = new NodePath("");
-            var c = contents.reduce((acc: BucketObject[], el) => {
+            bucketObjects.current = contents.reduce((acc: BucketObject[], el) => {
               if (el.Key) {
                 acc.push({
                   Key: el.Key,
@@ -92,20 +92,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               }
               return acc;
             }, [])
-            initNodePathTree(c, rootNodeRef.current);
-
-            // If a node different than root was set, set it back
-            if (currentPath.path != "") {
-              const allFiles = rootNodeRef.current.getAll();
-              for (const file of allFiles) {
-                if (file.parent && file.parent.path == currentPath.path) {
-                  setCurrentPath(file.parent);
-                  return;
-                }
-              }
-            }
-            // Otherwise, set current path to root
-            setCurrentPath(rootNodeRef.current);
+            initNodePathTree(bucketObjects.current, rootNodeRef.current);
+            restorePreviousPath();
           } else {
             rootNodeRef.current = new NodePath("");
             setCurrentPath(rootNodeRef.current);
@@ -323,6 +311,38 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     setSelectedRows(new Set());
   }, [currentPath]);
 
+
+  const restorePreviousPath = () => {
+    // If a node different than root was set, set it back
+    if (currentPath.path != "") {
+      const allFiles = rootNodeRef.current.getAll();
+      for (const file of allFiles) {
+        if (file.parent && file.parent.path == currentPath.path) {
+          setCurrentPath(file.parent);
+          return;
+        }
+      }
+    }
+    // Otherwise, set current path to root
+    setCurrentPath(rootNodeRef.current);
+  }
+
+  const handleSearchQuery = (query: string) => {
+    console.log(query);
+    let objects: BucketObject[] = [];
+    if (query) {
+      objects = bucketObjects.current.filter(o => o.Key.includes(query));
+    } else {
+      objects = bucketObjects.current;
+    }
+
+    rootNodeRef.current = new NodePath("");
+    initNodePathTree(objects, rootNodeRef.current);
+    restorePreviousPath();
+  }
+
+  let tableData = getTableData(currentPath);
+
   return (
     <>
       <NewPathModal
@@ -372,14 +392,20 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               />
             </div>
           </div>
+
           {/* PathViewer */}
-          <div className='flex space-x-4 mt-8'>
-            <PathBackButton className='my-auto' onClick={goBack} />
-            <PathViewer
-              className='my-auto'
-              path={currentPath.path}
-              prefix={bucketName + '/'}
-            />
+          <div className='flex mt-8 justify-between'>
+            <div className="flex space-x-4">
+              <PathBackButton className='my-auto' onClick={goBack} />
+              <PathViewer
+                className='my-auto'
+                path={currentPath.path}
+                prefix={bucketName + '/'}
+              />
+            </div>
+            <div className="flex space-x-4 mt-4 justify-end">
+              <SearchFiled onChange={(query => handleSearchQuery(query))} />
+            </div>
           </div>
           {/* Table */}
           <div className="flex place-content-center mt-4">
