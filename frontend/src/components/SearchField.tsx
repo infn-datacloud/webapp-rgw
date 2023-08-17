@@ -33,6 +33,7 @@ export const SearchFiled = (props: SearchFieldProps) => {
         <MagnifyingGlassIcon className="w-5" />
         <TextField
           value={searchQuery}
+          type="search"
           onChange={(el) => handleQueryChanged(el.target.value)}
           placeholder="Type to search"
         />
