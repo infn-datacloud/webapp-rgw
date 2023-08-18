@@ -2,13 +2,15 @@ interface TextFieldProps {
   placeholder?: string;
   className?: string;
   value: string;
+  type?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   onBlur?: React.ChangeEventHandler<HTMLInputElement>;
   error?: any;
 }
 
 export const TextField = (props: TextFieldProps) => {
-  const { placeholder, value, className, onChange, onBlur, error } = props;
+  const { placeholder, value, className, type, onChange, onBlur, error } = props;
+  const inputType = type ?? "text";
   const inputClassName =
     `placeholder:${error ? "text-red-400" : "text-slate-400"} ` +
     `block bg-white w-full border ${error ? "border-red-400" : "border-slate-400"} ` +
@@ -20,7 +22,7 @@ export const TextField = (props: TextFieldProps) => {
       <input
         className={inputClassName}
         placeholder={placeholder}
-        type="text"
+        type={inputType}
         value={value}
         onChange={onChange}
         onBlur={onBlur}

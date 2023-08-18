@@ -1,5 +1,5 @@
 import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
-import { NodePath, addPath, getHumanSize } from "../../commons/utils";
+import { NodePath, addPath, getHumanSize, truncateString } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3Service";
 import {
   DeleteObjectCommand,
@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Value } from "../../components/Table";
 import JSZip from 'jszip';
+import moment from "moment";
 
 export const initNodePathTree = (bucketObjects: BucketObject[], node: NodePath<BucketObject>) => {
   bucketObjects.forEach(object => addPath(object.Key, node, object));
@@ -44,11 +45,12 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
     const bucketSize = child.children.length > 0 ? child.children.reduce((acc, c) => {
       return acc += c.value?.Size ?? 0;
     }, 0) : child.value?.Size ?? 0;
+    const lastModified = moment(child.value?.LastModified).calendar() ?? "N/A";
 
     return [
       { columnId: "icon", value: <Icon /> },
-      { columnId: "name", value: child.basename },
-      { columnId: "last_modified", value: child.value?.LastModified?.toString() ?? "N/A" },
+      { columnId: "name", value: truncateString(child.basename, 32) },
+      { columnId: "last_modified", value: lastModified },
       { columnId: "bucket_size", value: getHumanSize(bucketSize) },
     ]
   });
