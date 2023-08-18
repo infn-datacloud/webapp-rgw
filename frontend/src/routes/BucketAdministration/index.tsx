@@ -83,11 +83,20 @@ export const BucketAdministration = () => {
 
   const handleBucketUpdateConfiguration = async (bucket: string,
     config: BucketConfiguration) => {
-    if (config.versioningEnabled !== versioning) {
-      setBucketVersioning(bucket, config.versioningEnabled);
-    }
-    if (config.objectLockEnabled !== objectLock) {
-      setBucketObjectLock(bucket, config.objectLockEnabled);
+    try {
+      if (config.versioningEnabled !== versioning) {
+        setBucketVersioning(bucket, config.versioningEnabled);
+      }
+      if (config.objectLockEnabled !== objectLock) {
+        setBucketObjectLock(bucket, config.objectLockEnabled);
+      }
+      notify("Success!", "Bucket settings changed",
+        NotificationType.success);
+    } catch (err) {
+      if (err instanceof Error) {
+        notify("Cannot edit bucket options", camelToWords(err.name),
+          NotificationType.error);
+      }
     }
     setSelectedBucket(undefined);
   }
