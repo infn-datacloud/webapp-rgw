@@ -54,10 +54,12 @@ spec:
               value: "b573bc60-c58f-4924-90e5-ac0f5bcb576e"
             - name: S3_ENDPOINT
               value: "https://vm-131-154-97-121.cloud.cnaf.infn.it"
-            - name: S3_ROLE_ARN
-              value: "arn:aws:iam:::role/S3AccessIAM200"
             - name: S3_REGION
               value: "ceph-objectstore"
+            - name: S3_ROLE_ARN
+              value: "arn:aws:iam:::role/S3AccessIAM200"
+            - name: S3_ROLE_DURATION_SECONDS
+              value: "3600"
         - image: baltig.infn.it:4567/jgasparetto/ceph-webapp-poc/backend
           imagePullPolicy: Always
           name: backend
