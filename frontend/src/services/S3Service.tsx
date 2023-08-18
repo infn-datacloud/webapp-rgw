@@ -32,6 +32,8 @@ const ONE_MB = 1024 * 1024;
 export interface AWSConfig {
   endpoint: string;
   region: string;
+  roleArn: string;
+  roleSessionDurationSeconds: number;
 }
 
 // ***** State *****
@@ -92,8 +94,8 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     console.log("Get AWS Credentials from STS");
     const sts = new STSClient({ ...awsConfig });
     const command = new AssumeRoleWithWebIdentityCommand({
-      DurationSeconds: 3600,
-      RoleArn: "arn:aws:iam:::role/S3AccessIAM200",
+      DurationSeconds: awsConfig.roleSessionDurationSeconds,
+      RoleArn: awsConfig.roleArn,
       RoleSessionName: "ceph-frontend-poc", // TODO: change me
       WebIdentityToken: token.access_token,
     });
@@ -128,6 +130,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
           camelToWords(err.name), NotificationType.error);
         setIsAuthenticated(false);
         authRef.current = false;
+        oAuth.logout();
       });
   }, [awsConfig, notify]);
 

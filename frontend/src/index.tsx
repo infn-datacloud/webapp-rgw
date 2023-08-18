@@ -15,6 +15,8 @@ interface EnvInterface {
   IAM_AUDIENCE: string;
   S3_ENDPOINT: string;
   S3_REGION: string;
+  S3_ROLE_ARN: string;
+  S3_ROLE_DURATION_SECONDS: string;
 }
 declare global {
   interface Window { env: EnvInterface }
@@ -35,9 +37,11 @@ const OidcConfig = {
 };
 
 const s3Config = {
-  awsConfig: {
+  awsConfig :{
     endpoint: window.env.S3_ENDPOINT,
-    region: window.env.S3_REGION
+    region: window.env.S3_REGION,
+    roleArn: window.env.S3_ROLE_ARN,
+    roleSessionDurationSeconds: parseInt(window.env.S3_ROLE_DURATION_SECONDS)
   }
 }
 
