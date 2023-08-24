@@ -25,7 +25,7 @@ export class BucketObjectWithProgress {
   constructor(bucket: BucketObject) {
     this.object = bucket;
     this.progress = 0;
-  };
+  }
 
   setProgress(value: number) {
     this.progress = value;

@@ -1,13 +1,13 @@
 import { Bucket, _Object } from "@aws-sdk/client-s3";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useS3Service } from "./S3Service";
-import { BucketInfo } from "../models/bucket";
+import { useS3Service } from "../S3";
+import { BucketInfo } from "../../models/bucket";
 
 interface BucketStoreContext {
   bucketList: Bucket[];
   bucketsInfos: BucketInfo[];
   updateStore: () => void;
-};
+}
 
 const defaultBucketStore: BucketStoreContext = {
   bucketList: [],
@@ -15,7 +15,6 @@ const defaultBucketStore: BucketStoreContext = {
   updateStore: function () { }
 };
 
-const BucketStore = createContext<BucketStoreContext>(defaultBucketStore);
 
 export function CreateBucketStore() {
   const { isAuthenticated, fetchBucketList, listObjects } = useS3Service();
@@ -76,7 +75,7 @@ export function CreateBucketStore() {
     if (isAuthenticated && !fetchBucketLock.current) {
       fetchAll();
       fetchBucketLock.current = true;
-    };
+    }
   });
 
   const updateStore = () => {
@@ -88,19 +87,10 @@ export function CreateBucketStore() {
     bucketsInfos: bucketInfos,
     updateStore: updateStore
   }
-};
+}
+
+export const BucketStore = createContext<BucketStoreContext>(defaultBucketStore);
 
 export function useBucketStore() {
   return useContext(BucketStore);
-};
-
-export function withBucketStore(WrappedComponent: React.FunctionComponent) {
-  return function (props: any) {
-    const store = CreateBucketStore();
-    return (
-      <BucketStore.Provider value={store}>
-        <WrappedComponent {...props} />
-      </BucketStore.Provider>
-    );
-  };
-};
+}

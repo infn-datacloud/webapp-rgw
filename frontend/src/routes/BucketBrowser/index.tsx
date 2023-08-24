@@ -11,7 +11,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { useS3Service } from '../../services/S3Service';
+import { useS3Service } from '../../services/S3/service';
 import { InputFile } from '../../components/InputFile';
 import {
   initNodePathTree,
@@ -27,7 +27,6 @@ import { NodePath, camelToWords } from '../../commons/utils';
 import { NotificationType, useNotifications } from '../../services/Notification';
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
-import { _Object } from '@aws-sdk/client-s3';
 import { SearchFiled } from '../../components/SearchField';
 
 const columns: Column[] = [
@@ -75,6 +74,22 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const [uploading, setUploading] = useState<BucketObjectWithProgress[]>([]);
   const { notify } = useNotifications();
 
+  const restorePreviousPath = useCallback(() => {
+    // If a node different than root was set, set it back
+    if (currentPath.path != "") {
+      const allFiles = rootNodeRef.current.getAll();
+      for (const file of allFiles) {
+        if (file.parent && file.parent.path == currentPath.path) {
+          setCurrentPath(file.parent);
+          return;
+        }
+      }
+    }
+    // Otherwise, set current path to root
+    setCurrentPath(rootNodeRef.current);
+  }, [currentPath.path]);
+
+
   const refreshBucketObjects = useCallback(() => {
     const f = async () => {
       listObjects(s3, bucketName)
@@ -103,7 +118,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           camelToWords(err.name), NotificationType.error));
     };
     f();
-  }, [s3, bucketName, currentPath.path]);
+  }, [s3, bucketName, notify, restorePreviousPath]);
 
 
   useEffect(() => {
@@ -311,22 +326,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     setSelectedRows(new Set());
   }, [currentPath]);
 
-
-  const restorePreviousPath = () => {
-    // If a node different than root was set, set it back
-    if (currentPath.path != "") {
-      const allFiles = rootNodeRef.current.getAll();
-      for (const file of allFiles) {
-        if (file.parent && file.parent.path == currentPath.path) {
-          setCurrentPath(file.parent);
-          return;
-        }
-      }
-    }
-    // Otherwise, set current path to root
-    setCurrentPath(rootNodeRef.current);
-  }
-
   const handleSearchQuery = (query: string) => {
     console.log(query);
     let objects: BucketObject[] = [];
@@ -341,7 +340,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     restorePreviousPath();
   }
 
-  let tableData = getTableData(currentPath);
+  const tableData = getTableData(currentPath);
 
   return (
     <>

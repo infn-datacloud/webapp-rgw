@@ -1,7 +1,7 @@
 export interface ToggleSwitchProps {
   checked: boolean;
   onClick: () => void;
-};
+}
 
 export const ToggleSwitch = ({ checked, onClick }: ToggleSwitchProps) => {
   return (

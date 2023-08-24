@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { NotificationProps } from "./types";
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -10,28 +11,12 @@ import { useEffect, useRef, useState } from "react";
 import { Transition } from "@headlessui/react";
 import "./component.css";
 
-export enum NotificationType {
-  info,
-  success,
-  warning,
-  error
-}
-
 const icons = [
   <InformationCircleIcon className="text-neutral-800" />,
   <CheckCircleIcon className="text-green-500" />,
   <ExclamationTriangleIcon className="text-amber-500" />,
   <ExclamationCircleIcon className="text-red-500" />,
 ]
-
-export interface NotificationProps {
-  id: number;
-  title: string;
-  subtitle?: string;
-  timeout?: number;
-  type: NotificationType;
-  onDelete?: (id: number) => void;
-}
 
 const createCointainer = () => {
   const id = "notification-container";

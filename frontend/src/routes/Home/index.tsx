@@ -2,7 +2,7 @@ import { Page } from '../../components/Page';
 import { Table, Column } from '../../components/Table';
 import { useSearchParams } from 'react-router-dom';
 import { Bucket } from '@aws-sdk/client-s3';
-import { useBucketStore } from '../../services/BucketStore';
+import { useBucketStore } from '../../services/BucketStore/store';
 import { BucketBrowser } from '../BucketBrowser';
 
 export const Home = () => {

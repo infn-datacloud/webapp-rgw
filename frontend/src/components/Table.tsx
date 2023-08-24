@@ -9,7 +9,7 @@ export interface Column {
 
 export interface Value {
   columnId: string,
-  value: any
+  value: string
 }
 
 interface TableParams {
@@ -52,8 +52,8 @@ export const Table = (props: TableParams) => {
 
   const Body = () => {
     const rows = data.map(row => {
-      return row.reduce((acc: any, item) => {
-        acc[item.columnId] = item.value;
+      return row.reduce((acc: Map<string, string>, item) => {
+        acc.set(item.columnId, item.value)
         return acc;
       }, new Map());
     })
@@ -86,7 +86,7 @@ export const Table = (props: TableParams) => {
                   className={"border-b border-slate-100 p-4 first:pl-8 " +
                     "last:pr-8 text-left " + colId}
                   key={index}>
-                  {row[colId]}
+                  {row.get(colId)}
                 </td>
               })}
             </tr>

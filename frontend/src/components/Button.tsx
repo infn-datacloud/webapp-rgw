@@ -19,7 +19,7 @@ export const Button = (props: ButtonProps) => {
     onClick
   } = props;
 
-  let buttonClasses = `border border-color rounded p-4 ` +
+  const buttonClasses = `border border-color rounded p-4 ` +
     `${disabled ? "text-neutral-200" : "hover:bg-neutral-200"}`;
 
   return (
