@@ -8,7 +8,7 @@ class APIService {
     return this.isTokenValid();
   }
 
-  static get(input: RequestInfo | URL, init?: RequestInit | undefined): Promise<any> {
+  static get(input: RequestInfo | URL, init?: RequestInit | undefined) {
     if (!APIService.isAuthenticated()) {
       return Promise.reject(new Error("Your are not autenticated"));
     }

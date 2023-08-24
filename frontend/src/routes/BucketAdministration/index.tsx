@@ -1,10 +1,10 @@
 import { Page } from "../../components/Page";
-import { useS3Service, CreateBucketArgs } from "../../services/S3Service";
+import { useS3Service, CreateBucketArgs } from "../../services/S3";
 import { useState } from "react";
 import { Toolbar } from "./Toolbar";
 import { BucketSummaryView } from "./BucketSummaryView";
 import { NewBucketModal } from "./NewBucketModal";
-import { useBucketStore } from "../../services/BucketStore";
+import { useBucketStore } from "../../services/BucketStore/store";
 import { NotificationType, useNotifications } from "../../services/Notification";
 import { BucketConfiguration, EditBucketModal } from "./EditBucketModal";
 import { camelToWords } from "../../commons/utils";

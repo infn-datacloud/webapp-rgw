@@ -5,6 +5,7 @@ export const getHumanSize = (size: number) => {
   if (size < 1000000) return `${(size / 1000).toFixed(1)} kB`;
   if (size < 1000000000) return `${(size / 1000000).toFixed(1)} MB`;
   if (size < 1000000000000) return `${(size / 1000000000).toFixed(1)} GB`;
+  return "N/A";
 }
 
 export const parseReadWriteAccess = (rwAccess: RWAccess) => {
@@ -35,7 +36,7 @@ export interface INodePath<T> {
   print: (_: number) => void;
   getAll: () => INodePath<T>[];
   clone: () => INodePath<T>;
-};
+}
 
 export class NodePath<T> implements INodePath<T> {
   parent?: INodePath<T>;
@@ -50,7 +51,7 @@ export class NodePath<T> implements INodePath<T> {
   }
 
   clone() {
-    let newNode = new NodePath<T>(this.basename, this.value);
+    const newNode = new NodePath<T>(this.basename, this.value);
     newNode.parent = this.parent;
     return newNode;
   }
@@ -64,7 +65,7 @@ export class NodePath<T> implements INodePath<T> {
     const result = this.children.filter(c => c.basename === basename);
     if (result.length) {
       return result[0];
-    };
+    }
     return undefined;
   }
 
@@ -103,7 +104,7 @@ export class NodePath<T> implements INodePath<T> {
     });
     return result;
   }
-};
+}
 
 export function addPath<T>(path: string, node: NodePath<T>, value?: T) {
   const args = path.split("/");

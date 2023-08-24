@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
-import { useOAuth } from "./OAuth2";
+import { AWSConfig, CreateBucketArgs, S3ServiceProviderProps } from "./types";
+import { useOAuth } from "../OAuth2";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
 import {
   Bucket,
@@ -9,48 +10,27 @@ import {
   ListObjectsV2Command,
   _Object,
   CreateBucketCommand,
+  CreateBucketCommandOutput,
   PutBucketVersioningCommand,
+  PutBucketVersioningCommandOutput,
   GetBucketVersioningCommand,
   VersioningConfiguration,
   DeleteBucketCommand,
+  DeleteBucketCommandOutput,
   GetBucketVersioningCommandOutput,
   GetObjectLockConfigurationCommand,
-  PutObjectLockConfigurationCommand,
   GetObjectLockConfigurationCommandOutput,
+  PutObjectLockConfigurationCommand,
+  PutObjectLockConfigurationCommandOutput,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { OidcToken } from "./OAuth2/OidcConfig";
-import { useNotifications, NotificationType } from "./Notification";
-import { BucketObjectWithProgress, FileObjectWithProgress } from "../models/bucket";
-import { camelToWords } from "../commons/utils";
+import { OidcToken } from "../OAuth2/OidcConfig";
+import { useNotifications, NotificationType } from "../Notification";
+import { BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
+import { camelToWords } from "../../commons/utils";
 
 const ONE_MB = 1024 * 1024;
-
-// **** AWS Config ****
-export interface AWSConfig {
-  endpoint: string;
-  region: string;
-}
-
-// ***** State *****
-
-export interface IS3ServiceState {
-  awsCredentials?: AwsCredentialIdentity;
-}
-
-
-export const initialS3ServiceState: IS3ServiceState = {
-  awsCredentials: undefined,
-}
-
-// ***** Context *****
-export interface CreateBucketArgs {
-  bucketName: string;
-  versioningEnabled: boolean;
-  objectLockEnabled: boolean;
-};
 
 export interface S3ContextProps {
   awsConfig: AWSConfig;
@@ -59,25 +39,21 @@ export interface S3ContextProps {
   fetchBucketList: () => Promise<Bucket[]>;
   listObjects: (bucket: Bucket) => Promise<_Object[]>;
   getPresignedUrl: (bucket: string, key: string) => Promise<string>;
-  createBucket: (args: CreateBucketArgs) => Promise<any>;
-  deleteBucket: (bucket: string) => Promise<any>;
+  createBucket: (args: CreateBucketArgs) => Promise<CreateBucketCommandOutput>;
+  deleteBucket: (bucket: string) => Promise<DeleteBucketCommandOutput>;
   downloadObject: (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => Promise<Blob>;
   uploadObject: (bucket: string, object: FileObjectWithProgress, onChange?: () => void) => void;
   getBucketVersioning: (bucket: string) => Promise<GetBucketVersioningCommandOutput>;
-  setBucketVersioning: (bucket: string, enabled: boolean) => Promise<any>;
+  setBucketVersioning: (bucket: string, enabled: boolean) => Promise<PutBucketVersioningCommandOutput>;
   getBucketObjectLock: (bucket: string) => Promise<GetObjectLockConfigurationCommandOutput>;
-  setBucketObjectLock: (bucket: string, enabled: boolean) => Promise<any>;
+  setBucketObjectLock: (bucket: string, enabled: boolean) => Promise<PutObjectLockConfigurationCommandOutput>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
 
 // ***** S3Service *****
 
-interface S3ServiceProviderProps {
-  awsConfig: AWSConfig;
-}
-
-const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
+export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   const { awsConfig } = props;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [client, setClient] = useState<S3Client>(new S3Client({}));
@@ -92,8 +68,8 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     console.log("Get AWS Credentials from STS");
     const sts = new STSClient({ ...awsConfig });
     const command = new AssumeRoleWithWebIdentityCommand({
-      DurationSeconds: 3600,
-      RoleArn: "arn:aws:iam:::role/S3AccessIAM200",
+      DurationSeconds: awsConfig.roleSessionDurationSeconds,
+      RoleArn: awsConfig.roleArn,
       RoleSessionName: "ceph-frontend-poc", // TODO: change me
       WebIdentityToken: token.access_token,
     });
@@ -119,6 +95,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
             forcePathStyle: true
           }));
           setIsAuthenticated(true);
+          console.log("Autheticated via STS");
           authRef.current = true;
         } else {
           console.warn("Warning: some one or more AWS Credentials member is empty");
@@ -128,8 +105,9 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
           camelToWords(err.name), NotificationType.error);
         setIsAuthenticated(false);
         authRef.current = false;
+        oAuth.logout();
       });
-  }, [awsConfig, notify]);
+  }, [awsConfig, oAuth, notify]);
 
   useEffect(() => {
     oAuth.subscribe(getAWSCretentials);
@@ -141,7 +119,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
 
   const fetchBucketList = async () => {
     const listBucketCmd = new ListBucketsCommand({});
-    let response = await client.send(listBucketCmd)
+    const response = await client.send(listBucketCmd)
     const { Buckets } = response;
     if (Buckets) {
       return Buckets;
@@ -204,10 +182,10 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
 
 
   const downloadInChunks = async (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => {
-    let key = object.object.Key!;
+    const key = object.object.Key!;
     let blob = new Blob();
     const length = object.object.Size!;
-    let range = { start: -1, end: -1 };
+    const range = { start: -1, end: -1 };
 
     while (length - range.end !== 1) {
       const { end } = range;
@@ -234,7 +212,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
 
   const uploadManaged = async (bucket: string,
     fileObject: FileObjectWithProgress, onChange?: () => void) => {
-    let upload = new Upload({
+    const upload = new Upload({
       client: client,
       params: {
         Bucket: bucket,
@@ -278,7 +256,6 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   }
 
   const setBucketObjectLock = async (bucket: string, enabled: boolean) => {
-    // const client = getS3Client();
     const configuration = { ObjectLockEnabled: enabled ? "Enabled" : "Disabled" };
     const cmd = new PutObjectLockConfigurationCommand({
       Bucket: bucket,
@@ -318,14 +295,3 @@ export const useS3Service = (): S3ContextProps => {
   }
   return context;
 }
-
-export function withS3(WrappedComponent: React.FunctionComponent, s3Config: S3ServiceProviderProps) {
-  return function (props: any) {
-    const serviceProvider = CreateS3ServiceProvider(s3Config);
-    return (
-      <S3ServiceContext.Provider value={serviceProvider}>
-        <WrappedComponent {...props} />
-      </S3ServiceContext.Provider>
-    );
-  };
-};

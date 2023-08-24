@@ -1,7 +1,7 @@
 import { NodePath, addPath } from "./utils";
 
 test("NodePath 1", () => {
-  let root = new NodePath("", "");
+  const root = new NodePath("", "");
 
   addPath("this/is/a/path", root, "value1");
   addPath("this/is/another/path", root, "value2");
@@ -29,7 +29,7 @@ test("NodePath 1", () => {
 });
 
 test("NodePath 2", () => {
-  let root = new NodePath("", "");
+  const root = new NodePath("", "");
 
   addPath("this/is/a/path", root, "value1");
   addPath("this/is/another/path", root, "value2");
@@ -59,7 +59,7 @@ test("NodePath 2", () => {
 });
 
 test("NodePath 3", () => {
-  let root = new NodePath("", "");
+  const root = new NodePath("", "");
 
   addPath("this/is/a/path", root, "value1");
   addPath("this/is/another/path", root, "value2");

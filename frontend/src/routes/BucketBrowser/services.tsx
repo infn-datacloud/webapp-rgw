@@ -1,6 +1,6 @@
 import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
 import { NodePath, addPath, getHumanSize, truncateString } from "../../commons/utils";
-import { S3ContextProps } from "../../services/S3Service";
+import { S3ContextProps } from "../../services/S3/service";
 import {
   DeleteObjectCommand,
   ListObjectsV2Command,
@@ -97,7 +97,7 @@ export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
   objects: BucketObjectWithProgress[], onChange?: () => void) => {
   const { downloadObject } = s3;
 
-  let blobs = await Promise.all(objects.map(o => {
+  const blobs = await Promise.all(objects.map(o => {
     return downloadObject(bucketName, o, onChange);
   }));
 
