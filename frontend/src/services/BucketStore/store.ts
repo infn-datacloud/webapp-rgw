@@ -7,12 +7,14 @@ interface BucketStoreContext {
   bucketList: Bucket[];
   bucketsInfos: BucketInfo[];
   updateStore: () => void;
+  reset: () => void;
 }
 
 const defaultBucketStore: BucketStoreContext = {
   bucketList: [],
   bucketsInfos: [],
-  updateStore: function () { }
+  updateStore: function () { },
+  reset: function () { }
 };
 
 
@@ -82,10 +84,16 @@ export function CreateBucketStore() {
     fetchAll();
   }
 
+  const reset = () => {
+    setBucketList([]);
+    setBucketInfos([]);
+  }
+
   return {
     bucketList: bucketList,
     bucketsInfos: bucketInfos,
-    updateStore: updateStore
+    updateStore: updateStore,
+    reset: reset
   }
 }
 
