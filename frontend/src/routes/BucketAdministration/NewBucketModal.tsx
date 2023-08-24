@@ -4,7 +4,7 @@ import { TextField } from "../../components/TextField";
 import { ToggleSwitch, ToggleSwitchProps } from "../../components/ToggleSwitch";
 import { ReactNode, useState } from "react";
 import { Button } from "../../components/Button";
-import { CreateBucketArgs } from "../../services/S3/service";
+import { CreateBucketArgs } from "../../services/S3";
 
 interface NewBucketModalProps {
   open: boolean;
