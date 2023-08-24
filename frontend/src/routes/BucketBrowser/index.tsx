@@ -133,7 +133,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
     const { checked } = el.target;
-    const objectName = tableData[index][1]["value"];
+    const objectName = tableData[index][1]["value"] as string;
     const next = currentPath.findChild(objectName);
     if (!next) {
       throw new Error(`Child with name ${objectName} not found.`);

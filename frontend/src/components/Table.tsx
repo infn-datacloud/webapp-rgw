@@ -8,8 +8,8 @@ export interface Column {
 }
 
 export interface Value {
-  columnId: string,
-  value: string
+  columnId: string;
+  value: string | React.ReactElement;
 }
 
 interface TableParams {
@@ -52,7 +52,7 @@ export const Table = (props: TableParams) => {
 
   const Body = () => {
     const rows = data.map(row => {
-      return row.reduce((acc: Map<string, string>, item) => {
+      return row.reduce((acc: Map<string, string|React.ReactElement>, item) => {
         acc.set(item.columnId, item.value)
         return acc;
       }, new Map());

@@ -16,8 +16,8 @@ export const Home = () => {
 
   const tableData = bucketList.map((bucket: Bucket) => {
     return [
-      { columnId: "bucket", value: bucket.Name },
-      { columnId: "creation_date", value: bucket.CreationDate?.toString() },
+      { columnId: "bucket", value: bucket.Name ?? "N/A"},
+      { columnId: "creation_date", value: bucket.CreationDate?.toString() ?? "N/A"},
     ]
   });
 

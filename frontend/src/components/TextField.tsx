@@ -5,7 +5,7 @@ interface TextFieldProps {
   type?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   onBlur?: React.ChangeEventHandler<HTMLInputElement>;
-  error?: string;
+  error?: string | React.ReactNode;
 }
 
 export const TextField = (props: TextFieldProps) => {
