@@ -9,7 +9,7 @@ import { Login } from './routes/Login';
 import { staticRoutes } from './routes';
 import { useOAuth, OAuthPopup } from './services/OAuth2';
 import { withBucketStore } from './services/BucketStore';
-import { S3ServiceProviderProps, withS3 } from './services/S3';
+import { S3ServiceProviderProps, useS3Service, withS3 } from './services/S3';
 import { withNotifications } from './services/Notification';
 import { OAuthProviderProps } from './services/OAuth2';
 import { withOAuth2 } from './services/OAuth2/wrapper';
@@ -17,16 +17,19 @@ import { withOAuth2 } from './services/OAuth2/wrapper';
 
 const AppRaw = () => {
   const oAuth = useOAuth();
+  const s3 = useS3Service();
 
   if (oAuth.error) {
     return <div>Ops... {oAuth.error.message}</div>;
   }
 
-  if (!oAuth.isAuthenticated) {
+  if (!oAuth.isAuthenticated && !s3.isAuthenticated) {
     return (
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login onClick={oAuth.signinPopup} />} />
+          <Route path="/" element={<Login
+            login={s3.loginWithCredentials}
+            oidcLogin={oAuth.signinPopup} />} />
           <Route path="/callback" element={<OAuthPopup />} />
         </Routes>
       </BrowserRouter>
@@ -43,7 +46,10 @@ const AppRaw = () => {
 
   routes.push({
     path: "/login",
-    element: <Login onClick={oAuth.signinPopup} />,
+    element: <Login
+      login={s3.loginWithCredentials}
+      oidcLogin={oAuth.signinPopup}
+    />,
   });
 
   const router = createBrowserRouter(routes);

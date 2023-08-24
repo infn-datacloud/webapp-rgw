@@ -3,9 +3,14 @@ import { useOAuth } from '../services/OAuth2';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
+import { useS3Service } from '../services/S3';
+import { useBucketStore } from '../services/BucketStore/store';
 
 export const Drawer = () => {
-  const { user, logout } = useOAuth();
+  const oAuth = useOAuth();
+  const s3 = useS3Service();
+  const bucketStore = useBucketStore();
+  const { user } = oAuth;
   const navigate = useNavigate();
   const path = window.location.pathname;
   const links = staticRoutes.map(route => {
@@ -21,7 +26,9 @@ export const Drawer = () => {
   });
 
   const logoutAndRedirect = () => {
-    logout();
+    oAuth.logout();
+    s3.logout();
+    bucketStore.reset();
     navigate("/");
   }
   const userName: string | null = user?.profile && user?.profile["name"] ? user?.profile["name"] : null;
