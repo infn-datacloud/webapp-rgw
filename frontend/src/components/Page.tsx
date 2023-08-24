@@ -3,9 +3,9 @@ import { Title } from "./Title";
 import { useOAuth } from "../services/OAuth2";
 
 type Props = {
-  user?: string,
-  title: string,
-  children: React.ReactNode[];
+  user?: string;
+  title: string;
+  children: string | React.ReactNode | React.ReactNode[];
 };
 
 export const Page = (props: Props) => {
@@ -13,6 +13,8 @@ export const Page = (props: Props) => {
   if (!oAuth.isAuthenticated) {
     oAuth.logout();
   }
+
+  const { children } = props;
 
   return (
     <>
@@ -22,7 +24,7 @@ export const Page = (props: Props) => {
       <div className="ml-64 p-8 w-full">
         <Title>{props.title}</Title>
         <hr className="h-px w-full my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-        {props.children}
+        {children}
       </div>
     </>
   );
