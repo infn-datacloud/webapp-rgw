@@ -1,17 +1,19 @@
 import { ChangeEvent, useCallback, useEffect, useState } from "react"
 import { Button } from "../../components/Button"
 import { TextField } from "../../components/TextField"
-import { AwsCredentialIdentity } from "@aws-sdk/types";
+import { useOAuth } from "../../services/OAuth2";
+import { useS3Service } from "../../services/S3";
+import { Navigate } from "react-router-dom";
 
-interface LoginProps {
-  login: (credentials: AwsCredentialIdentity) => void;
-  oidcLogin: () => void;
-}
 
-export const Login = ({ login, oidcLogin }: LoginProps) => {
+export const Login = () => {
+
+  const oAuth = useOAuth();
+  const s3 = useS3Service();
 
   const [awsAccessKeyId, setAwsAccessKeyId] = useState("");
   const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");
+  const { signinPopup } = oAuth;
   const loginEnabled = (awsAccessKeyId.length * awsSecretAccessKey.length) > 0;
 
   const handleAwsAccessKeyIdChange =
@@ -25,11 +27,11 @@ export const Login = ({ login, oidcLogin }: LoginProps) => {
     }
 
   const handleLogin = useCallback(() => {
-    login({
+    s3.loginWithCredentials({
       accessKeyId: awsAccessKeyId,
       secretAccessKey: awsSecretAccessKey
     })
-  }, [awsAccessKeyId, awsSecretAccessKey, login])
+  }, [awsAccessKeyId, awsSecretAccessKey, s3])
 
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
@@ -46,6 +48,10 @@ export const Login = ({ login, oidcLogin }: LoginProps) => {
       document.removeEventListener('keydown', keyDownHandler);
     };
   }, [loginEnabled, handleLogin]);
+
+  if (oAuth.isAuthenticated || s3.isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="bg-slate-100 w-2/3 lg:w-1/2 2xl:w-1/3 m-auto p-8 shadow-lg mt-16 rounded-md">
@@ -71,7 +77,7 @@ export const Login = ({ login, oidcLogin }: LoginProps) => {
         />
         <Button
           className="mx-auto w-full"
-          onClick={oidcLogin}
+          onClick={signinPopup}
           title="Login with OpenID connect"
         />
       </div>

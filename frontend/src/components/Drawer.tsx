@@ -13,7 +13,8 @@ export const Drawer = () => {
   const { user } = oAuth;
   const navigate = useNavigate();
   const path = window.location.pathname;
-  const links = staticRoutes.map(route => {
+  const routes = staticRoutes.filter(el => el.drawer);
+  const links = routes.map(route => {
     let className = "h-10 flex hover:text-white hover:bg-infn items-center hover:rounded-lg ph-4 ";
     if (route.path === path) {
       className += "rounded-lg bg-gray-200";

@@ -1,6 +1,8 @@
 import { Drawer } from "./Drawer";
 import { Title } from "./Title";
 import { useOAuth } from "../services/OAuth2";
+import { useS3Service } from "../services/S3";
+import { Navigate } from "react-router-dom";
 
 type Props = {
   user?: string;
@@ -10,8 +12,10 @@ type Props = {
 
 export const Page = (props: Props) => {
   const oAuth = useOAuth();
-  if (!oAuth.isAuthenticated) {
-    oAuth.logout();
+  const s3 = useS3Service();
+
+  if (!oAuth.isAuthenticated && !s3.isAuthenticated) {
+    return <Navigate to="/login" replace />;
   }
 
   const { children } = props;
