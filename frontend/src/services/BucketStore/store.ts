@@ -75,7 +75,7 @@ export function CreateBucketStore() {
   const fetchBucketLock = useRef<boolean>(false);
   useEffect(() => {
     if (isAuthenticated && !fetchBucketLock.current) {
-      fetchAll();
+      updateStore();
       fetchBucketLock.current = true;
     }
   });
@@ -87,6 +87,7 @@ export function CreateBucketStore() {
   const reset = () => {
     setBucketList([]);
     setBucketInfos([]);
+    fetchBucketLock.current = false;
   }
 
   return {
