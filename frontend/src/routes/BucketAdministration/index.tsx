@@ -106,6 +106,7 @@ export const BucketAdministration = () => {
       <div>
         {bucketsInfos.map(el => {
           return <BucketSummaryView
+            className={"mb-4"}
             key={el.name}
             onSelect={handleSelectBucket}
             onDelete={handleDeleteBucket}
