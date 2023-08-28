@@ -7,12 +7,14 @@ interface BucketStoreContext {
   bucketList: Bucket[];
   bucketsInfos: BucketInfo[];
   updateStore: () => void;
+  reset: () => void;
 }
 
 const defaultBucketStore: BucketStoreContext = {
   bucketList: [],
   bucketsInfos: [],
-  updateStore: function () { }
+  updateStore: function () { },
+  reset: function () { }
 };
 
 
@@ -73,7 +75,7 @@ export function CreateBucketStore() {
   const fetchBucketLock = useRef<boolean>(false);
   useEffect(() => {
     if (isAuthenticated && !fetchBucketLock.current) {
-      fetchAll();
+      updateStore();
       fetchBucketLock.current = true;
     }
   });
@@ -82,10 +84,17 @@ export function CreateBucketStore() {
     fetchAll();
   }
 
+  const reset = () => {
+    setBucketList([]);
+    setBucketInfos([]);
+    fetchBucketLock.current = false;
+  }
+
   return {
     bucketList: bucketList,
     bucketsInfos: bucketInfos,
-    updateStore: updateStore
+    updateStore: updateStore,
+    reset: reset
   }
 }
 

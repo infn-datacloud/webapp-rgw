@@ -29,6 +29,7 @@ import { OidcToken } from "../OAuth2/OidcConfig";
 import { useNotifications, NotificationType } from "../Notification";
 import { BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
 import { camelToWords } from "../../commons/utils";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 const ONE_MB = 1024 * 1024;
 
@@ -36,6 +37,8 @@ export interface S3ContextProps {
   awsConfig: AWSConfig;
   client: S3Client;
   isAuthenticated: boolean;
+  loginWithCredentials: (credentials: AwsCredentialIdentity) => void;
+  logout: () => void;
   fetchBucketList: () => Promise<Bucket[]>;
   listObjects: (bucket: Bucket) => Promise<_Object[]>;
   getPresignedUrl: (bucket: string, key: string) => Promise<string>;
@@ -108,6 +111,32 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
         oAuth.logout();
       });
   }, [awsConfig, oAuth, notify]);
+
+  const loginWithCredentials = async (credentials: AwsCredentialIdentity) => {
+    const { endpoint, region } = awsConfig;
+    const client = new S3Client({
+      endpoint: endpoint,
+      region: region,
+      credentials: credentials,
+      forcePathStyle: true
+    });
+    try {
+      await client.send(new ListBucketsCommand({}));
+      setClient(client);
+      authRef.current = true;
+    } catch (err) {
+      authRef.current = false;
+      if (err instanceof Error) {
+        notify("Access failed", camelToWords(err.name), NotificationType.error);
+      }
+    }
+    setIsAuthenticated(authRef.current);
+  }
+
+  const logout = () => {
+    authRef.current = false;
+    setIsAuthenticated(authRef.current);
+  }
 
   useEffect(() => {
     oAuth.subscribe(getAWSCretentials);
@@ -268,6 +297,8 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     awsConfig: awsConfig,
     client: client,
     isAuthenticated: authRef.current,
+    loginWithCredentials: loginWithCredentials,
+    logout: () => logout(),
     fetchBucketList: () => fetchBucketList(),
     listObjects: (bucket: Bucket) => listObjects(bucket),
     getPresignedUrl: getPresignedUrl,

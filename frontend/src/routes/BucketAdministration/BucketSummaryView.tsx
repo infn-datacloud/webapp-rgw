@@ -4,12 +4,13 @@ import { BucketInfo } from "../../models/bucket";
 import { Button } from "../../components/Button";
 
 export interface BucketSummaryViewProps extends BucketInfo {
+  className?: string;
   onSelect: (bucket: string) => void;
   onDelete: (bucket: string) => void;
 }
 
 export const BucketSummaryView = (props: BucketSummaryViewProps) => {
-  const { name, creation_date, size, objects, onSelect, onDelete } = props;
+  const { name, creation_date, size, objects, className, onSelect, onDelete } = props;
   interface SubviewProps {
     title: string,
     text: string,
@@ -27,17 +28,19 @@ export const BucketSummaryView = (props: BucketSummaryViewProps) => {
   }
 
   return (
-    <div className="bg-neutral-100 border p-2">
-      <div className="flex justify-between">
-        <div>
-          <div className="text-xl font-semibold">{name}</div>
-          <Subview title="Created at:" text={creation_date} icon={<ClockIcon />} />
-          <Subview title="Usage:" text={getHumanSize(size) ?? "N/A"} icon={<ChartPieIcon />} />
-          <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
-        </div>
-        <div className="flex flex-col space-y-2">
-          <Button className="my-auto pr-4" title="Edit Bucket" onClick={() => onSelect(name)} />
-          <Button className="my-auto pr-4" title="Delete Bucket" onClick={() => onDelete(name)} />
+    <div className={className}>
+      <div className="bg-neutral-100 border p-2">
+        <div className="flex justify-between">
+          <div>
+            <div className="text-xl font-semibold">{name}</div>
+            <Subview title="Created at:" text={creation_date} icon={<ClockIcon />} />
+            <Subview title="Usage:" text={getHumanSize(size) ?? "N/A"} icon={<ChartPieIcon />} />
+            <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
+          </div>
+          <div className="flex flex-col space-y-2">
+            <Button className="my-auto pr-4" title="Edit Bucket" onClick={() => onSelect(name)} />
+            <Button className="my-auto pr-4" title="Delete Bucket" onClick={() => onDelete(name)} />
+          </div>
         </div>
       </div>
     </div>
