@@ -164,9 +164,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     if (type === "checkbox") {
       return;
     }
-    const tableRow = event.currentTarget;
-    const tableCell = tableRow.getElementsByClassName("name")[0];
-    const objectName = tableCell.textContent;
+    const objectName = currentPath.children[index].basename;
 
     if (!objectName) {
       throw new Error("Object name is undefined");
