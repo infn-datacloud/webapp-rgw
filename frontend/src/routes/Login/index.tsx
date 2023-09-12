@@ -60,12 +60,12 @@ export const Login = () => {
       <div className="w-1/3 mx-auto mt-8 flex flex-col space-y-4 ">
         <TextField
           value={awsAccessKeyId}
-          placeholder="AWS Access Key Id"
+          placeholder="Access Key Id"
           onChange={handleAwsAccessKeyIdChange}
         />
         <TextField
           value={awsSecretAccessKey}
-          placeholder="AWS Access Secret Key"
+          placeholder="Access Secret Key"
           type="password"
           onChange={handleAwsSecretAccessKeyChange}
         />
