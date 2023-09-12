@@ -238,7 +238,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     try {
       toDownload.current = Array.from(selectedObjects.current.values())
         .map(el => new BucketObjectWithProgress(el));
-      await downloadFiles(s3, bucketName, toDownload.current, handleDownloadsUpdates);
+      await downloadFiles(s3, bucketName, toDownload.current);
       selectedObjects.current = new Map();
       setSelectedRows(new Set());
     } catch (err) {
@@ -249,11 +249,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         console.error(err);
       }
     }
-  }
-
-  function handleDownloadsUpdates() {
-    const t = [...toDownload.current];
-    setDownloading(t);
   }
 
   const handleSelectFilesToUpload = (e: ChangeEvent<HTMLInputElement>) => {
