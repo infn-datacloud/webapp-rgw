@@ -22,6 +22,7 @@ import {
   GetObjectLockConfigurationCommandOutput,
   PutObjectLockConfigurationCommand,
   PutObjectLockConfigurationCommandOutput,
+  ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -179,15 +180,30 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   };
 
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
-    const cmd = new ListObjectsV2Command({ Bucket: bucket.Name });
-    const response = await client.send(cmd);
-    const { Contents } = response;
-    if (Contents) {
-      return Contents;
-    } else {
-      console.warn(`Warning: bucket ${bucket.Name} has no content`);
-      return [];
+    let completed = false;
+    let content: _Object[] = []
+    let continuationToken: string | undefined = undefined;
+    while (!completed) {
+      const cmd = new ListObjectsV2Command({
+        Bucket: bucket.Name,
+        ContinuationToken: continuationToken,
+      });
+      const response: ListObjectsV2CommandOutput = await client.send(cmd);
+      const { Contents, IsTruncated, NextContinuationToken } = response;
+      if (Contents) {
+        content.concat(Contents);
+        if (IsTruncated) {
+          continuationToken = NextContinuationToken;
+        } else {
+          completed = true;
+        }
+      } else {
+        notify(`Warning: bucket ${bucket.Name} has no content`, "",
+          NotificationType.warning);
+        return [];
+      }
     }
+    return content;
   };
 
   const getPresignedUrl = async (bucket: string, key: string) => {
