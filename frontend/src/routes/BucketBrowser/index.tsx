@@ -133,12 +133,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
     const { checked } = el.target;
-    const objectName = tableData[index][1]["value"] as string;
-    const next = currentPath.findChild(objectName);
+    const objectName = Array.from(currentPath.children.values())[index].basename;
+    const next = currentPath.get(objectName);
     if (!next) {
       throw new Error(`Child with name ${objectName} not found.`);
     }
-    const isDir = next.children.length > 0;
+    const isDir = next.children.size > 0;
     const newSelection = new Set(selectedRows);
     const elements = isDir ? next.getAll() : [next];
     const select = (n: NodePath<BucketObject>) => {
@@ -164,7 +164,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     if (type === "checkbox") {
       return;
     }
-    const objectName = currentPath.children[index].basename;
+    const objectName = Array.from(currentPath.children.values())[index].basename;
 
     if (!objectName) {
       throw new Error("Object name is undefined");
@@ -180,11 +180,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       return;
     }
 
-    const next = currentPath.findChild(objectName);
+    const next = currentPath.get(objectName);
     if (!next) {
       throw new Error(`Child with name ${objectName} not found.`);
     }
-    const isDir = next.children.length > 0;
+    const isDir = next.children.size > 0;
 
     if (isDir) {
       setCurrentPath(next);
@@ -310,7 +310,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       currentPath.parent : rootNodeRef.current;
 
     // No file was uploaded, remove the path
-    if (currentPath.children.length === 0) {
+    if (currentPath.children.size === 0) {
       newPath.removeChild(currentPath);
     }
 

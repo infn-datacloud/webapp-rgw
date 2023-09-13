@@ -1,5 +1,5 @@
 import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
-import { NodePath, addPath, getHumanSize, truncateString } from "../../commons/utils";
+import { NodePath, getHumanSize, truncateString } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3/service";
 import {
   DeleteObjectCommand,
@@ -13,13 +13,20 @@ import {
 import { Value } from "../../components/Table";
 import moment from "moment";
 
-export const initNodePathTree = (bucketObjects: BucketObject[], node: NodePath<BucketObject>) => {
-  bucketObjects.forEach(object => addPath(object.Key, node, object));
+export const initNodePathTree = (bucketObjects: BucketObject[],
+  node: NodePath<BucketObject>) => {
+  bucketObjects.forEach(object => {
+    let path = object.Key;
+    const pathElements = path.split("/");
+    const basename = pathElements.pop();
+    path = pathElements.length > 0 ? pathElements.join("/") : "";
+    node.addChild(new NodePath(basename ?? "unknown", object, object.Size), path);
+  });
 }
 
 export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
-  return nodePath.children.map(child => {
-    const isFolder = child.children.length > 0;
+  return Array.from(nodePath.children.values()).map(child => {
+    const isFolder = child.children.size > 0;
     const ext = child.basename.includes(".") ? child.basename.split(".")[1] : ""
     const getIcon = () => {
       if (isFolder) return (<FolderIcon />);
@@ -41,16 +48,13 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
       )
     };
 
-    const bucketSize = child.children.length > 0 ? child.children.reduce((acc, c) => {
-      return acc += c.value?.Size ?? 0;
-    }, 0) : child.value?.Size ?? 0;
     const lastModified = moment(child.value?.LastModified).calendar() ?? "N/A";
 
     return [
       { columnId: "icon", value: <Icon /> },
       { columnId: "name", value: truncateString(child.basename, 32) },
       { columnId: "last_modified", value: lastModified },
-      { columnId: "bucket_size", value: getHumanSize(bucketSize) },
+      { columnId: "bucket_size", value: getHumanSize(child.size) }
     ]
   });
 }
