@@ -66,8 +66,8 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
 
   authRef.current = isAuthenticated;
 
-  // Exchange token for AWS Credentiasl with AssumeRoleWebIdendity
-  const getAWSCretentials = useCallback((token: OidcToken) => {
+  // Exchange token for AWS Credentials with AssumeRoleWebIdentity
+  const getAWSCredentials = useCallback((token: OidcToken) => {
     console.log("Get AWS Credentials from STS");
     const sts = new STSClient({ ...awsConfig });
     const command = new AssumeRoleWithWebIdentityCommand({
@@ -98,7 +98,7 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
             forcePathStyle: true
           }));
           setIsAuthenticated(true);
-          console.log("Autheticated via STS");
+          console.log("Authenticated via STS");
           authRef.current = true;
         } else {
           console.warn("Warning: some one or more AWS Credentials member is empty");
@@ -139,11 +139,11 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   }
 
   useEffect(() => {
-    oAuth.subscribe(getAWSCretentials);
+    oAuth.subscribe(getAWSCredentials);
     return () => {
-      oAuth.unsubscribe(getAWSCretentials);
+      oAuth.unsubscribe(getAWSCredentials);
     }
-  }, [oAuth, getAWSCretentials]);
+  }, [oAuth, getAWSCredentials]);
 
 
   const fetchBucketList = async () => {
@@ -223,7 +223,7 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
         nextRange.start, nextRange.end);
 
       if (!(Body && ContentLength)) {
-        console.error("Cannot retrieved objectet");
+        console.error("Cannot retrieve object");
         break;
       }
 
@@ -269,12 +269,12 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   };
 
   const setBucketVersioning = async (bucket: string, enabled: boolean) => {
-    const versioningConfigutaion: VersioningConfiguration = {
+    const versioningConfiguration: VersioningConfiguration = {
       Status: enabled ? "Enabled" : "Disabled"
     };
     const putVersioningCommand = new PutBucketVersioningCommand({
       Bucket: bucket,
-      VersioningConfiguration: versioningConfigutaion
+      VersioningConfiguration: versioningConfiguration
     });
     return await client.send(putVersioningCommand);
   }
@@ -321,7 +321,7 @@ export const useS3Service = (): S3ContextProps => {
     throw new Error(
       "S3ServiceProvider context is undefined, " +
       "please verify you are calling useS3Service " +
-      "as a child of <S3ServicePrivder> component."
+      "as a child of <S3ServiceProvider> component."
     );
   }
   return context;
