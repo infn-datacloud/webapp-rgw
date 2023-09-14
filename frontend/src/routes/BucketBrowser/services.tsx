@@ -1,5 +1,5 @@
 import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
-import { NodePath, getHumanSize, truncateString } from "../../commons/utils";
+import { NodePath, getHumanSize } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3/service";
 import {
   DeleteObjectCommand,
@@ -52,7 +52,7 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
 
     return [
       { columnId: "icon", value: <Icon /> },
-      { columnId: "name", value: truncateString(child.basename, 32) },
+      { columnId: "name", value: child.basename },
       { columnId: "last_modified", value: lastModified },
       { columnId: "bucket_size", value: getHumanSize(child.size) }
     ]
