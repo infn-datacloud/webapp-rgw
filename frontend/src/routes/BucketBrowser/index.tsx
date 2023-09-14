@@ -320,14 +320,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }, [currentPath]);
 
   const handleSearchQuery = (query: string) => {
-    console.log(query);
     let objects: BucketObject[] = [];
     if (query) {
-      objects = bucketObjects.current.filter(o => o.Key.includes(query));
+      objects = bucketObjects.current.filter(o => o.Key.toLowerCase().includes(query));
     } else {
       objects = bucketObjects.current;
     }
-
     rootNodeRef.current = new NodePath("");
     initNodePathTree(objects, rootNodeRef.current);
     restorePreviousPath();
@@ -384,7 +382,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               />
             </div>
           </div>
-
           {/* PathViewer */}
           <div className='flex mt-8 justify-between'>
             <div className="flex space-x-4">
