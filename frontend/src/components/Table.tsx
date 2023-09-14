@@ -42,6 +42,10 @@ export const Table = (props: TableParams) => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const numberOfPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
 
+  if (currentPage > numberOfPages) {
+    setCurrentPage(0);
+  }
+
   const thClassName = "border-b font-medium p-4 first:pl-8 last:pr-8 pt-0" +
     "pb-3 text-left text-slate-800";
 
