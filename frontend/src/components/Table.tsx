@@ -82,18 +82,19 @@ export const Table = (props: TableParams) => {
       <tbody className="bg-white">
         {
           rows.map((row, rowIndex) => {
+            const absoluteIndex = rowIndex + currentPage * itemsPerPage;
             return <tr
               className="hover:bg-slate-200 text-slate-500
                hover:text-slate-800 hover:cursor-pointer"
-              onClick={(el) => onClick?.(el, rowIndex + currentPage * itemsPerPage)}
+              onClick={(el) => onClick?.(el, absoluteIndex)}
               key={rowIndex}>
               {
                 selectable ?
                   <td className="pl-4">
                     <input
                       type="checkbox"
-                      onChange={(el) => (onSelect && onSelect(el, rowIndex + currentPage * itemsPerPage))}
-                      checked={selectedRows && selectedRows.has(rowIndex + currentPage * itemsPerPage)}
+                      onChange={(el) => (onSelect && onSelect(el, absoluteIndex))}
+                      checked={selectedRows && selectedRows.has(absoluteIndex)}
                       id="table-checkbox"
                     >
                     </input>
