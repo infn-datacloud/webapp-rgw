@@ -6,7 +6,7 @@ import { useBucketStore } from '../../services/BucketStore/store';
 import { BucketBrowser } from '../BucketBrowser';
 
 export const Home = () => {
-  const [serachParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { bucketList } = useBucketStore();
 
   const columns: Column[] = [
@@ -30,7 +30,7 @@ export const Home = () => {
     }
   }
 
-  const bucketName = serachParams.get("bucket");
+  const bucketName = searchParams.get("bucket");
 
   return (
     <Page title={bucketName ?? "Home"}>

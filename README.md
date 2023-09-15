@@ -147,12 +147,12 @@ kubectl create secret generic iam-client-secret \
 --from-literal=IAM_CLIENT_SECRET=<your-client-secret>
 ```
 
-### Apply the deployment
+### Apply the deployment (Frontend and Backend)
 
 Once the secret is created, apply the deployment with
 
 ```bash
-kubectl apply -f demployment.yaml
+kubectl apply -f deployment.yaml
 ```
 
 ### Restart the deployment
@@ -164,3 +164,7 @@ If you want to manually restart the deployment, run
 ```bash
 kubectl rollout restart deployment rgw-s3
 ```
+
+### Deploy K8s Ingress
+
+kubctl -n rook-ceph edit ingress rgw

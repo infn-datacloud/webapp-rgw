@@ -54,18 +54,18 @@ export const Login = () => {
   }
 
   return (
-    <div className="bg-slate-100 w-2/3 lg:w-1/2 2xl:w-1/3 m-auto p-8 shadow-lg mt-16 rounded-md">
+    <div className="bg-slate-100 w-2/3 xl:w-1/2 max-w-3xl m-auto p-8 shadow-lg mt-16 rounded-md">
       <img className="mx-auto bg-gray-100 p-4" alt="" src="/logo530.png" />
       <h1 className="mx-auto text-center text-4xl font-extrabold">Welcome</h1>
       <div className="w-1/3 mx-auto mt-8 flex flex-col space-y-4 ">
         <TextField
           value={awsAccessKeyId}
-          placeholder="AWS Access Key Id"
+          placeholder="Access Key Id"
           onChange={handleAwsAccessKeyIdChange}
         />
         <TextField
           value={awsSecretAccessKey}
-          placeholder="AWS Access Secret Key"
+          placeholder="Access Secret Key"
           type="password"
           onChange={handleAwsSecretAccessKeyChange}
         />
