@@ -28,6 +28,7 @@ import { NotificationType, useNotifications } from '../../services/Notification'
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
 import { SearchFiled } from '../../components/SearchField';
+import { ArrowUturnRightIcon } from '@heroicons/react/24/solid';
 
 const columns: Column[] = [
   { id: "icon" },
@@ -366,6 +367,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               <InputFile
                 icon={<ArrowUpOnSquareIcon />}
                 onChange={handleSelectFilesToUpload}
+              />
+              <Button
+                title="Refresh"
+                icon={<ArrowUturnRightIcon />}
+                onClick={() => refreshBucketObjects()}
               />
             </div>
             <div className='flex space-x-4'>
