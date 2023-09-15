@@ -96,8 +96,8 @@ export class NodePath<T> {
 
   print(level = 0) {
     console.log(" ".repeat(level * 2) + this.basename);
-    for (let c of this.children.values()) {
-      c.print(level + 1);
+    for (const child of this.children.values()) {
+      child.print(level + 1);
     }
   }
 
@@ -105,12 +105,12 @@ export class NodePath<T> {
     path = path.replace(/(^\/|\/$)/g, "");
     const levels = path.split("/");
     let nextLevel = levels.shift();
-    let node: NodePath<T> | undefined = this;
+    let currentNode: NodePath<T> | undefined = this;
     while (nextLevel) {
-      node = node?.children.get(nextLevel);
+      currentNode = currentNode?.children.get(nextLevel);
       nextLevel = levels.shift()
     }
-    return node;
+    return currentNode;
   }
 
   getAll() {

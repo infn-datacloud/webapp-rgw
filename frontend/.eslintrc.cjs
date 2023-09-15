@@ -23,5 +23,11 @@ module.exports = {
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
+    "@typescript-eslint/no-this-alias": [
+      "error",
+      {
+        "allowedNames": ["currentNode"]
+      }
+    ]
   },
 }

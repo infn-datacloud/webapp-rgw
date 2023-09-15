@@ -180,8 +180,8 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   };
 
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
+    const content: _Object[] = []
     let completed = false;
-    let content: _Object[] = []
     let continuationToken: string | undefined = undefined;
     while (!completed) {
       const cmd = new ListObjectsV2Command({
