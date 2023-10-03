@@ -29,6 +29,7 @@ import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
 import { SearchFiled } from '../../components/SearchField';
 import { ArrowUturnRightIcon } from '@heroicons/react/24/solid';
+import { Modal } from '../../components/Modal';
 
 const columns: Column[] = [
   { id: "icon" },
@@ -59,6 +60,7 @@ type PropsType = {
 }
 
 export const BucketBrowser = ({ bucketName }: PropsType) => {
+  const MAX_DOWNLOADABLE_ITEMS = 10;
   const bucketObjects = useRef<BucketObject[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,6 +75,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const toUpload = useRef<FileObjectWithProgress[]>([]);
   const [downloading, setDownloading] = useState<BucketObjectWithProgress[]>([]);
   const [uploading, setUploading] = useState<BucketObjectWithProgress[]>([]);
+  const [showTooManyObjectsAlert, setShowTooManyObjectsAlert] = useState(false);
   const { notify } = useNotifications();
 
   const restorePreviousPath = useCallback(() => {
@@ -115,8 +118,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             setCurrentPath(rootNodeRef.current);
           }
         })
-        .catch((err: Error) => notify("Cannot fetch bucket content",
-          camelToWords(err.name), NotificationType.error));
+        .catch((err: Error) => {
+          notify("Cannot fetch bucket content",
+            camelToWords(err.name), NotificationType.error)
+          console.error(err);
+        });
     };
     f();
   }, [s3, bucketName, notify, restorePreviousPath]);
@@ -234,6 +240,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }
 
   const handleDownloadFiles = async () => {
+    if (selectedObjects.current.size > MAX_DOWNLOADABLE_ITEMS) {
+      setShowTooManyObjectsAlert(true);
+      return;
+    }
+
     try {
       toDownload.current = Array.from(selectedObjects.current.values())
         .map(el => new BucketObjectWithProgress(el));
@@ -332,6 +343,29 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     restorePreviousPath();
   }
 
+  const TooManyDownloadsAlert = () => {
+    return (
+      <Modal
+        open={showTooManyObjectsAlert}
+      >
+        <div className='p-4'>
+          <p className='text-xl font-bold'>Warning</p>
+          <p className='mt-4'>
+            {`Too many file selected for downloading. Please select maximum ` +
+              `${MAX_DOWNLOADABLE_ITEMS} objects or less.`}
+          </p>
+          <div className='flex justify-end'>
+            <Button
+              className="w-24"
+              title="OK"
+              onClick={() => setShowTooManyObjectsAlert(false)}
+            />
+          </div>
+        </div>
+      </Modal>
+    )
+  }
+
   const tableData = getTableData(currentPath);
 
   return (
@@ -342,8 +376,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         currentPath={currentPath.path}
         onClose={handleModalClose}
       />
+      <TooManyDownloadsAlert />
       {/* Inspector */}
-      <div className='top-0 fixed z-10 right-0 w-64 bg-slate-300'>
+      <div
+        // id="inspector-container"
+        className='top-0 fixed z-10 right-0 w-64 bg-slate-300'
+      >
         <BucketInspector
           isOpen={selectedObjects.current.size > 0}
           objects={Array.from(selectedObjects.current.values())}

@@ -60,7 +60,7 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
 }
 
 export const listObjects = async (s3: S3ContextProps, bucketName: string) => {
-  console.log("List Bucket objects")
+  console.log(`List objects for bucket ${bucketName}`);
   const listObjCmd = new ListObjectsV2Command({ Bucket: bucketName });
   const response = await s3.client.send(listObjCmd)
   return response.Contents;
