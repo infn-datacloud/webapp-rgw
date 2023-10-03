@@ -19,7 +19,7 @@ variables:
 
 fetch-next-version:
   stage: fetch-version
-  image: node:19
+  image: node:20-slim
   script:
     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
     - npx semantic-release --generate-notes false --dry-run
@@ -61,7 +61,7 @@ build-backend:
 
 build-frontend:
   stage: build
-  image: node:19-slim
+  image: node:20-slim
   before_script:
     - apt update && apt install -y jq
     - VERSION="$(cat version.txt)"
@@ -79,7 +79,7 @@ build-frontend:
       - frontend/*.tar.gz # Known issue w/ variable expansion https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29141
 
 release:
-  image: node:19
+  image: node:20-slim
   stage: release
   script:
     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
