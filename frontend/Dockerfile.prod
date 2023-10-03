@@ -1,5 +1,15 @@
 FROM nginx:latest
 
+COPY . /tmp/frontend
+
 COPY dist/ /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY init_env.sh /docker-entrypoint.d/init_env.sh
+
+RUN apt-get update && apt-get install -y npm nodejs && \
+	cd /tmp/frontend/dist && \
+	npm install && npm run build && \
+	cp -r /tmp/frontend/dist/* /usr/share/nginx/html && \
+	rm -rf /tmp/frontend && \
+	apt-get purge -y npm nodejs && \
+	apt-get clean
