@@ -74,7 +74,7 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     const command = new AssumeRoleWithWebIdentityCommand({
       DurationSeconds: awsConfig.roleSessionDurationSeconds,
       RoleArn: awsConfig.roleArn,
-      RoleSessionName: "ceph-frontend-poc", // TODO: change me
+      RoleSessionName: crypto.randomUUID(),
       WebIdentityToken: token.access_token,
     });
 
