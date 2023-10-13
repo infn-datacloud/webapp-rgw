@@ -82,16 +82,12 @@ export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
     });
 
   const link = document.createElement("a");
-  let handles: (Window | null)[] = [];
   link.onclick = () => {
-    handles = urls.map(el => window.open(el.url, "_blank"));
+    urls.map(el => window.open(el.url, "_blank"));
   }
   document.body.appendChild(link);
   link.click();
   link.parentNode?.removeChild(link);
-  handles.forEach(handle => {
-    setTimeout(() => handle?.close(), 500);
-  });
 }
 
 export const uploadFiles = async (s3: S3ContextProps, bucketName: string,
