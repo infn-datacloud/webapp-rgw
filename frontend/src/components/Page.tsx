@@ -27,7 +27,7 @@ export const Page = (props: Props) => {
       </div>
       <div className="ml-64 p-8 w-full">
         <Title>{props.title}</Title>
-        <hr className="h-px w-full my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+        <hr className="h-px w-full my-8 bg-gray-200 border-0"></hr>
         {children}
       </div>
     </>

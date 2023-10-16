@@ -35,7 +35,7 @@ export const Drawer = () => {
   const userName: string | null = user?.profile && user?.profile["name"] ? user?.profile["name"] : null;
 
   return (
-    <div className='h-full bg-gray-100 dark:bg-gray-800'>
+    <div className='h-full bg-gray-100 '>
       <img className="w-full bg-gray-100 p-4" alt="" src="/logo530.png" />
       <div>
         {
