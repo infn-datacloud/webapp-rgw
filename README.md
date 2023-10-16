@@ -5,6 +5,8 @@ with Ceph Object Storage/RADOS Gateway, using the S3 protocol. Parallel to the
 webapp frontend, a backend service is shipped to provide a workaround for IAM
 access until the PIXE protocol will be fully supported.
 
+The project is located [here](https://baltig.infn.it/infn-cloud/webapp-rgw/).
+
 Frontend is implemented using the React, ViteJS, TypeScript and TailwindCSS
 stack, while backend is built in Python with the FastAPI framework.
 
