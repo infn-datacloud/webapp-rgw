@@ -1,4 +1,4 @@
-# Ceph Webapp POC
+# RADOS Gateway Webapp
 
 This project is a proof of concept of a web application to manage Ceph Object
 Storage.
@@ -13,7 +13,8 @@ for backend and frontend services. The images are stored
 
 ## Docker Compose
 
-This project is shipped with a ready to use `docker-compose.yaml` for production deployment and one `docker-compose.dev.yaml` file for development. Both files
+This project is shipped with a ready to use `docker-compose.yaml` for production
+deployment and one `docker-compose.dev.yaml` file for development. Both files
 start the backend and frontend services, along with a NGINX instance to handle
 networking.
 

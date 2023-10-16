@@ -19,6 +19,8 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile.prod
+      args:
+        - VERSION=1.2.3
     env_file:
       - frontend/envs/prod.env
   
