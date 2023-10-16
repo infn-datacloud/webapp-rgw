@@ -2,9 +2,9 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Modal } from "../../components/Modal"
 import { TextField } from "../../components/TextField";
 import { ToggleSwitch, ToggleSwitchProps } from "../../components/ToggleSwitch";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { Button } from "../../components/Button";
-import { CreateBucketArgs } from "../../services/S3Service";
+import { CreateBucketArgs } from "../../services/S3";
 
 interface NewBucketModalProps {
   open: boolean;
@@ -35,7 +35,7 @@ const bucketInvalidErrorMessage = () => {
 export const NewBucketModal = (props: NewBucketModalProps) => {
   const { open, onClose, onCreateBucket } = props;
   const [bucketName, setBucketName] = useState<string>("");
-  const [error, setError] = useState<any | undefined>();
+  const [error, setError] = useState<string | undefined | ReactNode>();
   const [versioningEnabled, setVersioningEnabled] = useState(false);
   const [objectLockEnabled, setObjectLockEnabled] = useState(false);
 
@@ -105,7 +105,7 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
 
   interface BucketFeatureProps extends ToggleSwitchProps {
     name: string;
-  };
+  }
 
   const BucketFeature = ({ name, checked, onClick }: BucketFeatureProps) => {
     return (

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
-import { useOAuth } from "./OAuth2";
+import { AWSConfig, CreateBucketArgs, S3ServiceProviderProps } from "./types";
+import { useOAuth } from "../OAuth2";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
 import {
   Bucket,
@@ -9,75 +10,54 @@ import {
   ListObjectsV2Command,
   _Object,
   CreateBucketCommand,
+  CreateBucketCommandOutput,
   PutBucketVersioningCommand,
+  PutBucketVersioningCommandOutput,
   GetBucketVersioningCommand,
   VersioningConfiguration,
   DeleteBucketCommand,
+  DeleteBucketCommandOutput,
   GetBucketVersioningCommandOutput,
   GetObjectLockConfigurationCommand,
-  PutObjectLockConfigurationCommand,
   GetObjectLockConfigurationCommandOutput,
+  PutObjectLockConfigurationCommand,
+  PutObjectLockConfigurationCommandOutput,
+  ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { OidcToken } from "./OAuth2/OidcConfig";
-import { useNotifications, NotificationType } from "./Notification";
-import { BucketObjectWithProgress, FileObjectWithProgress } from "../models/bucket";
-import { camelToWords } from "../commons/utils";
+import { OidcToken } from "../OAuth2/OidcConfig";
+import { useNotifications, NotificationType } from "../Notification";
+import { BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
+import { camelToWords } from "../../commons/utils";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 const ONE_MB = 1024 * 1024;
-
-// **** AWS Config ****
-export interface AWSConfig {
-  endpoint: string;
-  region: string;
-}
-
-// ***** State *****
-
-export interface IS3ServiceState {
-  awsCredentials?: AwsCredentialIdentity;
-}
-
-
-export const initialS3ServiceState: IS3ServiceState = {
-  awsCredentials: undefined,
-}
-
-// ***** Context *****
-export interface CreateBucketArgs {
-  bucketName: string;
-  versioningEnabled: boolean;
-  objectLockEnabled: boolean;
-};
 
 export interface S3ContextProps {
   awsConfig: AWSConfig;
   client: S3Client;
   isAuthenticated: boolean;
+  loginWithCredentials: (credentials: AwsCredentialIdentity) => void;
+  logout: () => void;
   fetchBucketList: () => Promise<Bucket[]>;
   listObjects: (bucket: Bucket) => Promise<_Object[]>;
   getPresignedUrl: (bucket: string, key: string) => Promise<string>;
-  createBucket: (args: CreateBucketArgs) => Promise<any>;
-  deleteBucket: (bucket: string) => Promise<any>;
+  createBucket: (args: CreateBucketArgs) => Promise<CreateBucketCommandOutput>;
+  deleteBucket: (bucket: string) => Promise<DeleteBucketCommandOutput>;
   downloadObject: (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => Promise<Blob>;
   uploadObject: (bucket: string, object: FileObjectWithProgress, onChange?: () => void) => void;
   getBucketVersioning: (bucket: string) => Promise<GetBucketVersioningCommandOutput>;
-  setBucketVersioning: (bucket: string, enabled: boolean) => Promise<any>;
+  setBucketVersioning: (bucket: string, enabled: boolean) => Promise<PutBucketVersioningCommandOutput>;
   getBucketObjectLock: (bucket: string) => Promise<GetObjectLockConfigurationCommandOutput>;
-  setBucketObjectLock: (bucket: string, enabled: boolean) => Promise<any>;
+  setBucketObjectLock: (bucket: string, enabled: boolean) => Promise<PutObjectLockConfigurationCommandOutput>;
 }
 
 export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
 
 // ***** S3Service *****
 
-interface S3ServiceProviderProps {
-  awsConfig: AWSConfig;
-}
-
-const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
+export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   const { awsConfig } = props;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [client, setClient] = useState<S3Client>(new S3Client({}));
@@ -87,14 +67,14 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
 
   authRef.current = isAuthenticated;
 
-  // Exchange token for AWS Credentiasl with AssumeRoleWebIdendity
-  const getAWSCretentials = useCallback((token: OidcToken) => {
+  // Exchange token for AWS Credentials with AssumeRoleWebIdentity
+  const getAWSCredentials = useCallback((token: OidcToken) => {
     console.log("Get AWS Credentials from STS");
     const sts = new STSClient({ ...awsConfig });
     const command = new AssumeRoleWithWebIdentityCommand({
-      DurationSeconds: 3600,
-      RoleArn: "arn:aws:iam:::role/S3AccessIAM200",
-      RoleSessionName: "ceph-frontend-poc", // TODO: change me
+      DurationSeconds: awsConfig.roleSessionDurationSeconds,
+      RoleArn: awsConfig.roleArn,
+      RoleSessionName: crypto.randomUUID(),
       WebIdentityToken: token.access_token,
     });
 
@@ -119,6 +99,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
             forcePathStyle: true
           }));
           setIsAuthenticated(true);
+          console.log("Authenticated via STS");
           authRef.current = true;
         } else {
           console.warn("Warning: some one or more AWS Credentials member is empty");
@@ -128,20 +109,47 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
           camelToWords(err.name), NotificationType.error);
         setIsAuthenticated(false);
         authRef.current = false;
+        oAuth.logout();
       });
-  }, [awsConfig, notify]);
+  }, [awsConfig, oAuth, notify]);
+
+  const loginWithCredentials = async (credentials: AwsCredentialIdentity) => {
+    const { endpoint, region } = awsConfig;
+    const client = new S3Client({
+      endpoint: endpoint,
+      region: region,
+      credentials: credentials,
+      forcePathStyle: true
+    });
+    try {
+      await client.send(new ListBucketsCommand({}));
+      setClient(client);
+      authRef.current = true;
+    } catch (err) {
+      authRef.current = false;
+      if (err instanceof Error) {
+        notify("Access failed", camelToWords(err.name), NotificationType.error);
+      }
+    }
+    setIsAuthenticated(authRef.current);
+  }
+
+  const logout = () => {
+    authRef.current = false;
+    setIsAuthenticated(authRef.current);
+  }
 
   useEffect(() => {
-    oAuth.subscribe(getAWSCretentials);
+    oAuth.subscribe(getAWSCredentials);
     return () => {
-      oAuth.unsubscribe(getAWSCretentials);
+      oAuth.unsubscribe(getAWSCredentials);
     }
-  }, [oAuth, getAWSCretentials]);
+  }, [oAuth, getAWSCredentials]);
 
 
   const fetchBucketList = async () => {
     const listBucketCmd = new ListBucketsCommand({});
-    let response = await client.send(listBucketCmd)
+    const response = await client.send(listBucketCmd)
     const { Buckets } = response;
     if (Buckets) {
       return Buckets;
@@ -172,15 +180,30 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   };
 
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
-    const cmd = new ListObjectsV2Command({ Bucket: bucket.Name });
-    const response = await client.send(cmd);
-    const { Contents } = response;
-    if (Contents) {
-      return Contents;
-    } else {
-      console.warn(`Warning: bucket ${bucket.Name} has no content`);
-      return [];
+    const content: _Object[] = []
+    let completed = false;
+    let continuationToken: string | undefined = undefined;
+    while (!completed) {
+      const cmd = new ListObjectsV2Command({
+        Bucket: bucket.Name,
+        ContinuationToken: continuationToken,
+      });
+      const response: ListObjectsV2CommandOutput = await client.send(cmd);
+      const { Contents, IsTruncated, NextContinuationToken } = response;
+      if (Contents) {
+        content.concat(Contents);
+        if (IsTruncated) {
+          continuationToken = NextContinuationToken;
+        } else {
+          completed = true;
+        }
+      } else {
+        notify(`Warning: bucket ${bucket.Name} has no content`, "",
+          NotificationType.warning);
+        return [];
+      }
     }
+    return content;
   };
 
   const getPresignedUrl = async (bucket: string, key: string) => {
@@ -204,10 +227,10 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
 
 
   const downloadInChunks = async (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => {
-    let key = object.object.Key!;
+    const key = object.object.Key!;
     let blob = new Blob();
     const length = object.object.Size!;
-    let range = { start: -1, end: -1 };
+    const range = { start: -1, end: -1 };
 
     while (length - range.end !== 1) {
       const { end } = range;
@@ -216,7 +239,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
         nextRange.start, nextRange.end);
 
       if (!(Body && ContentLength)) {
-        console.error("Cannot retrieved objectet");
+        console.error("Cannot retrieve object");
         break;
       }
 
@@ -234,7 +257,7 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
 
   const uploadManaged = async (bucket: string,
     fileObject: FileObjectWithProgress, onChange?: () => void) => {
-    let upload = new Upload({
+    const upload = new Upload({
       client: client,
       params: {
         Bucket: bucket,
@@ -262,12 +285,12 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   };
 
   const setBucketVersioning = async (bucket: string, enabled: boolean) => {
-    const versioningConfigutaion: VersioningConfiguration = {
+    const versioningConfiguration: VersioningConfiguration = {
       Status: enabled ? "Enabled" : "Disabled"
     };
     const putVersioningCommand = new PutBucketVersioningCommand({
       Bucket: bucket,
-      VersioningConfiguration: versioningConfigutaion
+      VersioningConfiguration: versioningConfiguration
     });
     return await client.send(putVersioningCommand);
   }
@@ -278,7 +301,6 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
   }
 
   const setBucketObjectLock = async (bucket: string, enabled: boolean) => {
-    // const client = getS3Client();
     const configuration = { ObjectLockEnabled: enabled ? "Enabled" : "Disabled" };
     const cmd = new PutObjectLockConfigurationCommand({
       Bucket: bucket,
@@ -291,6 +313,8 @@ const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     awsConfig: awsConfig,
     client: client,
     isAuthenticated: authRef.current,
+    loginWithCredentials: loginWithCredentials,
+    logout: () => logout(),
     fetchBucketList: () => fetchBucketList(),
     listObjects: (bucket: Bucket) => listObjects(bucket),
     getPresignedUrl: getPresignedUrl,
@@ -313,19 +337,8 @@ export const useS3Service = (): S3ContextProps => {
     throw new Error(
       "S3ServiceProvider context is undefined, " +
       "please verify you are calling useS3Service " +
-      "as a child of <S3ServicePrivder> component."
+      "as a child of <S3ServiceProvider> component."
     );
   }
   return context;
 }
-
-export function withS3(WrappedComponent: React.FunctionComponent, s3Config: S3ServiceProviderProps) {
-  return function (props: any) {
-    const serviceProvider = CreateS3ServiceProvider(s3Config);
-    return (
-      <S3ServiceContext.Provider value={serviceProvider}>
-        <WrappedComponent {...props} />
-      </S3ServiceContext.Provider>
-    );
-  };
-};

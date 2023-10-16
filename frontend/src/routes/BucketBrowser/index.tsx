@@ -11,7 +11,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { useS3Service } from '../../services/S3Service';
+import { useS3Service } from '../../services/S3/service';
 import { InputFile } from '../../components/InputFile';
 import {
   initNodePathTree,
@@ -27,8 +27,9 @@ import { NodePath, camelToWords } from '../../commons/utils';
 import { NotificationType, useNotifications } from '../../services/Notification';
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
-import { _Object } from '@aws-sdk/client-s3';
 import { SearchFiled } from '../../components/SearchField';
+import { ArrowUturnRightIcon } from '@heroicons/react/24/solid';
+import { Modal } from '../../components/Modal';
 
 const columns: Column[] = [
   { id: "icon" },
@@ -59,6 +60,7 @@ type PropsType = {
 }
 
 export const BucketBrowser = ({ bucketName }: PropsType) => {
+  const MAX_DOWNLOADABLE_ITEMS = 10;
   const bucketObjects = useRef<BucketObject[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,7 +75,24 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const toUpload = useRef<FileObjectWithProgress[]>([]);
   const [downloading, setDownloading] = useState<BucketObjectWithProgress[]>([]);
   const [uploading, setUploading] = useState<BucketObjectWithProgress[]>([]);
+  const [showTooManyObjectsAlert, setShowTooManyObjectsAlert] = useState(false);
   const { notify } = useNotifications();
+
+  const restorePreviousPath = useCallback(() => {
+    // If a node different than root was set, set it back
+    if (currentPath.path != "") {
+      const allFiles = rootNodeRef.current.getAll();
+      for (const file of allFiles) {
+        if (file.parent && file.parent.path == currentPath.path) {
+          setCurrentPath(file.parent);
+          return;
+        }
+      }
+    }
+    // Otherwise, set current path to root
+    setCurrentPath(rootNodeRef.current);
+  }, [currentPath.path]);
+
 
   const refreshBucketObjects = useCallback(() => {
     const f = async () => {
@@ -99,11 +118,14 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             setCurrentPath(rootNodeRef.current);
           }
         })
-        .catch((err: Error) => notify("Cannot fetch bucket content",
-          camelToWords(err.name), NotificationType.error));
+        .catch((err: Error) => {
+          notify("Cannot fetch bucket content",
+            camelToWords(err.name), NotificationType.error)
+          console.error(err);
+        });
     };
     f();
-  }, [s3, bucketName, currentPath.path]);
+  }, [s3, bucketName, notify, restorePreviousPath]);
 
 
   useEffect(() => {
@@ -118,12 +140,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
     const { checked } = el.target;
-    const objectName = tableData[index][1]["value"];
-    const next = currentPath.findChild(objectName);
+    const objectName = Array.from(currentPath.children.values())[index].basename;
+    const next = currentPath.get(objectName);
     if (!next) {
       throw new Error(`Child with name ${objectName} not found.`);
     }
-    const isDir = next.children.length > 0;
+    const isDir = next.children.size > 0;
     const newSelection = new Set(selectedRows);
     const elements = isDir ? next.getAll() : [next];
     const select = (n: NodePath<BucketObject>) => {
@@ -149,9 +171,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     if (type === "checkbox") {
       return;
     }
-    const tableRow = event.currentTarget;
-    const tableCell = tableRow.getElementsByClassName("name")[0];
-    const objectName = tableCell.textContent;
+    const objectName = Array.from(currentPath.children.values())[index].basename;
 
     if (!objectName) {
       throw new Error("Object name is undefined");
@@ -167,11 +187,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       return;
     }
 
-    const next = currentPath.findChild(objectName);
+    const next = currentPath.get(objectName);
     if (!next) {
       throw new Error(`Child with name ${objectName} not found.`);
     }
-    const isDir = next.children.length > 0;
+    const isDir = next.children.size > 0;
 
     if (isDir) {
       setCurrentPath(next);
@@ -220,10 +240,15 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }
 
   const handleDownloadFiles = async () => {
+    if (selectedObjects.current.size > MAX_DOWNLOADABLE_ITEMS) {
+      setShowTooManyObjectsAlert(true);
+      return;
+    }
+
     try {
       toDownload.current = Array.from(selectedObjects.current.values())
         .map(el => new BucketObjectWithProgress(el));
-      await downloadFiles(s3, bucketName, toDownload.current, handleDownloadsUpdates);
+      await downloadFiles(s3, bucketName, toDownload.current);
       selectedObjects.current = new Map();
       setSelectedRows(new Set());
     } catch (err) {
@@ -234,11 +259,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         console.error(err);
       }
     }
-  }
-
-  function handleDownloadsUpdates() {
-    const t = [...toDownload.current];
-    setDownloading(t);
   }
 
   const handleSelectFilesToUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -302,7 +322,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       currentPath.parent : rootNodeRef.current;
 
     // No file was uploaded, remove the path
-    if (currentPath.children.length === 0) {
+    if (currentPath.children.size === 0) {
       newPath.removeChild(currentPath);
     }
 
@@ -311,37 +331,42 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     setSelectedRows(new Set());
   }, [currentPath]);
 
-
-  const restorePreviousPath = () => {
-    // If a node different than root was set, set it back
-    if (currentPath.path != "") {
-      const allFiles = rootNodeRef.current.getAll();
-      for (const file of allFiles) {
-        if (file.parent && file.parent.path == currentPath.path) {
-          setCurrentPath(file.parent);
-          return;
-        }
-      }
-    }
-    // Otherwise, set current path to root
-    setCurrentPath(rootNodeRef.current);
-  }
-
   const handleSearchQuery = (query: string) => {
-    console.log(query);
     let objects: BucketObject[] = [];
     if (query) {
-      objects = bucketObjects.current.filter(o => o.Key.includes(query));
+      objects = bucketObjects.current.filter(o => o.Key.toLowerCase().includes(query));
     } else {
       objects = bucketObjects.current;
     }
-
     rootNodeRef.current = new NodePath("");
     initNodePathTree(objects, rootNodeRef.current);
     restorePreviousPath();
   }
 
-  let tableData = getTableData(currentPath);
+  const TooManyDownloadsAlert = () => {
+    return (
+      <Modal
+        open={showTooManyObjectsAlert}
+      >
+        <div className='p-4'>
+          <p className='text-xl font-bold'>Warning</p>
+          <p className='mt-4'>
+            {`Too many file selected for downloading. Please select maximum ` +
+              `${MAX_DOWNLOADABLE_ITEMS} objects or less.`}
+          </p>
+          <div className='flex justify-end'>
+            <Button
+              className="w-24"
+              title="OK"
+              onClick={() => setShowTooManyObjectsAlert(false)}
+            />
+          </div>
+        </div>
+      </Modal>
+    )
+  }
+
+  const tableData = getTableData(currentPath);
 
   return (
     <>
@@ -351,8 +376,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         currentPath={currentPath.path}
         onClose={handleModalClose}
       />
+      <TooManyDownloadsAlert />
       {/* Inspector */}
-      <div className='top-0 fixed z-10 right-0 w-64 bg-slate-300'>
+      <div
+        // id="inspector-container"
+        className='top-0 fixed z-10 right-0 w-64 bg-slate-300'
+      >
         <BucketInspector
           isOpen={selectedObjects.current.size > 0}
           objects={Array.from(selectedObjects.current.values())}
@@ -377,6 +406,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
                 icon={<ArrowUpOnSquareIcon />}
                 onChange={handleSelectFilesToUpload}
               />
+              <Button
+                title="Refresh"
+                icon={<ArrowUturnRightIcon />}
+                onClick={() => refreshBucketObjects()}
+              />
             </div>
             <div className='flex space-x-4'>
               <Button
@@ -392,7 +426,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               />
             </div>
           </div>
-
           {/* PathViewer */}
           <div className='flex mt-8 justify-between'>
             <div className="flex space-x-4">

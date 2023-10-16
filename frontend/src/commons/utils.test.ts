@@ -1,84 +1,104 @@
-import { NodePath, addPath } from "./utils";
+import { NodePath } from "./utils";
 
 test("NodePath 1", () => {
-  let root = new NodePath("", "");
+  const root = new NodePath<string>("/");
 
-  addPath("this/is/a/path", root, "value1");
-  addPath("this/is/another/path", root, "value2");
-  addPath("this/is/a/file", root, "value3");
+  root.addChild(new NodePath("foo", "value1", 10), "this/is/b/path");
+  expect(root.get("this")?.size).toBe(10);
+  root.addChild(new NodePath("bar", "value2", 20), "this/is/another/path");
+  expect(root.get("this")?.size).toBe(30);
+  root.addChild(new NodePath("baz", "value3", 30), "this/is/b/path");
+  expect(root.size).toBe(60);
 
-  const p1 = root.children[0].children[0].children[0].children[0];
-  const p2 = root.children[0].children[0].children[1].children[0];
-  const p3 = root.children[0].children[0].children[0].children[1];
+  const p1 = root.get("this/is/b/path/foo")!;
+  const p2 = root.get("this/is/another/path/bar")!;
+  const p3 = root.get("this/is/b/path/baz")!;
 
-  expect(p1.basename).toBe("path");
-  expect(p2.basename).toBe("path");
-  expect(p3.basename).toBe("file");
+  expect(p1.basename).toBe("foo");
+  expect(p2.basename).toBe("bar");
+  expect(p3.basename).toBe("baz");
 
-  expect(p1.path).toBe("this/is/a/path");
-  expect(p2.path).toBe("this/is/another/path");
-  expect(p3.path).toBe("this/is/a/file");
+  expect(p1.path).toBe("/this/is/b/path/foo");
+  expect(p2.path).toBe("/this/is/another/path/bar");
+  expect(p3.path).toBe("/this/is/b/path/baz");
 
-  expect(p1.parent?.basename).toBe("a");
-  expect(p2.parent?.basename).toBe("another");
-  expect(p3.parent?.basename).toBe("a");
+  expect(p1.children.size).toBe(0);
+  expect(p2.children.size).toBe(0);
+  expect(p3.children.size).toBe(0);
+
+  expect(root.children.size).toBe(1);
+  expect(root.get("this")?.children.size).toBe(1);
+  expect(root.get("this/is")?.children.size).toBe(2);
+  expect(root.get("this/is/b")?.children.size).toBe(1);
+  expect(root.get("this/is/b/path")?.children.size).toBe(2);
+  expect(root.get("this/is/another")?.children.size).toBe(1);
+  expect(root.get("this/is/another/path")?.children.size).toBe(1);
+
+  expect(p1.parent?.parent?.basename).toBe("b");
+  expect(p2.parent?.parent?.basename).toBe("another");
+  expect(p3.parent?.parent?.basename).toBe("b");
 
   expect(p1.value).toBe("value1");
   expect(p2.value).toBe("value2");
   expect(p3.value).toBe("value3");
+
+  expect(p1.size).toBe(10);
+  expect(p2.size).toBe(20);
+  expect(p3.size).toBe(30);
+
+  expect(root.size).toBe(60);
+  expect(root.get("this")?.size).toBe(60);
+  expect(root.get("this/is")?.size).toBe(60);
+  expect(root.get("this/is/b")?.size).toBe(40);
+  expect(root.get("this/is/another")?.size).toBe(20);
 });
 
 test("NodePath 2", () => {
-  let root = new NodePath("", "");
+  const root = new NodePath("", "");
 
-  addPath("this/is/a/path", root, "value1");
-  addPath("this/is/another/path", root, "value2");
-  addPath("this/is/a/file", root, "value3");
+  root.addChild(new NodePath("foo", "value 1", 10), "this/is/a/path");
+  root.addChild(new NodePath("bar", "value 2", 20), "this/is/another/path");
+  root.addChild(new NodePath("baz", "value 2", 20), "this/is/a/path");
 
-  const r1 = root.getAll();
-  expect(r1.map(r => { return r.path })).toStrictEqual([
-    "this/is/a/path",
-    "this/is/a/file",
-    "this/is/another/path"
-  ])
-
-  const level1 = root.children[0];
-  const level2 = level1.children[0];
-  const level3 = level2.findChild('a')!;
-  const r2 = level3.getAll();
-
-  expect(r2.map(r => { return r.path })).toStrictEqual([
-    "this/is/a/path",
-    "this/is/a/file"
+  let result = root.getAll();
+  expect(result.map(r => { return r.path })).toStrictEqual([
+    "this/is/a/path/foo",
+    "this/is/a/path/baz",
+    "this/is/another/path/bar"
   ]);
 
-  const level3bis = level2.findChild('another')!;
-  const r3 = level3bis.getAll();
+  const pThis = root.get("this");
+  const pIs = pThis?.get("is");
+  const pA = pIs?.get("a");
 
-  expect(r3.map(r => { return r.path })).toStrictEqual(["this/is/another/path"]);
+  result = pA!.getAll();
+
+  expect(result.map(r => { return r.path })).toStrictEqual([
+    "this/is/a/path/foo",
+    "this/is/a/path/baz"
+  ]);
+
+  result = pIs!.get("another")!.getAll();
+  expect(result.map(r => { return r.path }))
+    .toStrictEqual(["this/is/another/path/bar"]);
 });
 
 test("NodePath 3", () => {
-  let root = new NodePath("", "");
-
-  addPath("this/is/a/path", root, "value1");
-  addPath("this/is/another/path", root, "value2");
-  addPath("this/is/a/file", root, "value3");
+  const root = new NodePath("/");
+  root.addChild(new NodePath("foo", "value 1", 10), "this/is/a/path");
+  root.addChild(new NodePath("bar", "value 2", 20), "this/is/another/path");
+  root.addChild(new NodePath("baz", "value 3", 30), "this/is/a/path");
 
   expect(root.getAll().length).toBe(3);
+  const thisIs = root.get("this/is")!;
+  expect(thisIs.path).toBe("/this/is");
+  expect(thisIs.children.size).toBe(2);
 
-  const thisIs = root.children[0].children[0];
-  expect(thisIs.path).toBe("this/is");
-  expect(thisIs.children.length).toBe(2);
-
-  const child = thisIs.findChild("a");
-  if (child) {
-    let deleted = thisIs.removeChild(child);
-    expect(deleted).toBe(true);
-    deleted = thisIs.removeChild(new NodePath("foo"));
-    expect(deleted).toBe(false);
-  }
-
-  expect(thisIs.children.length).toBe(1);
+  const child = thisIs.get("a")!;
+  let deleted = thisIs.removeChild(child);
+  expect(deleted).toBe(true);
+  deleted = thisIs.removeChild(new NodePath("foo"));
+  expect(deleted).toBe(false);
+  expect(thisIs.children.size).toBe(1);
   expect(root.getAll().length).toBe(1);
 });

@@ -16,6 +16,10 @@ export interface OidcClientSettings {
   audience?: string;
 }
 
+export interface OAuthProviderProps extends OidcClientSettings {
+  children?: React.ReactNode;
+}
+
 export interface IOidcToken {
   id_token: string;
   access_token: string;
@@ -43,8 +47,9 @@ export class OidcToken {
     this.scope = args.scope;
   }
 
-  static createTokenFromResponse(data: any): OidcToken {
-    return new OidcToken(data);
+  static createTokenFromResponse(data: string): OidcToken {
+    const args: IOidcToken = JSON.parse(data);
+    return new OidcToken(args);
   }
 
   public get expires_in(): number {

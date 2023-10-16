@@ -3,14 +3,10 @@ import { OAuthContext } from "./OAuthContext"
 import { IOAuthState, initialOAuthState } from "./OAuthState"
 import { OAUTH_RESPONSE_MESSAGE_TYPE, OAUTH_STATE_STORAGE_KEY } from "../../commons/costants"
 import { tokenPostRequest, TokenRequestParams } from "./OAuthTokenRequest"
-import { OidcToken, OidcClientSettings } from "./OidcConfig"
+import { OidcToken, OidcClientSettings, OAuthProviderProps } from "./OidcConfig"
 import { User } from "./User"
 
 const OAUTH_USER_SESSION_STORAGE_KEY = "oauth-user-session-key";
-
-interface OAuthProviderProps extends OidcClientSettings {
-  children?: React.ReactNode;
-}
 
 type Timer = ReturnType<typeof setTimeout>;
 
@@ -59,15 +55,15 @@ const closePopup = (popupRef: React.MutableRefObject<Window | undefined>) => {
 const cleanup = (
   intervalRef: React.MutableRefObject<Timer | undefined>,
   popupRef: React.MutableRefObject<Window | undefined>,
-  handleMessageListener: (message: any) => Promise<void>) => {
+  handleMessageListener: (message: MessageEvent) => Promise<void>) => {
   clearInterval(intervalRef.current);
   closePopup(popupRef);
   window.removeEventListener('message', handleMessageListener);
 }
 
 const parseJwt = (token: string) => {
-  var base64Payload = token.split('.')[1];
-  var payload = window.atob(base64Payload);
+  const base64Payload = token.split('.')[1];
+  const payload = window.atob(base64Payload);
   return JSON.parse(payload);
 }
 
@@ -92,7 +88,7 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
   const getAccessToken = (params: TokenRequestParams) => {
     // Send POST request to backend
     tokenPostRequest(params)
-      .then(response => response.json())
+      .then(response => response.text())
       .then(data => {
         const token = OidcToken.createTokenFromResponse(data);
         // The user is now logged in
@@ -120,7 +116,7 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
       });
   };
 
-  const handleRefreshToken = (_: Event) => {
+  const handleRefreshToken = (_event: Event) => {
     if (!(oAuthState.user && oAuthState.user.token)) {
       return;
     }

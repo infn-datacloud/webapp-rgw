@@ -56,7 +56,7 @@ export const EditBucketModal = (props: EditBucketModalProps) => {
 
   interface BucketFeatureProps extends ToggleSwitchProps {
     name: string;
-  };
+  }
 
   const BucketFeature = ({ name, checked, onClick }: BucketFeatureProps) => {
     return (

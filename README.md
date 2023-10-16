@@ -1,19 +1,9 @@
-# Ceph Webapp POC
+# RADOS Gateway Webapp
 
 This project is a proof of concept of a web application to manage Ceph Object
 Storage.
 
-Frontend is made React and backend with FastAPI and boto3.
-
-## Development Endpoints
-
-The following endpoint are available
-
-- Webapp dev [localhost:3000](localhost:3000)
-- Webapp prod [localhost:8080](localhost:8080)
-- API dev [localhost:3000/api/v1/](localhost:3000/api/v1/)
-- API prod [localhost:8080/api/v1/](localhost:8080/api/v1/)
-- Minio [localhost:9000](localhost:9000)
+Frontend is made upon React framework and backend upon FastAPI framework.
 
 ## Deployment
 
@@ -21,40 +11,44 @@ This project is configured with a CI/CD pipeline which builds two Docker images
 for backend and frontend services. The images are stored
 [here](https://baltig.infn.it/jgasparetto/ceph-webapp-poc/container_registry).
 
-## Deployment with docker-compose
+## Docker Compose
 
-This project is provided with a ready to use `docker-compose.yaml` file which
-deploy both a development server a static compiled version of the frontend
-service. All the networking is handled by an instance of NGINX.
+This project is shipped with a ready to use `docker-compose.yaml` for production
+deployment and one `docker-compose.dev.yaml` file for development. Both files
+start the backend and frontend services, along with a NGINX instance to handle
+networking.
 
-Before running the deployment, you must create a set of environemnt files for
-both the backend and frontend(s) services. You can start from the example files
+Before running the deployment, you must create a set of environment files for
+both the backend and frontend services. You can start from the example files
 located at `backend/envs/example.dev` and `frontend/envs/example.dev`.
 
 For example, to configure both the development and production frontend services
 and the backend, create the following files
 
 ```bash
-cp backend/envs/example.env  backend/envs/dev.env
-cp frontend/envs/example.env frontend/envs/dev.env
-cp frontend/envs/example.env frontend/envs/prod.env
+cp backend/envs/example.env  backend/envs/prod[dev].env
+cp frontend/envs/example.env frontend/envs/prod[dev].env
 ```
 
-Edit these files with your settings and ajust the paths in the `docker-file.yaml`
-accordingly.
+A detailed description of the environmental variables is presented in the
+following Manual Deployment section.
 
-Now you must build the production version of the frontend
+Edit these files with your settings and adjust env paths in the
+`docker-compose[.dev].yaml` files accordingly.
+
+Deploy the services for production with running
 
 ```bash
-cd frontend && npm run build
+docker compose up -d --build
 ```
 
-Finally, run your deployment with
+or
 
 ```bash
-cp ..   # To the project root
-docker compose up -d
+docker compose -f docker-compose.dev.yaml up --build -d
 ```
+
+for development.
 
 ## Manual Deployment
 
@@ -66,11 +60,11 @@ website files produces by React build. The site must be configure as a
 browser must be **always** redirect to the `/` route.
 [Here](frontend/nginx.conf) you can find the default configuration.
 
-The web application needs a configured envinroment file `env.js` located at
+The web application needs a configured environment file `env.js` located at
 `frontend/public/env.js`. This file is automatically created at runtime, inside
 the container, by the [`frontend/init_env.sh`](frontend/init_env.sh) script.
 
-In order to run, the following variables **are required** to be set in the
+In order to run, the following variables are required to be set in the
 container.
 
 ```shell
@@ -83,7 +77,7 @@ S3_ENDPOINT
 S3_REGION   # Cannot be empty, use whatever you want if not need, e.g. 'nova'
 ```
 
-In addition, you **must** bind the port 80 to your container.
+In addition, you must bind the port 80 to your container.
 
 ```shell
 docker run \
@@ -93,7 +87,7 @@ docker run \
   frontend
 ```
 
-If you need, you can also provide a custom configuration for the nginx webserver
+If you need, you can also provide a custom configuration for the nginx web server
 using the command
 
 ```shell
@@ -107,8 +101,8 @@ docker run \
 
 ### Backend Configuration
 
-To run the backend service, the following environtmental variables
-**are required** to be set in the container
+To run the backend service, the following environmental variables
+are required to be set in the container
 
 ```shell
 IAM_AUTHORITY
@@ -121,7 +115,7 @@ S3_REGION_NAME     # can be empty, but defined
 
 You find an example at [example.dev](backend/envs/example.env).
 
-In addition, you **must** bind the **port 8000** to your container.
+In addition, you must bind the port 8000 to your container.
 
 ```shell
 docker run \
@@ -131,7 +125,7 @@ docker run \
   backend
 ```
 
-## Deployment with Kubernetes
+## Kubernetes
 
 This project is shipped with a preconfigured ready to use
 [`deployment.yaml`](deployment.yaml) file.
@@ -147,12 +141,12 @@ kubectl create secret generic iam-client-secret \
 --from-literal=IAM_CLIENT_SECRET=<your-client-secret>
 ```
 
-### Apply the deployment
+### Apply the deployment (Frontend and Backend)
 
 Once the secret is created, apply the deployment with
 
 ```bash
-kubectl apply -f demployment.yaml
+kubectl apply -f deployment.yaml
 ```
 
 ### Restart the deployment
@@ -164,3 +158,16 @@ If you want to manually restart the deployment, run
 ```bash
 kubectl rollout restart deployment rgw-s3
 ```
+
+### Deploy K8s Ingress
+
+kubectl -n rook-ceph edit ingress rgw
+
+## Development Endpoints
+
+The following endpoint are available
+
+- Webapp dev [localhost:3000](localhost:3000)
+- Webapp prod [localhost:8080](localhost:8080)
+- API dev [localhost:3000/api/v1/](localhost:3000/api/v1/)
+- API prod [localhost:8080/api/v1/](localhost:8080/api/v1/)

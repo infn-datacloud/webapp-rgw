@@ -17,7 +17,7 @@ export const Inspector = ({ isOpen, children }: InspectorProps) => {
       leaveTo="translate-x-64"
     >
       <div className="w-64 right-0 top-0 h-screen fixed z-1 overflow-auto">
-        <div className='h-full bg-gray-100 dark:bg-gray-800'>
+        <div className='h-full bg-gray-100'>
           {children}
         </div>
       </div>

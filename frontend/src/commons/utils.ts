@@ -1,10 +1,11 @@
 import { RWAccess } from "../models/bucket";
 
 export const getHumanSize = (size: number) => {
-  if (size < 1000) return `${size} B`;
+  if (size < 1024) return `${size} B`;
   if (size < 1000000) return `${(size / 1000).toFixed(1)} kB`;
   if (size < 1000000000) return `${(size / 1000000).toFixed(1)} MB`;
   if (size < 1000000000000) return `${(size / 1000000000).toFixed(1)} GB`;
+  return "N/A";
 }
 
 export const parseReadWriteAccess = (rwAccess: RWAccess) => {
@@ -23,99 +24,101 @@ export const truncateString = (s: string, length: number) => {
   return s.slice(0, length) + "..."
 }
 
-export interface INodePath<T> {
-  parent?: INodePath<T>;
-  basename: string;
-  path: string;
-  value?: T;
-  children: INodePath<T>[];
-  addChild: (_: INodePath<T>) => void;
-  findChild: (_: string) => INodePath<T> | undefined;
-  removeChild: (_: NodePath<T>) => boolean;
-  print: (_: number) => void;
-  getAll: () => INodePath<T>[];
-  clone: () => INodePath<T>;
-};
 
-export class NodePath<T> implements INodePath<T> {
-  parent?: INodePath<T>;
+export class NodePath<T> {
+  parent?: NodePath<T>;
   basename: string;
   value?: T;
-  children: INodePath<T>[];
+  children: Map<string, NodePath<T>>;
+  size: number;
 
-  constructor(basename: string, value?: T) {
+  constructor(basename: string, value?: T, size: number = 0) {
     this.basename = basename;
     this.value = value;
-    this.children = [];
+    this.size = size;
+    this.children = new Map<string, NodePath<T>>();
   }
 
   clone() {
-    let newNode = new NodePath<T>(this.basename, this.value);
+    const newNode = new NodePath<T>(this.basename, this.value);
     newNode.parent = this.parent;
     return newNode;
   }
 
-  addChild(node: INodePath<T>) {
-    node.parent = this;
-    this.children.push(node);
-  }
-
-  findChild(basename: string): INodePath<T> | undefined {
-    const result = this.children.filter(c => c.basename === basename);
-    if (result.length) {
-      return result[0];
-    };
-    return undefined;
-  }
-
-  removeChild(node: INodePath<T>) {
-    const index = this.children.map(c => c.value).indexOf(node.value);
-    if (index >= 0) {
-      this.children.splice(index, 1);
-      return true;
+  addChild(node: NodePath<T>, path?: string) {
+    if (path) {
+      path = path.replace(/(^\/|\/$)/g, "");
+      const directories = path.split("/");
+      let currentNode: NodePath<T> = this;
+      // Build the tree branches
+      directories.forEach(dir => {
+        let child = currentNode.children.get(dir);
+        if (!child) {
+          child = new NodePath<T>(dir);
+          currentNode.addChild(child);
+        }
+        currentNode = child;
+      });
+      // Finally add the node
+      currentNode.addChild(node);
+    } else {
+      node.parent = this;
+      this.children.set(node.basename, node);
+      // Walk the entire tree to sum up the file size
+      if (node.size > 0) {
+        let parent : NodePath<T> | undefined = node.parent;
+        while (parent) {
+          parent.size += node.size;
+          parent = parent.parent;
+        }
+      }
     }
-    return false;
   }
 
-  get path() {
+  removeChild(node: NodePath<T>) {
+    return this.children.delete(node.basename);
+  }
+
+  get path(): string {
     const { parent } = this;
+    let p = "";
     if (parent) {
       if (parent.path === '/' || parent.path === '') {
-        return parent.path + this.basename;
+        p = parent.path + this.basename;
+      } else {
+        p = parent.path + '/' + this.basename;
       }
-      return parent.path + '/' + this.basename;
     } else {
-      return this.basename;
+      p = this.basename;
     }
+    return p;
   }
 
   print(level = 0) {
     console.log(" ".repeat(level * 2) + this.basename);
-    this.children.forEach(c => {
-      c.print(level + 1);
-    })
+    for (const child of this.children.values()) {
+      child.print(level + 1);
+    }
+  }
+
+  get(path: string): NodePath<T> | undefined {
+    path = path.replace(/(^\/|\/$)/g, "");
+    const levels = path.split("/");
+    let nextLevel = levels.shift();
+    let currentNode: NodePath<T> | undefined = this;
+    while (nextLevel) {
+      currentNode = currentNode?.children.get(nextLevel);
+      nextLevel = levels.shift()
+    }
+    return currentNode;
   }
 
   getAll() {
-    let result: NodePath<T>[] = this.children.filter(c => c.children.length === 0);
+    let result: NodePath<T>[] = Array.from(this.children.values())
+      .filter(c => c.children.size === 0);
     this.children.forEach(c => {
       result = result.concat(c.getAll());
     });
     return result;
   }
-};
-
-export function addPath<T>(path: string, node: NodePath<T>, value?: T) {
-  const args = path.split("/");
-  let currentNode = node;
-  args.forEach(arg => {
-    const child = currentNode.findChild(arg);
-    if (child) {
-      currentNode = child;
-    } else {
-      const pArg = new NodePath(arg, value);
-      currentNode.addChild(pArg);
-      currentNode = pArg;
-    }
-  });
 }

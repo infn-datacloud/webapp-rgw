@@ -3,12 +3,18 @@ import { useOAuth } from '../services/OAuth2';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
+import { useS3Service } from '../services/S3';
+import { useBucketStore } from '../services/BucketStore/store';
 
 export const Drawer = () => {
-  const { user, logout } = useOAuth();
+  const oAuth = useOAuth();
+  const s3 = useS3Service();
+  const bucketStore = useBucketStore();
+  const { user } = oAuth;
   const navigate = useNavigate();
   const path = window.location.pathname;
-  const links = staticRoutes.map(route => {
+  const routes = staticRoutes.filter(el => el.drawer);
+  const links = routes.map(route => {
     let className = "h-10 flex hover:text-white hover:bg-infn items-center hover:rounded-lg ph-4 ";
     if (route.path === path) {
       className += "rounded-lg bg-gray-200";
@@ -21,13 +27,15 @@ export const Drawer = () => {
   });
 
   const logoutAndRedirect = () => {
-    logout();
+    oAuth.logout();
+    s3.logout();
+    bucketStore.reset();
     navigate("/");
   }
   const userName: string | null = user?.profile && user?.profile["name"] ? user?.profile["name"] : null;
 
   return (
-    <div className='h-full bg-gray-100 dark:bg-gray-800'>
+    <div className='h-full bg-gray-100 '>
       <img className="w-full bg-gray-100 p-4" alt="" src="/logo530.png" />
       <div>
         {
