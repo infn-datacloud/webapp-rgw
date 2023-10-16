@@ -23,7 +23,7 @@ spec:
         app: rgw-s3
     spec:
       containers:
-        - image: baltig.infn.it:4567/jgasparetto/ceph-webapp-poc/frontend:latest-dev
+        - image: baltig.infn.it:4567/infn-cloud/webapp-rgw/frontend:latest-dev
           imagePullPolicy: Always
           name: frontend
           ports:
@@ -60,7 +60,7 @@ spec:
               value: "arn:aws:iam:::role/S3AccessIAM200"
             - name: S3_ROLE_DURATION_SECONDS
               value: "3600"
-        - image: baltig.infn.it:4567/jgasparetto/ceph-webapp-poc/backend
+        - image: baltig.infn.it:4567/infn-cloud/webapp-rgw/backend:latest-dev
           imagePullPolicy: Always
           name: backend
           ports:

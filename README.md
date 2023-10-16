@@ -1,15 +1,29 @@
 # RADOS Gateway Webapp
 
-This project is a proof of concept of a web application to manage Ceph Object
-Storage.
+This project consists in web application to easily access file objects stored
+with Ceph Object Storage/RADOS Gateway, using the S3 protocol. Parallel to the
+webapp frontend, a backend service is shipped to provide a workaround for IAM
+access until the PIXE protocol will be fully supported.
 
-Frontend is made upon React framework and backend upon FastAPI framework.
+Frontend is implemented using the React, ViteJS, TypeScript and TailwindCSS
+stack, while backend is built in Python with the FastAPI framework.
+
+## IAM Configuration
+
+Before deploying the webapp, a new client must be registered on IAM.
+When registering your client, you must provide the Redirect URI pointing to the
+webapp, adding the `/callback` endpoint.
+For example, your deploy endpoint is `www.example.cloud.infn.it`, the Redirect
+URI field must be `www.example.cloud.infn.it/callback`.
+You can add multiple entries, for example for development you can also add
+`localhost:8080/callback` or `localhost:3000/localhost`, depending on your
+deployment configuration.  
 
 ## Deployment
 
 This project is configured with a CI/CD pipeline which builds two Docker images
 for backend and frontend services. The images are stored
-[here](https://baltig.infn.it/jgasparetto/ceph-webapp-poc/container_registry).
+[here](https://baltig.infn.it/infn-cloud/webapp-rgw/container_registry).
 
 ## Docker Compose
 
@@ -49,6 +63,12 @@ docker compose -f docker-compose.dev.yaml up --build -d
 ```
 
 for development.
+
+### TLS/SSL Termination
+
+This project does not provide a setup to configure TLS/SSL termination for https.
+In order to enable HTTPS, please modify the [nginx/default.conf](nginx/default.conf)
+configuration file as you wish.
 
 ## Manual Deployment
 
