@@ -3,7 +3,7 @@
 This project consists in web application to easily access file objects stored
 with Ceph Object Storage/RADOS Gateway, using the S3 protocol. Parallel to the
 webapp frontend, a backend service is shipped to provide a workaround for IAM
-access until the PIXE protocol will be fully supported.
+access until the PKCE protocol will be fully supported.
 
 The project is located [here](https://baltig.infn.it/infn-cloud/webapp-rgw/).
 
