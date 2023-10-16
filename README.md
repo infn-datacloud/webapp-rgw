@@ -1,4 +1,4 @@
-# RADOS Gateway Webapp
+# RADOS Gateway Web Application
 
 This project consists in web application to easily access file objects stored
 with Ceph Object Storage/RADOS Gateway, using the S3 protocol. Parallel to the
