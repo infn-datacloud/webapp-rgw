@@ -1,9 +1,7 @@
-import {
-  NotificationsProvider,
-} from "./NotificationsProvider";
+import { NotificationsProvider } from "./NotificationsProvider";
 import { NotificationProps } from "./types";
-import { Notification } from "./component";
 import { useNotifications } from "./useNotifications";
+import { Notification } from "./component";
 
 type Props = {
   Comp?: React.ComponentType
