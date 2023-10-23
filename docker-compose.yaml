@@ -7,12 +7,6 @@ services:
     env_file:
       - frontend/envs/prod.env
   
-  backend:
-    container_name: backend
-    image: baltig.infn.it:4567/infn-cloud/webapp-rgw/backend:latest
-    env_file:
-      - backend/envs/prod.env
-  
   nginx:
     image: nginx:latest
     container_name: nginx

@@ -24,18 +24,6 @@ services:
     env_file:
       - frontend/envs/prod.env
   
-  backend:
-    container_name: backend
-    image: backend
-    build:
-      context: backend
-    volumes:
-      - ./backend/src/:/app/
-    environment:
-      - WATCHFILES_FORCE_POLLING=true   # Enable uvicorn auto-reload
-    env_file:
-      - ./backend/envs/dev.env
-  
   nginx:
     image: nginx:latest
     container_name: nginx
