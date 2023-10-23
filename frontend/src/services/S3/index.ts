@@ -1,3 +1,4 @@
-export * from "./service"
+export * from "./S3Provider"
 export * from "./types"
-export * from "./wrapper"
+export * from "./withS3"
+export * from "./useS3"

@@ -1,5 +1,5 @@
 import { Page } from "../../components/Page";
-import { useS3Service, CreateBucketArgs } from "../../services/S3";
+import { useS3, CreateBucketArgs } from "../../services/S3";
 import { useState } from "react";
 import { Toolbar } from "./Toolbar";
 import { BucketSummaryView } from "./BucketSummaryView";
@@ -17,7 +17,7 @@ export const BucketAdministration = () => {
   const [selectedBucket, setSelectedBucket] = useState<string | undefined>();
   const { notify } = useNotifications();
   const { createBucket, deleteBucket, getBucketVersioning, setBucketVersioning,
-    getBucketObjectLock, setBucketObjectLock } = useS3Service();
+    getBucketObjectLock, setBucketObjectLock } = useS3();
 
   const onCloseNewBucketModal = () => {
     setShowNewBucketModal(false);

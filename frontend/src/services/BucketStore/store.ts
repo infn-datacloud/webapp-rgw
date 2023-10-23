@@ -1,6 +1,6 @@
 import { Bucket, _Object } from "@aws-sdk/client-s3";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useS3Service } from "../S3";
+import { useS3 } from "../S3";
 import { BucketInfo } from "../../models/bucket";
 
 interface BucketStoreContext {
@@ -19,7 +19,7 @@ const defaultBucketStore: BucketStoreContext = {
 
 
 export function CreateBucketStore() {
-  const { isAuthenticated, fetchBucketList, listObjects } = useS3Service();
+  const { isAuthenticated, fetchBucketList, listObjects } = useS3();
   const [bucketList, setBucketList] = useState<Bucket[]>([]);
   const [bucketInfos, setBucketInfos] = useState<BucketInfo[]>([]);
 

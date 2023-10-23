@@ -10,8 +10,3 @@ export interface CreateBucketArgs {
   versioningEnabled: boolean;
   objectLockEnabled: boolean;
 }
-
-
-export interface S3ServiceProviderProps {
-  awsConfig: AWSConfig;
-}

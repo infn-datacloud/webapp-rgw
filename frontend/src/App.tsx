@@ -4,7 +4,7 @@ import {
 } from 'react-router-dom';
 import { staticRoutes } from './routes';
 import { withBucketStore } from './services/BucketStore';
-import { S3ServiceProviderProps, withS3 } from './services/S3';
+import { S3ProviderProps, useS3, withS3 } from './services/S3';
 import { withNotifications } from './services/Notifications';
 import { useAuth } from 'react-oidc-context';
 import { withOAuth2 } from './services/OAuth2/wrapper';

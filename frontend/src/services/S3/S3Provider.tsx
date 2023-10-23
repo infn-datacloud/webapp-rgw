@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
-import { AWSConfig, CreateBucketArgs, S3ServiceProviderProps } from "./types";
-import { useOAuth } from "../OAuth2";
+import { useCallback, useReducer } from "react";
+import { CreateBucketArgs } from "./types";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
+import type { AWSConfig } from "./types";
 import {
   Bucket,
   ListBucketsCommand,
@@ -10,142 +10,125 @@ import {
   ListObjectsV2Command,
   _Object,
   CreateBucketCommand,
-  CreateBucketCommandOutput,
   PutBucketVersioningCommand,
-  PutBucketVersioningCommandOutput,
   GetBucketVersioningCommand,
   VersioningConfiguration,
   DeleteBucketCommand,
-  DeleteBucketCommandOutput,
   GetBucketVersioningCommandOutput,
   GetObjectLockConfigurationCommand,
-  GetObjectLockConfigurationCommandOutput,
   PutObjectLockConfigurationCommand,
-  PutObjectLockConfigurationCommandOutput,
   ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { OidcToken } from "../OAuth2/OidcConfig";
-import { useNotifications, NotificationType } from "../Notification";
+import { useNotifications, NotificationType } from "../Notifications";
 import { BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
 import { camelToWords } from "../../commons/utils";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
+import { initialAuthState } from "./S3State";
+import { reducer } from "./reducer";
+import { User } from "oidc-client-ts";
+import { useAuth } from "react-oidc-context";
+import { S3Context } from "./S3Context";
 
 const ONE_MB = 1024 * 1024;
 
-export interface S3ContextProps {
-  awsConfig: AWSConfig;
-  client: S3Client;
-  isAuthenticated: boolean;
-  loginWithCredentials: (credentials: AwsCredentialIdentity) => void;
-  logout: () => void;
-  fetchBucketList: () => Promise<Bucket[]>;
-  listObjects: (bucket: Bucket) => Promise<_Object[]>;
-  getPresignedUrl: (bucket: string, key: string) => Promise<string>;
-  createBucket: (args: CreateBucketArgs) => Promise<CreateBucketCommandOutput>;
-  deleteBucket: (bucket: string) => Promise<DeleteBucketCommandOutput>;
-  downloadObject: (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => Promise<Blob>;
-  uploadObject: (bucket: string, object: FileObjectWithProgress, onChange?: () => void) => void;
-  getBucketVersioning: (bucket: string) => Promise<GetBucketVersioningCommandOutput>;
-  setBucketVersioning: (bucket: string, enabled: boolean) => Promise<PutBucketVersioningCommandOutput>;
-  getBucketObjectLock: (bucket: string) => Promise<GetObjectLockConfigurationCommandOutput>;
-  setBucketObjectLock: (bucket: string, enabled: boolean) => Promise<PutObjectLockConfigurationCommandOutput>;
+interface S3PropsBase {
+  children?: React.ReactNode;
 }
 
-export const S3ServiceContext = createContext<S3ContextProps | undefined>(undefined);
+export interface S3ProviderProps extends S3PropsBase {
+  awsConfig: AWSConfig;
+}
 
-// ***** S3Service *****
-
-export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
-  const { awsConfig } = props;
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [client, setClient] = useState<S3Client>(new S3Client({}));
-  const authRef = useRef<boolean>(false);
-  const oAuth = useOAuth();
+export const S3Provider = (props: S3ProviderProps): JSX.Element => {
+  const { children, awsConfig } = props;
   const { notify } = useNotifications();
-
-  authRef.current = isAuthenticated;
+  const oAuth = useAuth();
+  const [state, dispatch] = useReducer(reducer, initialAuthState);
+  const { client } = state;
 
   // Exchange token for AWS Credentials with AssumeRoleWebIdentity
-  const getAWSCredentials = useCallback((token: OidcToken) => {
+  const loginWithSTS = useCallback(async (user: User) => {
+    dispatch({ type: "LOGGING_IN" });
+    const access_token = user.access_token;
+    if (!access_token) {
+      console.error("Cannot get AWS credentials: access_token is undefined");
+      return;
+    }
+
     console.log("Get AWS Credentials from STS");
     const sts = new STSClient({ ...awsConfig });
     const command = new AssumeRoleWithWebIdentityCommand({
       DurationSeconds: awsConfig.roleSessionDurationSeconds,
       RoleArn: awsConfig.roleArn,
       RoleSessionName: crypto.randomUUID(),
-      WebIdentityToken: token.access_token,
+      WebIdentityToken: access_token,
     });
 
-    sts.send(command)
-      .then(response => {
-        const { Credentials } = response;
-        if (!Credentials) {
-          throw new Error("Credentials not found");
+    let response = await sts.send(command);
+
+    try {
+      const { Credentials } = response;
+      if (!Credentials) {
+        throw new Error("Credentials not found");
+      }
+      const { AccessKeyId, SecretAccessKey, SessionToken } = Credentials;
+      if (AccessKeyId && SecretAccessKey && SessionToken) {
+        const awsCredentials = {
+          accessKeyId: AccessKeyId,
+          secretAccessKey: SecretAccessKey,
+          sessionToken: SessionToken
         }
-        const { AccessKeyId, SecretAccessKey, SessionToken } = Credentials;
-        if (AccessKeyId && SecretAccessKey && SessionToken) {
-          const awsCredentials = {
-            accessKeyId: AccessKeyId,
-            secretAccessKey: SecretAccessKey,
-            sessionToken: SessionToken
-          }
-          const { endpoint, region } = awsConfig;
-          setClient(new S3Client({
-            endpoint: endpoint,
-            region: region,
-            credentials: awsCredentials,
-            forcePathStyle: true
-          }));
-          setIsAuthenticated(true);
-          console.log("Authenticated via STS");
-          authRef.current = true;
-        } else {
-          console.warn("Warning: some one or more AWS Credentials member is empty");
-        }
-      }).catch((err: Error) => {
+        const { endpoint, region } = awsConfig;
+        const config = {
+          endpoint: endpoint,
+          region: region,
+          credentials: awsCredentials,
+          forcePathStyle: true
+        };
+        const client = new S3Client(config)
+        dispatch({ type: "LOGGED_IN", client });
+        console.log("Authenticated via STS");
+      } else {
+        console.warn("Warning: some one or more AWS Credentials member is empty");
+      }
+    } catch (err) {
+      if (err instanceof Error) {
         notify("Cannot retrieve AWS Credentials from STS",
           camelToWords(err.name), NotificationType.error);
-        setIsAuthenticated(false);
-        authRef.current = false;
-        oAuth.logout();
-      });
+      } else {
+        console.error(err);
+      }
+      dispatch({ type: "LOGGED_OUT" });
+    }
   }, [awsConfig, oAuth, notify]);
 
-  const loginWithCredentials = async (credentials: AwsCredentialIdentity) => {
+  const loginWithCredentials = useCallback(async (credentials: AwsCredentialIdentity) => {
+    dispatch({ type: "LOGGING_IN" });
     const { endpoint, region } = awsConfig;
-    const client = new S3Client({
+    const newClient = new S3Client({
       endpoint: endpoint,
       region: region,
       credentials: credentials,
       forcePathStyle: true
     });
     try {
-      await client.send(new ListBucketsCommand({}));
-      setClient(client);
-      authRef.current = true;
+      await newClient.send(new ListBucketsCommand({}));
+      console.log("Logged with plain credentials");
+      dispatch({ type: "LOGGED_IN", client: newClient });
     } catch (err) {
-      authRef.current = false;
+      dispatch({ type: "LOGGED_OUT" });
       if (err instanceof Error) {
         notify("Access failed", camelToWords(err.name), NotificationType.error);
       }
     }
-    setIsAuthenticated(authRef.current);
-  }
+  }, [awsConfig]);
 
   const logout = () => {
-    authRef.current = false;
-    setIsAuthenticated(authRef.current);
+    console.log("Log S3");
+    dispatch({ type: "LOGGED_OUT" });
   }
-
-  useEffect(() => {
-    oAuth.subscribe(getAWSCredentials);
-    return () => {
-      oAuth.unsubscribe(getAWSCredentials);
-    }
-  }, [oAuth, getAWSCredentials]);
-
 
   const fetchBucketList = async () => {
     const listBucketCmd = new ListBucketsCommand({});
@@ -198,8 +181,6 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
           completed = true;
         }
       } else {
-        notify(`Warning: bucket ${bucket.Name} has no content`, "",
-          NotificationType.warning);
         return [];
       }
     }
@@ -250,7 +231,6 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
         onChange();
       }
     }
-
     console.log("Download completed", blob.size, "bytes");
     return blob;
   }
@@ -309,36 +289,30 @@ export const CreateS3ServiceProvider = (props: S3ServiceProviderProps) => {
     return await client.send(cmd);
   }
 
-  return {
-    awsConfig: awsConfig,
-    client: client,
-    isAuthenticated: authRef.current,
-    loginWithCredentials: loginWithCredentials,
-    logout: () => logout(),
-    fetchBucketList: () => fetchBucketList(),
-    listObjects: (bucket: Bucket) => listObjects(bucket),
-    getPresignedUrl: getPresignedUrl,
-    createBucket: (args: CreateBucketArgs) => createBucket(args),
-    deleteBucket: (bucket: string) => deleteBucket(bucket),
-    downloadObject: downloadInChunks,
-    uploadObject: uploadManaged,
-    getBucketVersioning: (bucket: string) => getBucketVersioning(bucket),
-    setBucketVersioning: (bucket: string, enabled: boolean) => setBucketVersioning(bucket, enabled),
-    getBucketObjectLock: (bucket: string) => getBucketObjectLock(bucket),
-    setBucketObjectLock: (bucket: string, enabled: boolean) => setBucketObjectLock(bucket, enabled)
-  };
+  const downloadObject = downloadInChunks;
+  const uploadObject = uploadManaged;
+
+  return (
+    <S3Context.Provider
+      value={{
+        ...state,
+        loginWithSTS,
+        loginWithCredentials,
+        logout,
+        fetchBucketList,
+        getPresignedUrl,
+        createBucket,
+        deleteBucket,
+        listObjects,
+        downloadObject,
+        uploadObject,
+        getBucketVersioning,
+        setBucketVersioning,
+        getBucketObjectLock,
+        setBucketObjectLock
+      }}
+    >
+      {children}
+    </S3Context.Provider>
+  )
 };
-
-// **** useS3Service *****
-
-export const useS3Service = (): S3ContextProps => {
-  const context = useContext(S3ServiceContext);
-  if (!context) {
-    throw new Error(
-      "S3ServiceProvider context is undefined, " +
-      "please verify you are calling useS3Service " +
-      "as a child of <S3ServiceProvider> component."
-    );
-  }
-  return context;
-}

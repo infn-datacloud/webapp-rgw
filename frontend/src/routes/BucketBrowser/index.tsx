@@ -11,7 +11,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { useS3Service } from '../../services/S3/service';
+import { useS3 } from '../../services/S3';
 import { InputFile } from '../../components/InputFile';
 import {
   initNodePathTree,
@@ -65,7 +65,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState(new NodePath<BucketObject>(""));
-  const s3 = useS3Service();
+  const s3 = useS3();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>();
   const lockRef = useRef<boolean>(false);
@@ -92,7 +92,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     // Otherwise, set current path to root
     setCurrentPath(rootNodeRef.current);
   }, [currentPath.path]);
-
 
   const refreshBucketObjects = useCallback(() => {
     const f = async () => {
@@ -131,13 +130,10 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
 
   useEffect(() => {
-    if (!lockRef.current && s3.isAuthenticated) {
+    if (!lockRef.current) {
       refreshBucketObjects()
     }
-    return () => {
-      lockRef.current = s3.isAuthenticated;
-    }
-  }, [s3, s3.isAuthenticated, refreshBucketObjects])
+  }, [s3, refreshBucketObjects])
 
 
   const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {

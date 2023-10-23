@@ -2,15 +2,12 @@ import { ChangeEvent, useCallback, useEffect, useState } from "react"
 import { Button } from "../../components/Button"
 import { TextField } from "../../components/TextField"
 import { useOAuth } from "../../services/OAuth2";
-import { useS3Service } from "../../services/S3";
+import { useS3 } from "../../services/S3";
 import { Navigate } from "react-router-dom";
 
 
 export const Login = () => {
-
-  const oAuth = useOAuth();
-  const s3 = useS3Service();
-
+  const s3 = useS3();
   const [awsAccessKeyId, setAwsAccessKeyId] = useState("");
   const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");
   const { signinPopup } = oAuth;
@@ -49,7 +46,7 @@ export const Login = () => {
     };
   }, [loginEnabled, handleLogin]);
 
-  if (oAuth.isAuthenticated || s3.isAuthenticated) {
+  if (s3.isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
