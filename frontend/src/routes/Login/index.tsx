@@ -1,12 +1,13 @@
 import { ChangeEvent, useCallback, useEffect, useState } from "react"
 import { Button } from "../../components/Button"
 import { TextField } from "../../components/TextField"
-import { useOAuth } from "../../services/OAuth2";
+import { useAuth } from "react-oidc-context";
 import { useS3 } from "../../services/S3";
 import { Navigate } from "react-router-dom";
 
 
 export const Login = () => {
+  const oAuth = useAuth();
   const s3 = useS3();
   const [awsAccessKeyId, setAwsAccessKeyId] = useState("");
   const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");

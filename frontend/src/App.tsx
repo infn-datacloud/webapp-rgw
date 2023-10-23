@@ -7,9 +7,25 @@ import { withBucketStore } from './services/BucketStore';
 import { S3ProviderProps, useS3, withS3 } from './services/S3';
 import { withNotifications } from './services/Notifications';
 import { useAuth } from 'react-oidc-context';
-import { withOAuth2 } from './services/OAuth2/wrapper';
+import { useEffect, useRef } from 'react';
 
 const AppRaw = () => {
+  const oAuth = useAuth();
+  const s3 = useS3();
+  const didInit = useRef(false);
+
+  // If authenticated via oidc, try login with STS
+  useEffect(() => {
+    if (!didInit.current) {
+      console.log()
+      oAuth.events.addUserLoaded((user) => {
+        s3.loginWithSTS(user);
+      })
+      didInit.current = true;
+    }
+  }, [oAuth.events])
+
+  // Create router
   const routes = staticRoutes.map(route => {
     return {
       path: route.path,
@@ -27,14 +43,12 @@ const AppRaw = () => {
 }
 
 type AppProps = {
-  oidcConfig: OAuthProviderProps;
-  s3Config: S3ServiceProviderProps;
+  s3Config: S3ProviderProps;
 }
 
-export const App = ({ oidcConfig, s3Config }: AppProps) => {
+export const App = ({ s3Config }: AppProps) => {
   let ExtendedApp = withBucketStore(AppRaw);
   ExtendedApp = withS3(ExtendedApp, s3Config);
   ExtendedApp = withNotifications(ExtendedApp);
-  ExtendedApp = withOAuth2(ExtendedApp, oidcConfig);
   return ExtendedApp({});
 }

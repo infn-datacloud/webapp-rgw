@@ -1,13 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
+import { AuthProvider, AuthProviderProps } from 'react-oidc-context';
 import './index.css';
 
 // Add `env` namespace to window
 interface EnvInterface {
   IAM_AUTHORITY: string;
   IAM_CLIENT_ID: string;
-  IAM_REDIRECT_URI: string;
+  IAM_CLIENT_SECRET?: string;
   IAM_SCOPE: string;
   IAM_AUDIENCE: string;
   S3_ENDPOINT: string;
@@ -23,14 +24,17 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
-const oidcConfig = {
+const oidcConfig: AuthProviderProps = {
   authority: window.env.IAM_AUTHORITY,
   client_id: window.env.IAM_CLIENT_ID,
-  redirect_uri: window.env.IAM_REDIRECT_URI,
-  audience: window.env.IAM_AUDIENCE,
-  scope: window.env.IAM_SCOPE,
-  grant_type: "authorization_code",
-  response_type: "code"
+  client_secret: window.env.IAM_CLIENT_SECRET,
+  redirect_uri: `${new URL(window.location.href).origin}/callback`,
+  scope: "openid profile email",
+  response_type: "code",
+  monitorSession: true,
+  extraQueryParams: {
+    audience: window.env.IAM_AUDIENCE
+  },
 };
 
 const s3Config = {
@@ -44,9 +48,8 @@ const s3Config = {
 
 root.render(
   <React.StrictMode>
-    <App
-      oidcConfig={oidcConfig}
-      s3Config={s3Config}
-    />
+    <AuthProvider {...oidcConfig}>
+      <App s3Config={s3Config} />
+    </AuthProvider>
   </React.StrictMode>
 );
