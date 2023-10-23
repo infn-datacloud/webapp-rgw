@@ -31,21 +31,3 @@ export function withNotifications(WrappedComponent: React.FunctionComponent<Prop
     )
   }
 }
-
-/*
-export function withNotifications(WrappedComponent: React.FunctionComponent<Props>) {
-  return function (props: Props) {
-    const context = CreateNotificationContext();
-    const { notifications } = context;
-    return (
-      <NotificationContext.Provider value={context}>
-        <WrappedComponent {...props} />
-        {notifications.map(
-          (n: NotificationProps, i: number) =>
-            <Notification key={`notification-${i}`} {...n} />
-        )}
-      </NotificationContext.Provider>
-    );
-  };
-}
-*/
