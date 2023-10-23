@@ -5,8 +5,8 @@ import {
 import { staticRoutes } from './routes';
 import { withBucketStore } from './services/BucketStore';
 import { S3ServiceProviderProps, withS3 } from './services/S3';
-import { withNotifications } from './services/Notification';
-import { OAuthProviderProps } from './services/OAuth2';
+import { withNotifications } from './services/Notifications';
+import { useAuth } from 'react-oidc-context';
 import { withOAuth2 } from './services/OAuth2/wrapper';
 
 const AppRaw = () => {

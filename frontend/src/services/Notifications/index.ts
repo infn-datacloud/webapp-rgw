@@ -1,6 +1,6 @@
 import { Notification } from "./component";
 import { NotificationType } from "./types";
-import { useNotifications } from "./service";
-import { withNotifications } from "./wrapper";
+import { useNotifications } from "./useNotifications";
+import { withNotifications } from "./withNotifications";
 
 export { Notification, NotificationType, useNotifications, withNotifications };

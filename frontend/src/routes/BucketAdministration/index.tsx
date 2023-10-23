@@ -5,7 +5,7 @@ import { Toolbar } from "./Toolbar";
 import { BucketSummaryView } from "./BucketSummaryView";
 import { NewBucketModal } from "./NewBucketModal";
 import { useBucketStore } from "../../services/BucketStore/store";
-import { NotificationType, useNotifications } from "../../services/Notification";
+import { NotificationType, useNotifications } from "../../services/Notifications";
 import { BucketConfiguration, EditBucketModal } from "./EditBucketModal";
 import { camelToWords } from "../../commons/utils";
 

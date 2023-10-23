@@ -13,8 +13,3 @@ export interface NotificationProps {
   type: NotificationType;
   onDelete?: (id: number) => void;
 }
-
-export interface INotificationContext {
-  notify: (message: string, subtitle?: string, type?: NotificationType, timeout?: number) => void;
-  notifications: NotificationProps[];
-}

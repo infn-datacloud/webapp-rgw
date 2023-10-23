@@ -24,7 +24,7 @@ import {
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
 import { NodePath, camelToWords } from '../../commons/utils';
-import { NotificationType, useNotifications } from '../../services/Notification';
+import { NotificationType, useNotifications } from '../../services/Notifications';
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
 import { SearchFiled } from '../../components/SearchField';
@@ -118,10 +118,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             setCurrentPath(rootNodeRef.current);
           }
         })
-        .catch((err: Error) => {
-          notify("Cannot fetch bucket content",
-            camelToWords(err.name), NotificationType.error)
+        .catch((err) => {
           console.error(err);
+          if (err instanceof Error) {
+            notify("Cannot fetch bucket content",
+              camelToWords(err.name), NotificationType.error)
+          }
         });
     };
     f();
