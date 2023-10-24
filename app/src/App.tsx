@@ -17,7 +17,6 @@ const AppRaw = () => {
   // If authenticated via oidc, try login with STS
   useEffect(() => {
     if (!didInit.current) {
-      console.log()
       oAuth.events.addUserLoaded((user) => {
         s3.loginWithSTS(user);
       })
