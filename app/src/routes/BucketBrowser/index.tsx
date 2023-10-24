@@ -132,6 +132,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   useEffect(() => {
     if (!lockRef.current) {
       refreshBucketObjects()
+      lockRef.current = true;
     }
   }, [s3, refreshBucketObjects])
 
