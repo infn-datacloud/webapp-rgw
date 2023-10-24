@@ -1,2 +1,2 @@
-import { withBucketStore } from "./wrapper";
-export { withBucketStore };
+export { withBucketStore } from "./withBucketStore";
+export { useBucketStore } from "./useBucketStore";

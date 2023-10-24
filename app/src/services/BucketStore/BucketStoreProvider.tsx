@@ -1,27 +1,20 @@
 import { Bucket, _Object } from "@aws-sdk/client-s3";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useS3 } from "../S3";
+import { useEffect, useRef, useState } from "react";
+import { BucketStoreContext } from "./BucketStoreContext";
 import { BucketInfo } from "../../models/bucket";
+import { useS3 } from "../S3";
 
-interface BucketStoreContext {
-  bucketList: Bucket[];
-  bucketsInfos: BucketInfo[];
-  updateStore: () => void;
-  reset: () => void;
+interface BucketStoreProviderBaseProps {
+  children?: React.ReactNode;
 }
 
-const defaultBucketStore: BucketStoreContext = {
-  bucketList: [],
-  bucketsInfos: [],
-  updateStore: function () { },
-  reset: function () { }
-};
+export interface BucketStoreProviderProps extends BucketStoreProviderBaseProps { }
 
-
-export function CreateBucketStore() {
+export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Element => {
+  const { children } = props;
   const { isAuthenticated, fetchBucketList, listObjects } = useS3();
   const [bucketList, setBucketList] = useState<Bucket[]>([]);
-  const [bucketInfos, setBucketInfos] = useState<BucketInfo[]>([]);
+  const [bucketsInfos, setBucketsInfos] = useState<BucketInfo[]>([]);
 
   const fetchBuckets = async () => {
     console.debug("Fetching bucket list");
@@ -54,7 +47,7 @@ export function CreateBucketStore() {
       }
       return info;
     });
-    setBucketInfos(infos);
+    setBucketsInfos(infos);
   };
 
 
@@ -63,9 +56,9 @@ export function CreateBucketStore() {
     if (buckets && buckets.length > 0) {
       fetchBucketsInfos(buckets);
     } else {
-      setBucketInfos([]);
+      setBucketsInfos([]);
     }
-  }
+  };
 
   const fetchBucketLock = useRef<boolean>(false);
   useEffect(() => {
@@ -81,20 +74,20 @@ export function CreateBucketStore() {
 
   const reset = () => {
     setBucketList([]);
-    setBucketInfos([]);
+    setBucketsInfos([]);
     fetchBucketLock.current = false;
   }
 
-  return {
-    bucketList: bucketList,
-    bucketsInfos: bucketInfos,
-    updateStore: updateStore,
-    reset: reset
-  }
-}
-
-export const BucketStore = createContext<BucketStoreContext>(defaultBucketStore);
-
-export function useBucketStore() {
-  return useContext(BucketStore);
+  return (
+    <BucketStoreContext.Provider
+      value={{
+        bucketList,
+        bucketsInfos,
+        updateStore,
+        reset
+      }}
+    >
+      {children}
+    </BucketStoreContext.Provider>
+  )
 }
