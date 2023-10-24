@@ -178,5 +178,3 @@ The following endpoint are available
 
 - Webapp dev [localhost:3000](localhost:3000)
 - Webapp prod [localhost:8080](localhost:8080)
-- API dev [localhost:3000/api/v1/](localhost:3000/api/v1/)
-- API prod [localhost:8080/api/v1/](localhost:8080/api/v1/)
