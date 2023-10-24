@@ -51,10 +51,10 @@ build-test:
   before_script:
     - apt update && apt install -y jq
     - VERSION="$(cat version.txt)"
-    - PACKAGENAME="$(jq -r '.name' frontend/package.json)"
-    - echo "$(jq '.version="'"${VERSION}"'"' frontend/package.json)" > frontend/package.json
+    - PACKAGENAME="$(jq -r '.name' app/package.json)"
+    - echo "$(jq '.version="'"${VERSION}"'"' app/package.json)" > app/package.json
     - echo ${PACKAGENAME} > packagename.txt
-    - cd frontend
+    - cd app
   script:
     - npm ci
     - npm run test
@@ -63,7 +63,7 @@ build-test:
   artifacts:
     paths:
       - packagename.txt
-      - frontend/*.tar.gz # Known issue w/ variable expansion https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29141
+      - app/*.tar.gz # Known issue w/ variable expansion https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29141
 
 release:
   image: node:20
@@ -85,7 +85,7 @@ deploy-package:
     - VERSION="$(cat version.txt)"
     - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
   script:
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "frontend/${PACKAGE_FULLNAME}"
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "app/${PACKAGE_FULLNAME}"
       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/$VERSION/${PACKAGE_FULLNAME}"'
   only:
     refs:
@@ -105,7 +105,7 @@ deploy-docker:
     - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-    - docker build frontend -f frontend/Dockerfile.prod --pull -t "${TEST_IMAGE}" --build-arg VERSION="${VERSION}"
+    - docker build app -f app/Dockerfile.prod --pull -t "${TEST_IMAGE}" --build-arg VERSION="${VERSION}"
     - docker tag "${TEST_IMAGE}" "${BASE_IMAGE}:v${VERSION}"
     - docker push "${BASE_IMAGE}:v${VERSION}"
     - |

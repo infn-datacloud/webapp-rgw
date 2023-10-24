@@ -1,11 +1,11 @@
 version: '3'
 
 services:
-  frontend:
-    container_name: frontend
-    image: baltig.infn.it:4567/infn-cloud/webapp-rgw/frontend:latest
+  app:
+    container_name: webapp-rgw
+    image: baltig.infn.it:4567/infn-cloud/webapp-rgw:latest
     env_file:
-      - frontend/envs/prod.env
+      - app/envs/prod.env
   
   nginx:
     image: nginx:latest

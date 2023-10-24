@@ -1,28 +1,28 @@
 version: '3'
 
 services:
-  frontend-dev:
-    container_name: frontend-dev
-    image: frontend-dev
+  webapp-dev:
+    container_name: webapp-rgw-dev
+    image: webapp-rgw:dev
     build:
       dockerfile: Dockerfile.dev
-      context: frontend
+      context: app
     volumes:
-      - ./frontend/:/app/
+      - ./app/:/app/
       - node_modules:/app/node_modules
     env_file:
-      - frontend/envs/dev.env
+      - ./app/envs/dev.env
   
-  frontend:
-    container_name: frontend
-    image: frontend
+  webapp:
+    container_name: webapp-rgw
+    image: webapp-rgw
     build:
-      context: frontend
+      context: app
       dockerfile: Dockerfile.prod
       args:
-        - VERSION=1.2.3
+        VERSION: 6.6.6
     env_file:
-      - frontend/envs/prod.env
+      - ./app/envs/prod.env
   
   nginx:
     image: nginx:latest
