@@ -4,10 +4,10 @@ import { Column, Table } from '../../components/Table';
 import { Button } from '../../components/Button';
 import { BucketInspector } from '../../components/BucketInspector';
 import {
-  ArrowLeftIcon,
   ArrowUpOnSquareIcon,
   ChevronLeftIcon,
   FolderIcon,
+  HomeIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
@@ -137,8 +137,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }, [s3, refreshBucketObjects])
 
 
-  const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
-    const { checked } = el.target;
+  const onSelect = (checked: boolean, index: number) => {
     const objectName = Array.from(currentPath.children.values())[index].basename;
     const next = currentPath.get(objectName);
     if (!next) {
@@ -165,11 +164,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     setSelectedRows(newSelection);
   }
 
-  const onClick = (event: MouseEvent<HTMLTableRowElement>, index: number) => {
-    const { type } = (event.target as HTMLInputElement);
-    if (type === "checkbox") {
-      return;
-    }
+  const onClick = (index: number) => {
     const objectName = Array.from(currentPath.children.values())[index].basename;
 
     if (!objectName) {
@@ -397,8 +392,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           <div className="flex mt-8 place-content-between">
             <div className='flex space-x-4'>
               <Button
-                title="Back"
-                icon={<ArrowLeftIcon />}
+                title="Home"
+                icon={<HomeIcon />}
                 onClick={() => navigate(-1)}
               />
               <InputFile

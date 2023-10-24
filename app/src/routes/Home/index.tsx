@@ -21,7 +21,7 @@ export const Home = () => {
     ]
   });
 
-  const onClick = (_: React.MouseEvent<HTMLTableRowElement>, index: number) => {
+  const onClick = (index: number) => {
     const bucketName = bucketList[index].Name;
     if (bucketName) {
       setSearchParams(new URLSearchParams({ bucket: bucketName }));
