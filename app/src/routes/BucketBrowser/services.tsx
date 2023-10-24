@@ -19,8 +19,11 @@ export const initNodePathTree = (bucketObjects: BucketObject[],
     let path = object.Key;
     const pathElements = path.split("/");
     const basename = pathElements.pop();
+    const lastModified = object.LastModified ?
+      new Date(object.LastModified) : undefined;
     path = pathElements.length > 0 ? pathElements.join("/") : "";
-    node.addChild(new NodePath(basename ?? "unknown", object, object.Size), path);
+    node.addChild(new NodePath(basename ?? "unknown",
+      object, object.Size, lastModified), path);
   });
 }
 
@@ -48,7 +51,7 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
       )
     };
 
-    const lastModified = moment(child.value?.LastModified).calendar() ?? "N/A";
+    const lastModified = moment(child.lastModified).calendar() ?? "N/A";
 
     return [
       { columnId: "icon", value: <Icon /> },

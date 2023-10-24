@@ -31,12 +31,15 @@ export class NodePath<T> {
   value?: T;
   children: Map<string, NodePath<T>>;
   size: number;
+  lastModified: Date;
 
-  constructor(basename: string, value?: T, size: number = 0) {
+  constructor(basename: string, value?: T, size: number = 0,
+    lastModified = new Date("1970-01-01")) {
     this.basename = basename;
     this.value = value;
     this.size = size;
     this.children = new Map<string, NodePath<T>>();
+    this.lastModified = lastModified;
   }
 
   clone() {
@@ -66,9 +69,12 @@ export class NodePath<T> {
       this.children.set(node.basename, node);
       // Walk the entire tree to sum up the file size
       if (node.size > 0) {
-        let parent : NodePath<T> | undefined = node.parent;
+        let parent: NodePath<T> | undefined = node.parent;
         while (parent) {
           parent.size += node.size;
+          if (node.lastModified > parent.lastModified) {
+            parent.lastModified = node.lastModified;
+          }
           parent = parent.parent;
         }
       }
