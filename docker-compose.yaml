@@ -1,22 +1,37 @@
 version: '3'
 
 services:
-  frontend:
-    container_name: frontend
-    image: baltig.infn.it:4567/infn-cloud/webapp-rgw/frontend:latest
+  webapp-dev:
+    container_name: webapp-rgw-dev
+    image: webapp-rgw:dev
+    build:
+      dockerfile: Dockerfile.dev
+      context: app
+    volumes:
+      - ./app/:/app/
+      - node_modules:/app/node_modules
     env_file:
-      - frontend/envs/prod.env
+      - ./app/envs/dev.env
   
-  backend:
-    container_name: backend
-    image: baltig.infn.it:4567/infn-cloud/webapp-rgw/backend:latest
+  webapp:
+    container_name: webapp-rgw
+    image: webapp-rgw
+    build:
+      context: app
+      dockerfile: Dockerfile.prod
+      args:
+        VERSION: 6.6.6
     env_file:
-      - backend/envs/prod.env
+      - ./app/envs/prod.env
   
   nginx:
     image: nginx:latest
     container_name: nginx
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - 8080:80
+      - 8080:8080
+      - 3000:3000
+
+volumes:
+  node_modules:

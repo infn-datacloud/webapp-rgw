@@ -1,151 +1,138 @@
 # RADOS Gateway Web Application
 
 This project consists in web application to easily access file objects stored
-with Ceph Object Storage/RADOS Gateway, using the S3 protocol. Parallel to the
-webapp frontend, a backend service is shipped to provide a workaround for IAM
-access until the PKCE protocol will be fully supported.
+with Ceph Object Storage/RADOS Gateway, using the AWS S3 protocol for object
+handling, and the OAuth2/OpenID Connect to allow authn/authz with Indigo IAM.
 
-The project is located [here](https://baltig.infn.it/infn-cloud/webapp-rgw/).
+The webapp is implemented using the React, ViteJS, TypeScript and TailwindCSS,
+as core frameworks,
+and [aws-sdk v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/)
+framework and [react-oidc-context](https://github.com/authts/react-oidc-context)
+library for S3 operations and Oidc/OAuth2 login respectively.
 
-Frontend is implemented using the React, ViteJS, TypeScript and TailwindCSS
-stack, while backend is built in Python with the FastAPI framework.
+## Indigo IAM Configuration
 
-## IAM Configuration
-
-Before deploying the webapp, a new client must be registered on IAM.
+Before deploying the webapp, a new client must be registered on Indigo IAM.
 When registering your client, you must provide the Redirect URI pointing to the
 webapp, adding the `/callback` endpoint.
-For example, your deploy endpoint is `www.example.cloud.infn.it`, the Redirect
-URI field must be `www.example.cloud.infn.it/callback`.
+For example, if your deploy endpoint is `https://example.cloud.infn.it`,
+the Redirect URI field must be `https://example.cloud.infn.it/callback`.
 You can add multiple entries, for example for development you can also add
-`localhost:8080/callback` or `localhost:3000/localhost`, depending on your
-deployment configuration.  
+`http://localhost:8080/callback` or `http://localhost:3000/localhost`, depending
+on your deployment configuration.
+**Note:** if you need both `http` and `https`, be sure the add both the redirect
+uris.
+
+### PKCE Security Protocol
+
+Even though this is not strictly required, it is highly recommended to enable
+the PKCE security capability in your Iam Access Manager (IAM) in order to
+protect the authorization flow.
+
+> **Important** This is a *public* client, which means that is served to
+> an unlimited amount of users. The `client_secret` for your IAM's client is
+> thus completely visible to your browser, meaning that **it is not a secret**
+> at all, and thus one can use it to interact with IAM.
+
+The Proof Key for Code Exchange (PKCE) is designed to protect the user from
+replay attacks. To have a better understanding about how PKCE works, please
+refer to [this document](https://oauth.net/2/pkce/).
+
+In order to enable PKCE in Indigo IAM, with your browser go the administration
+page of your client. In the **Crypto** tab enable `SHA-256 hash algorithm` for
+the `Proof key for code exchange (PKCE) challenge method` section.
 
 ## Deployment
 
 This project is configured with a CI/CD pipeline which builds two Docker images
-for backend and frontend services. The images are stored
+for development and production releases. The images are stored
 [here](https://baltig.infn.it/infn-cloud/webapp-rgw/container_registry).
 
-## Docker Compose
+## Docker Deployment
 
-This project is shipped with a ready to use `docker-compose.yaml` for production
-deployment and one `docker-compose.dev.yaml` file for development. Both files
-start the backend and frontend services, along with a NGINX instance to handle
-networking.
-
-Before running the deployment, you must create a set of environment files for
-both the backend and frontend services. You can start from the example files
-located at `backend/envs/example.dev` and `frontend/envs/example.dev`.
-
-For example, to configure both the development and production frontend services
-and the backend, create the following files
-
-```bash
-cp backend/envs/example.env  backend/envs/prod[dev].env
-cp frontend/envs/example.env frontend/envs/prod[dev].env
-```
-
-A detailed description of the environmental variables is presented in the
-following Manual Deployment section.
-
-Edit these files with your settings and adjust env paths in the
-`docker-compose[.dev].yaml` files accordingly.
-
-Deploy the services for production with running
-
-```bash
-docker compose up -d --build
-```
-
-or
-
-```bash
-docker compose -f docker-compose.dev.yaml up --build -d
-```
-
-for development.
-
-### TLS/SSL Termination
-
-This project does not provide a setup to configure TLS/SSL termination for https.
-In order to enable HTTPS, please modify the [nginx/default.conf](nginx/default.conf)
-configuration file as you wish.
-
-## Manual Deployment
-
-### Frontend Configuration
-
-The frontend service consists in a NGINX web server provided with the static
-website files produces by React build. The site must be configure as a
+The webapp service consists in a NGINX web server provided with the static
+website files produces by React's build. The site must be configured as a
 "Single Page App" (SPA). In this context, all routes routed through the web
 browser must be **always** redirect to the `/` route.
 [Here](frontend/nginx.conf) you can find the default configuration.
 
 The web application needs a configured environment file `env.js` located at
-`frontend/public/env.js`. This file is automatically created at runtime, inside
-the container, by the [`frontend/init_env.sh`](frontend/init_env.sh) script.
+`app/public/env.js`. This file is automatically created at runtime, inside
+the container, by the [`app/init_env.sh`](app/init_env.sh) script.
 
-In order to run, the following variables are required to be set in the
-container.
+To deploy the webapp, simply copy and edit the
+[app/env/example.env](app/env/example.env) file using your custom parameters.
 
-```shell
-IAM_AUTHORITY
-IAM_CLIENT_ID
-IAM_REDIRECT_URI
-IAM_SCOPE
-IAM_AUDIENCE
-S3_ENDPOINT
-S3_REGION   # Cannot be empty, use whatever you want if not need, e.g. 'nova'
+```bash
+cp app/env/example.env infn-cloud-prod.env
+vi infn-cloud-prod.env
+
+IAM_AUTHORITY=https://iam.cloud.cnaf.infn.it
+IAM_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+IAM_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+IAM_AUDIENCE=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+IAM_SCOPE=openid email profile offline_access
+S3_ENDPOINT=https://rgw.cloud.infn.it
+S3_REGION=ceph-objectstore
+S3_ROLE_ARN=arn:aws:iam:::role/S3AccessIAM200
+S3_ROLE_DURATION_SECONDS=3600
 ```
 
-In addition, you must bind the port 80 to your container.
+To start the service, run:
 
 ```shell
 docker run \
   -p 8080:80 \
-  -e IAM_AUTHORITY=... \
-  -e ... \
-  frontend
+  --env-file infn-cloud-prod.env \
+  --restart unless-stopped \
+  baltig.infn.it:4567/infn-cloud/webapp-rgw:latest
 ```
 
-If you need, you can also provide a custom configuration for the nginx web server
-using the command
+If you need, you can also provide a custom configuration for the nginx web
+server, for example to add TLS encryption, using the command:
 
 ```shell
 docker run \
   -p 8080:80 \ 
-  -e IAM_AUTHORITY=... \
-  -e ... \
+  --env-file infn-cloud-prod.env \
+  --restart unless-stopped \
   -v <path/to/your/conf>:/etc/nginx/conf.d/default.conf \
-  frontend
+  -v <path/to/your/certs>:<path/to/your/certs> \
+  baltig.infn.it:4567/infn-cloud/webapp-rgw:latest
 ```
 
-### Backend Configuration
+## Docker Compose (development)
 
-To run the backend service, the following environmental variables
-are required to be set in the container
+This project is shipped with a `docker-compose.yaml` intended for development
+only. This compose file starts two releases of the webapp, one for development
+and one for production, plus a minimal instance of NGINX to manage networking.
 
-```shell
-IAM_AUTHORITY
-IAM_CLIENT_ID
-IAM_CLIENT_SECRET
-S3_ENDPOINT
-S3_ROLE_ARN
-S3_REGION_NAME     # can be empty, but defined
+Before running the services, you must create an environment file with your
+parameters. You can start from the example file located at
+`app/envs/example.dev`.
+
+For example, to configure both the development and production frontend releases,
+create the following files
+
+```bash
+cp app/envs/example.env  app/envs/dev.env
+cp app/envs/example.env  app/envs/prod.env
 ```
 
-You find an example at [example.dev](backend/envs/example.env).
+Edit these files with your settings and adjust env paths in the
+`docker-compose.yaml` files accordingly.
 
-In addition, you must bind the port 8000 to your container.
+Start the services with
 
-```shell
-docker run \
-  -p 8080:8000 \ 
-  -e IAM_AUTHORITY=... \
-  -e ... \
-  backend
+```bash
+docker compose up -d --build
 ```
+
+### TLS/SSL Termination
+
+This project does not provide a setup to configure TLS/SSL termination for https.
+In order to enable HTTPS, please create your NGINX configuration and mount it
+as volume to your container's directory `/etc/nginx`.
 
 ## Kubernetes
 
