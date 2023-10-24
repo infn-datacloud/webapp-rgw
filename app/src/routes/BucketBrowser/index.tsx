@@ -137,8 +137,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }, [s3, refreshBucketObjects])
 
 
-  const onSelect = (el: ChangeEvent<HTMLInputElement>, index: number) => {
-    const { checked } = el.target;
+  const onSelect = (checked: boolean, index: number) => {
     const objectName = Array.from(currentPath.children.values())[index].basename;
     const next = currentPath.get(objectName);
     if (!next) {
@@ -165,11 +164,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     setSelectedRows(newSelection);
   }
 
-  const onClick = (event: MouseEvent<HTMLTableRowElement>, index: number) => {
-    const { type } = (event.target as HTMLInputElement);
-    if (type === "checkbox") {
-      return;
-    }
+  const onClick = (index: number) => {
     const objectName = Array.from(currentPath.children.values())[index].basename;
 
     if (!objectName) {

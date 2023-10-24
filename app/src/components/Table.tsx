@@ -1,6 +1,4 @@
-// import './Table.css'
-
-import { ChangeEvent, MouseEvent, useState } from "react";
+import { useState } from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -24,8 +22,8 @@ interface TableParams {
   data: Value[][];
   selectable?: boolean;
   selectedRows?: Set<number>;
-  onClick?: (element: MouseEvent<HTMLTableRowElement>, index: number) => void
-  onSelect?: (element: ChangeEvent<HTMLInputElement>, index: number) => void
+  onClick?: (index: number) => void
+  onSelect?: (selected: boolean, index: number) => void
 }
 
 export const Table = (props: TableParams) => {
@@ -65,6 +63,32 @@ export const Table = (props: TableParams) => {
     );
   };
 
+  interface SelectableCellProps {
+    index: number;
+    initValue: boolean;
+    onSelect?: (selected: boolean, index: number) => void;
+  }
+
+  const SelectableCell = (props: SelectableCellProps) => {
+    const { index, initValue, onSelect } = props;
+    const [checked, setChecked] = useState(initValue);
+
+    return (
+      <td className="pl-4" onClick={(_) => {
+        const newState = !checked;
+        setChecked(newState);
+        onSelect?.(newState, index)
+      }}>
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={el => setChecked(el.target.checked)}
+          id="table-checkbox"
+        />
+      </td>
+    )
+  }
+
   const Body = () => {
     const start = currentPage * itemsPerPage;
     const end = start + itemsPerPage;
@@ -86,19 +110,15 @@ export const Table = (props: TableParams) => {
             return <tr
               className="hover:bg-slate-200 text-slate-500
                hover:text-slate-800 hover:cursor-pointer"
-              onClick={(el) => onClick?.(el, absoluteIndex)}
+              // onClick={(el) => onClick?.(el, absoluteIndex)}
               key={rowIndex}>
               {
                 selectable ?
-                  <td className="pl-4">
-                    <input
-                      type="checkbox"
-                      onChange={(el) => (onSelect && onSelect(el, absoluteIndex))}
-                      checked={selectedRows && selectedRows.has(absoluteIndex)}
-                      id="table-checkbox"
-                    >
-                    </input>
-                  </td> : null
+                  <SelectableCell
+                    index={absoluteIndex}
+                    initValue={selectedRows?.has(absoluteIndex) ?? false}
+                    onSelect={onSelect}
+                  /> : null
               }
               {columnIds.map((colId, index) => {
                 const rawCell = row.get(colId);
@@ -110,6 +130,7 @@ export const Table = (props: TableParams) => {
                   title={typeof rawCell === "string" ? rawCell : ""}
                   className={"border-b border-slate-100 p-4 first:pl-8 " +
                     "last:pr-8 text-left " + colId}
+                  onClick={(_) => onClick?.(absoluteIndex)}
                   key={index}>
                   {row.get(colId)}
                 </td>
@@ -124,7 +145,7 @@ export const Table = (props: TableParams) => {
   const Paginator = () => {
     const textStyle = "leading-tight text-gray-500 hover:text-gray-700"
     const buttonStyle = "flex w-8 h-8 ml-0 bg-white border border-gray-300 \
-      hover:bg-gray-100"
+        hover:bg-gray-100"
 
     return (
       <div className={`${textStyle} flex justify-between w-full items-center px-4 pb-2 -space-x-px`}>
