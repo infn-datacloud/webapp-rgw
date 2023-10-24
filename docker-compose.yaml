@@ -1,16 +1,37 @@
 version: '3'
 
 services:
-  app:
-    container_name: webapp-rgw
-    image: baltig.infn.it:4567/infn-cloud/webapp-rgw:latest
+  webapp-dev:
+    container_name: webapp-rgw-dev
+    image: webapp-rgw:dev
+    build:
+      dockerfile: Dockerfile.dev
+      context: app
+    volumes:
+      - ./app/:/app/
+      - node_modules:/app/node_modules
     env_file:
-      - app/envs/prod.env
+      - ./app/envs/dev.env
+  
+  webapp:
+    container_name: webapp-rgw
+    image: webapp-rgw
+    build:
+      context: app
+      dockerfile: Dockerfile.prod
+      args:
+        VERSION: 6.6.6
+    env_file:
+      - ./app/envs/prod.env
   
   nginx:
     image: nginx:latest
     container_name: nginx
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - 8080:80
+      - 8080:8080
+      - 3000:3000
+
+volumes:
+  node_modules:
