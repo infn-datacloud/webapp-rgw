@@ -163,7 +163,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   };
 
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
-    const content: _Object[] = []
+    let content: _Object[] = []
     let completed = false;
     let continuationToken: string | undefined = undefined;
     while (!completed) {
@@ -174,7 +174,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       const response: ListObjectsV2CommandOutput = await client.send(cmd);
       const { Contents, IsTruncated, NextContinuationToken } = response;
       if (Contents) {
-        content.concat(Contents);
+        content = content.concat(Contents);
         if (IsTruncated) {
           continuationToken = NextContinuationToken;
         } else {

@@ -34,32 +34,27 @@ export function CreateBucketStore() {
     }
   };
 
-  const fetchBucketsInfos = (buckets: Bucket[]) => {
-    const promisesMap = buckets.reduce<Map<string, Promise<_Object[]>>>((acc, bucket) => {
-      if (!bucket.Name) return acc;
-      acc.set(bucket.Name, listObjects(bucket));
-      return acc;
-    }, new Map());
-
-    Promise.all(promisesMap.values())
-      .then(response => {
-        const _bucketInfos: BucketInfo[] = [];
-        for (let i = 0; i < response.length; ++i) {
-          const bucketInfo = response[i].reduce<BucketInfo>((acc, el) => {
-            acc.size += el.Size ?? 0.0;
-            acc.objects++;
-            return acc;
-          }, {
-            name: buckets[i].Name ?? "N/A",
-            creation_date: buckets[i].CreationDate?.toString() ?? "N/A",
-            rw_access: { read: true, write: true },
-            objects: 0,
-            size: 0
-          });
-          _bucketInfos.push(bucketInfo);
-        }
-        setBucketInfos(_bucketInfos);
-      });
+  const fetchBucketsInfos = async (buckets: Bucket[]) => {
+    const promises = buckets.map(bucket => listObjects(bucket));
+    const objectsLists = await Promise.all(promises);
+    const infos = buckets.map((bucket, i) => {
+      const objects = objectsLists[i];
+      let info: BucketInfo = {
+        name: bucket.Name ?? "N/A",
+        creation_date: bucket.CreationDate?.toString() ?? "N/A",
+        rw_access: { read: true, write: true },
+        objects: 0,
+        size: 0
+      }
+      if (objects) {
+        objects.forEach(o => {
+          ++info.objects;
+          info.size += o.Size ?? 0.0;
+        });
+      }
+      return info;
+    });
+    setBucketInfos(infos);
   };
 
 
