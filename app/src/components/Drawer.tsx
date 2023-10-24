@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useS3 } from '../services/S3';
-import { useBucketStore } from '../services/BucketStore/store';
+import { useBucketStore } from '../services/BucketStore';
 
 export const Drawer = () => {
   const oAuth = useAuth();

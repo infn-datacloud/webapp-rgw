@@ -19,7 +19,6 @@ import {
   downloadFiles,
   uploadFiles,
   deleteObjects,
-  listObjects
 } from './services';
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
@@ -95,7 +94,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
   const refreshBucketObjects = useCallback(() => {
     const f = async () => {
-      listObjects(s3, bucketName)
+      s3.listObjects({ Name: bucketName })
         .then(contents => {
           if (contents) {
             rootNodeRef.current = new NodePath("");

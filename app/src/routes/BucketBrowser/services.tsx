@@ -1,10 +1,7 @@
 import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
 import { NodePath, getHumanSize } from "../../commons/utils";
 import { S3ContextProps } from "../../services/S3/S3Context";
-import {
-  DeleteObjectCommand,
-  ListObjectsV2Command,
-} from "@aws-sdk/client-s3";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import {
   DocumentIcon,
   FolderIcon,
@@ -60,13 +57,6 @@ export const getTableData = (nodePath: NodePath<BucketObject>): Value[][] => {
       { columnId: "bucket_size", value: getHumanSize(child.size) }
     ]
   });
-}
-
-export const listObjects = async (s3: S3ContextProps, bucketName: string) => {
-  console.log(`List objects for bucket ${bucketName}`);
-  const listObjCmd = new ListObjectsV2Command({ Bucket: bucketName });
-  const response = await s3.client.send(listObjCmd)
-  return response.Contents;
 }
 
 export const downloadFiles = async (s3: S3ContextProps, bucketName: string,
