@@ -29,7 +29,6 @@ import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { initialAuthState } from "./S3State";
 import { reducer } from "./reducer";
 import { User } from "oidc-client-ts";
-import { useAuth } from "react-oidc-context";
 import { S3Context } from "./S3Context";
 
 const ONE_MB = 1024 * 1024;
@@ -46,7 +45,6 @@ export interface S3ProviderProps extends S3PropsBase {
 export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const { children, awsConfig } = props;
   const { notify } = useNotifications();
-  const oAuth = useAuth();
   const [state, dispatch] = useReducer(reducer, initialAuthState);
   const { client } = state;
   const didInit = useRef(false);
@@ -55,12 +53,12 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
     sessionStorage.setItem(S3_CONFIG_STORAGE_KEY, JSON.stringify(config));
   }
 
-  const loadCacheConfiguration = (): S3ClientConfig | undefined => {
+  const loadCacheConfiguration = useCallback((): S3ClientConfig | undefined => {
     const maybe_config = sessionStorage.getItem(S3_CONFIG_STORAGE_KEY);
     if (maybe_config) {
       return JSON.parse(maybe_config);
     }
-  }
+  }, []);
 
   const clearCache = () => {
     sessionStorage.clear();
@@ -96,7 +94,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       WebIdentityToken: access_token,
     });
 
-    let response = await sts.send(command);
+    const response = await sts.send(command);
 
     try {
       const { Credentials } = response;
@@ -134,7 +132,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       dispatch({ type: "LOGGED_OUT" });
       clearCache();
     }
-  }, [awsConfig, oAuth, notify]);
+  }, [awsConfig, notify]);
 
   const loginWithCredentials = useCallback(async (credentials: AwsCredentialIdentity) => {
     dispatch({ type: "LOGGING_IN" });
@@ -158,7 +156,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         notify("Access failed", camelToWords(err.name), NotificationType.error);
       }
     }
-  }, [awsConfig]);
+  }, [awsConfig, notify]);
 
   const logout = () => {
     clearCache();
