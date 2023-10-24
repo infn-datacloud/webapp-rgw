@@ -81,7 +81,10 @@ S3_ROLE_DURATION_SECONDS=3600
 To start the service, run:
 
 ```shell
-docker run -p 8080:80 --env-file infn-cloud-prod.env \
+docker run \
+  -p 8080:80 \
+  --env-file infn-cloud-prod.env \
+  --restart unless-stopped \
   baltig.infn.it:4567/infn-cloud/webapp-rgw:latest
 ```
 
@@ -92,6 +95,7 @@ server, for example to add TLS encryption, using the command:
 docker run \
   -p 8080:80 \ 
   --env-file infn-cloud-prod.env \
+  --restart unless-stopped \
   -v <path/to/your/conf>:/etc/nginx/conf.d/default.conf \
   -v <path/to/your/certs>:<path/to/your/certs> \
   baltig.infn.it:4567/infn-cloud/webapp-rgw:latest
