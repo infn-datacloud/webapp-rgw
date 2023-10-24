@@ -45,7 +45,7 @@ generate-dummy-version:
       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
       - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
 
-deploy:
+build-test:
   stage: build
   image: node:20
   before_script:
@@ -77,10 +77,6 @@ release:
       - dev
       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
       - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branch
-
-test:
-  stage: test
-  script: echo "Hello, Test!"
 
 deploy-package:
   stage: deploy
