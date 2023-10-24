@@ -1,4 +1,4 @@
-import { useCallback, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { CreateBucketArgs } from "./types";
 import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
 import type { AWSConfig } from "./types";
@@ -18,6 +18,7 @@ import {
   GetObjectLockConfigurationCommand,
   PutObjectLockConfigurationCommand,
   ListObjectsV2CommandOutput,
+  S3ClientConfig,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -32,6 +33,7 @@ import { useAuth } from "react-oidc-context";
 import { S3Context } from "./S3Context";
 
 const ONE_MB = 1024 * 1024;
+const S3_CONFIG_STORAGE_KEY = "s3-config-storage-key";
 
 interface S3PropsBase {
   children?: React.ReactNode;
@@ -47,6 +49,34 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const oAuth = useAuth();
   const [state, dispatch] = useReducer(reducer, initialAuthState);
   const { client } = state;
+  const didInit = useRef(false);
+
+  const cacheConfiguration = (config: S3ClientConfig) => {
+    sessionStorage.setItem(S3_CONFIG_STORAGE_KEY, JSON.stringify(config));
+  }
+
+  const loadCacheConfiguration = (): S3ClientConfig | undefined => {
+    const maybe_config = sessionStorage.getItem(S3_CONFIG_STORAGE_KEY);
+    if (maybe_config) {
+      return JSON.parse(maybe_config);
+    }
+  }
+
+  const clearCache = () => {
+    sessionStorage.clear();
+  }
+
+  useEffect(() => {
+    if (!didInit.current) {
+      const config = loadCacheConfiguration();
+      if (config) {
+        const client = new S3Client(config);
+        dispatch({ type: "LOGGED_IN", client });
+        console.log("Session loaded");
+      }
+      didInit.current = true;
+    }
+  }, [loadCacheConfiguration]);
 
   // Exchange token for AWS Credentials with AssumeRoleWebIdentity
   const loginWithSTS = useCallback(async (user: User) => {
@@ -89,6 +119,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         };
         const client = new S3Client(config)
         dispatch({ type: "LOGGED_IN", client });
+        cacheConfiguration(config);
         console.log("Authenticated via STS");
       } else {
         console.warn("Warning: some one or more AWS Credentials member is empty");
@@ -101,24 +132,28 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         console.error(err);
       }
       dispatch({ type: "LOGGED_OUT" });
+      clearCache();
     }
   }, [awsConfig, oAuth, notify]);
 
   const loginWithCredentials = useCallback(async (credentials: AwsCredentialIdentity) => {
     dispatch({ type: "LOGGING_IN" });
     const { endpoint, region } = awsConfig;
-    const newClient = new S3Client({
+    const config = {
       endpoint: endpoint,
       region: region,
       credentials: credentials,
       forcePathStyle: true
-    });
+    }
+    const newClient = new S3Client(config);
     try {
       await newClient.send(new ListBucketsCommand({}));
       console.log("Logged with plain credentials");
+      cacheConfiguration(config);
       dispatch({ type: "LOGGED_IN", client: newClient });
     } catch (err) {
       dispatch({ type: "LOGGED_OUT" });
+      clearCache();
       if (err instanceof Error) {
         notify("Access failed", camelToWords(err.name), NotificationType.error);
       }
@@ -126,7 +161,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   }, [awsConfig]);
 
   const logout = () => {
-    console.log("Log S3");
+    clearCache();
     dispatch({ type: "LOGGED_OUT" });
   }
 
@@ -205,7 +240,6 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
     });
     return client.send(command);
   };
-
 
   const downloadInChunks = async (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => {
     const key = object.object.Key!;
