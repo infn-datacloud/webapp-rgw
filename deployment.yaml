@@ -51,8 +51,6 @@ spec:
                 secretKeyRef:
                   name: iam-client-secret
                   key: IAM_CLIENT_SECRET
-            - name: IAM_REDIRECT_URI
-              value: "https://cloud-vm22.cloud.cnaf.infn.it/callback"
             - name: IAM_SCOPE
               value: "openid email profile offline_access"
             - name: IAM_AUDIENCE
