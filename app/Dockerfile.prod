@@ -9,7 +9,8 @@ COPY init_env.sh /docker-entrypoint.d/init_env.sh
 RUN apt-get update && apt-get install -y npm nodejs && \
 	cd /tmp/frontend/ && \
 	npm version ${VERSION} && \
-	npm install && npm run build && \
+	npm ci && \
+	npm run build && \
 	cp -r /tmp/frontend/dist/* /usr/share/nginx/html && \
 	rm -rf /tmp/frontend && \
 	apt-get purge -y npm nodejs && \

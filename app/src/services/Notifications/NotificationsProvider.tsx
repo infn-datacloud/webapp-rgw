@@ -6,7 +6,7 @@ interface NotificationsProviderBaseProps {
 	children?: React.ReactNode;
 }
 
-export interface NotificationsProviderProps extends NotificationsProviderBaseProps { };
+export interface NotificationsProviderProps extends NotificationsProviderBaseProps { }
 
 export const NotificationsProvider = (props: NotificationsProviderProps): JSX.Element => {
 	const { children } = props;

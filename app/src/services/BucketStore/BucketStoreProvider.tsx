@@ -32,7 +32,7 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
     const objectsLists = await Promise.all(promises);
     const infos = buckets.map((bucket, i) => {
       const objects = objectsLists[i];
-      let info: BucketInfo = {
+      const info: BucketInfo = {
         name: bucket.Name ?? "N/A",
         creation_date: bucket.CreationDate?.toString() ?? "N/A",
         rw_access: { read: true, write: true },

@@ -22,7 +22,7 @@ const AppRaw = () => {
       })
       didInit.current = true;
     }
-  }, [oAuth.events])
+  }, [oAuth.events, s3])
 
   // Create router
   const routes = staticRoutes.map(route => {
