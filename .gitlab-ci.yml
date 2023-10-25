@@ -97,6 +97,9 @@ deploy-package:
 deploy-docker:
   stage: deploy
   image: docker:latest
+  tags: # ask for a fast runner
+    - docker
+    - fast 
   services:
     - docker:dind
   before_script:
