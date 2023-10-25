@@ -1,12 +1,12 @@
 # RADOS Gateway Web Application
 
-This project consists in web application to easily access file objects stored
-with Ceph Object Storage/RADOS Gateway, using the AWS S3 protocol for object
+This project consists in a web application to easily access file objects stored
+within Ceph Object Storage/RADOS Gateway, using the AWS S3 protocol for object
 handling, and the OAuth2/OpenID Connect to allow authn/authz with Indigo IAM.
 
 The webapp is implemented using the React, ViteJS, TypeScript and TailwindCSS,
-as core frameworks,
-and [aws-sdk v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/)
+as core frameworks, and the
+[aws-sdk v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/)
 framework and [react-oidc-context](https://github.com/authts/react-oidc-context)
 library for S3 operations and Oidc/OAuth2 login respectively.
 
@@ -170,7 +170,11 @@ kubectl rollout restart deployment rgw-s3
 
 ### Deploy K8s Ingress
 
+To look/edit the Kubernetes Ingress, run
+
+```bash
 kubectl -n rook-ceph edit ingress rgw
+```
 
 ## Development Endpoints
 
