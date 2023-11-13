@@ -6,11 +6,12 @@ import { staticRoutes } from './routes';
 import { withBucketStore } from './services/BucketStore';
 import { S3ProviderProps, useS3, withS3 } from './services/S3';
 import { withNotifications } from './services/Notifications';
-import { useAuth } from 'react-oidc-context';
+import { useOAuth } from './services/OAuth';
 import { useEffect, useRef } from 'react';
+import { withOAuth } from './services/OAuth';
 
 const AppRaw = () => {
-  const oAuth = useAuth();
+  const oAuth = useOAuth();
   const s3 = useS3();
   const didInit = useRef(false);
 
@@ -49,5 +50,6 @@ export const App = ({ s3Config }: AppProps) => {
   let ExtendedApp = withBucketStore(AppRaw);
   ExtendedApp = withS3(ExtendedApp, s3Config);
   ExtendedApp = withNotifications(ExtendedApp);
+  ExtendedApp = withOAuth(ExtendedApp);
   return ExtendedApp({});
 }

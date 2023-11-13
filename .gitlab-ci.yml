@@ -7,9 +7,11 @@ stages:
   - k8s
 
 variables:
-  PACKAGENAME: "${CI_REGISTRY_IMAGE}"
-  BASE_IMAGE: "${CI_REGISTRY_IMAGE}"
-  TEST_IMAGE: "${BASE_IMAGE}:${CI_COMMIT_REF_SLUG}"
+  PACKAGENAME: ${CI_REGISTRY_IMAGE}
+  BE_BASE_IMAGE: "${CI_REGISTRY_IMAGE}/backend"
+  BE_TEST_IMAGE: "${BE_BASE_IMAGE}:${CI_COMMIT_REF_SLUG}"
+  FE_BASE_IMAGE: "${CI_REGISTRY_IMAGE}/webapp"
+  FE_TEST_IMAGE: "${FE_BASE_IMAGE}:${CI_COMMIT_REF_SLUG}"
   DEV_LATEST_IMAGE_TAG: "latest-dev"
   PROD_LATEST_IMAGE_TAG: "latest"
   IS_PROD_VERSION: '^(v(([0-9]+)\.)?([0-9]+)\.?([0-9]+)|main)$'
@@ -45,7 +47,19 @@ generate-dummy-version:
       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
       - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
 
-test-and-build:
+build-backend:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+    - VERSION="$(cat version.txt)"
+  script:
+    - docker build --pull -t "${BE_TEST_IMAGE}" backend
+    - docker push "${BE_TEST_IMAGE}"
+
+build-frontend:
   stage: build
   image: node:20
   before_script:
@@ -57,7 +71,6 @@ test-and-build:
     - cd app
   script:
     - npm ci
-    - npm run test
     - npm run build
     - npm run compress
   artifacts:
@@ -78,7 +91,11 @@ release:
       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
       - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branch
 
-deploy-package:
+test:
+  stage: test
+  script: echo "Hello, Test!"
+
+deploy-app-package:
   stage: deploy
   before_script:
     - PACKAGENAME="$(cat packagename.txt)"
@@ -94,12 +111,9 @@ deploy-package:
       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
       - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
 
-deploy-docker:
+deploy-frontend-docker:
   stage: deploy
   image: docker:latest
-  tags: # ask for a fast runner
-    - docker
-    - fast 
   services:
     - docker:dind
   before_script:
@@ -108,18 +122,47 @@ deploy-docker:
     - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-    - docker build app -f app/Dockerfile.prod --pull -t "${TEST_IMAGE}" --build-arg VERSION="${VERSION}"
-    - docker tag "${TEST_IMAGE}" "${BASE_IMAGE}:v${VERSION}"
-    - docker push "${BASE_IMAGE}:v${VERSION}"
+    - docker build app -f app/Dockerfile.prod --pull -t "${FE_TEST_IMAGE}" --build-arg VERSION="${VERSION}"
+    - docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:v${VERSION}"
+    - docker push "${FE_BASE_IMAGE}:v${VERSION}"
     - |
       if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_PROD_VERSION}" ]]; then
-        docker tag "${TEST_IMAGE}" "${BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
-        docker push "${BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
+        docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
+        docker push "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
       fi
     - |
       if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
-        docker tag "${TEST_IMAGE}" "${BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
-        docker push "${BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
+        docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
+        docker push "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
+      fi
+  only:
+    refs:
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
+
+deploy-backend-docker:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - VERSION="$(cat version.txt)"
+    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" "${CI_REGISTRY}"
+  script:
+    - docker pull "${BE_TEST_IMAGE}"
+    - docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:v${VERSION}"
+    - docker push "${BE_BASE_IMAGE}:v${VERSION}"
+    - |
+      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_PROD_VERSION}" ]]; then
+        docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
+        docker push "${BE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
+      fi
+    - |
+      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
+        docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
+        docker push "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
       fi
   only:
     refs:

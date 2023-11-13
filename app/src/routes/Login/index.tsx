@@ -1,17 +1,17 @@
 import { ChangeEvent, useCallback, useEffect, useState } from "react"
 import { Button } from "../../components/Button"
 import { TextField } from "../../components/TextField"
-import { useAuth } from "react-oidc-context";
+import { useOAuth } from "../../services/OAuth";
 import { useS3 } from "../../services/S3";
 import { Navigate } from "react-router-dom";
 
 
 export const Login = () => {
-  const oAuth = useAuth();
+  const oAuth = useOAuth();
   const s3 = useS3();
   const [awsAccessKeyId, setAwsAccessKeyId] = useState("");
   const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");
-  const { signinPopup } = oAuth;
+  const { login } = oAuth;
   const loginEnabled = (awsAccessKeyId.length * awsSecretAccessKey.length) > 0;
 
   const handleAwsAccessKeyIdChange =
@@ -75,7 +75,7 @@ export const Login = () => {
         />
         <Button
           className="mx-auto w-full"
-          onClick={signinPopup}
+          onClick={login}
           title="Login with OpenID connect"
         />
       </div>

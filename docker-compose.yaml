@@ -11,7 +11,7 @@ services:
       - ./app/:/app/
       - node_modules:/app/node_modules
     env_file:
-      - ./app/envs/dev.env
+      - ./envs/dev.env
   
   webapp:
     container_name: webapp-rgw
@@ -22,8 +22,20 @@ services:
       args:
         VERSION: 6.6.6
     env_file:
-      - ./app/envs/prod.env
+      - ./envs/prod.env
   
+  backend:
+    container_name: backend
+    image: backend
+    build:
+      context: backend
+    volumes:
+      - ./backend/src/:/app/
+    environment:
+      - WATCHFILES_FORCE_POLLING=true   # Enable uvicorn auto-reload
+    env_file:
+      - ./envs/dev.env
+
   nginx:
     image: nginx:latest
     container_name: nginx

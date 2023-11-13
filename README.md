@@ -44,11 +44,11 @@ the `Proof key for code exchange (PKCE) challenge method` section.
 
 ## Deployment
 
-This project is configured with a CI/CD pipeline which builds two Docker images
+This project is configured with a CI/CD pipeline which builds Docker images
 for development and production releases. The images are stored
 [here](https://baltig.infn.it/infn-cloud/webapp-rgw/container_registry).
 
-## Docker Deployment
+## Docker Compose Deployment
 
 The webapp service consists in a NGINX web server provided with the static
 website files produces by React's build. The site must be configured as a
@@ -60,46 +60,120 @@ The web application needs a configured environment file `env.js` located at
 `app/public/env.js`. This file is automatically created at runtime, inside
 the container, by the [`app/init_env.sh`](app/init_env.sh) script.
 
-To deploy the webapp, simply copy and edit the
-[app/env/example.env](app/env/example.env) file using your custom parameters.
+### Environments Variables
+
+To deploy the webapp, create two files with environment variables for both
+frontend and backend, for example:
 
 ```bash
-cp app/env/example.env infn-cloud-prod.env
-vi infn-cloud-prod.env
+mkdir envs
+touch envs/webapp.env
+touch envs/backend.env
+```
 
+Write the following variables to the two files:
+
+```bash
+# backend.env
 IAM_AUTHORITY=https://iam.cloud.cnaf.infn.it
 IAM_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 IAM_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 IAM_AUDIENCE=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 IAM_SCOPE=openid email profile offline_access
+```
+
+for the backend, and
+
+```bash
+# webapp.end
 S3_ENDPOINT=https://rgw.cloud.infn.it
 S3_REGION=ceph-objectstore
 S3_ROLE_ARN=arn:aws:iam:::role/S3AccessIAM200
 S3_ROLE_DURATION_SECONDS=3600
 ```
 
-To start the service, run:
+for the frontend.
 
-```shell
-docker run \
-  -p 8080:80 \
-  --env-file infn-cloud-prod.env \
-  --restart unless-stopped \
-  baltig.infn.it:4567/infn-cloud/webapp-rgw:latest
+### NGINX
+
+In order to handle the two services, a NGINX instance is required to proxy pass
+requests to the proper service. Keep in mind that what follows is not a full
+NGINX configuration to provide TLS encryption or advance features, but it
+provides the bare minimum to make the services work.
+
+Create the config file
+
+```bash
+mkdir nginx
+vi nginx/default.conf
 ```
 
-If you need, you can also provide a custom configuration for the nginx web
-server, for example to add TLS encryption, using the command:
+and paste the following configuration
 
-```shell
-docker run \
-  -p 8080:80 \ 
-  --env-file infn-cloud-prod.env \
-  --restart unless-stopped \
-  -v <path/to/your/conf>:/etc/nginx/conf.d/default.conf \
-  -v <path/to/your/certs>:<path/to/your/certs> \
-  baltig.infn.it:4567/infn-cloud/webapp-rgw:latest
+```nginx
+upstream webapp-rgw {  
+  server webapp-rgw-webapp:80;
+}
+
+upstream backend {
+  server webapp-rgw-backend:8000;
+}
+
+server {
+  listen 8080;
+  
+  location / {
+    proxy_pass http://webapp-rgw/;
+  }
+
+  location /api/ {
+    proxy_pass http://backend/api/;
+    proxy_set_header Origin $http_host;  # required
+    proxy_set_header Scheme $scheme;     # required
+  }
+}
 ```
+
+### docker-compose.yaml
+
+Create the following `docker-compose.yaml` file
+
+```yaml
+version: '3'
+
+services:  
+  webapp:
+    container_name: webapp-rgw-webapp
+    image: baltig.infn.it:4567/infn-cloud/webapp-rgw/webapp
+    env_file:
+      - ./envs/dev.env
+  
+  backend:
+    container_name: baltig.infn.it:4567/infn-cloud/webapp-rgw/backend
+    image: webapp-rgw/backend
+    env_file:
+      - ./envs/dev.env
+  
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 8080:8080
+
+volumes:
+  node_modules:
+
+```
+
+and run it with
+
+```bash
+docker compose up -d
+```
+
+.
 
 ## Docker Compose (development)
 
