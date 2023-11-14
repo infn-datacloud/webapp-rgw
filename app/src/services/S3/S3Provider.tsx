@@ -28,8 +28,8 @@ import { camelToWords } from "../../commons/utils";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { initialAuthState } from "./S3State";
 import { reducer } from "./reducer";
-import { User } from "oidc-client-ts";
 import { S3Context } from "./S3Context";
+import type{ User } from "../OAuth";
 
 const ONE_MB = 1024 * 1024;
 const S3_CONFIG_STORAGE_KEY = "s3-config-storage-key";

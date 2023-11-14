@@ -1,5 +1,5 @@
 import { staticRoutes } from '../routes';
-import { useAuth } from 'react-oidc-context';
+import { useOAuth } from '../services/OAuth';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
@@ -7,7 +7,7 @@ import { useS3 } from '../services/S3';
 import { useBucketStore } from '../services/BucketStore';
 
 export const Drawer = () => {
-  const oAuth = useAuth();
+  const oAuth = useOAuth();
   const s3 = useS3();
   const bucketStore = useBucketStore();
   const { user } = oAuth;
@@ -28,7 +28,7 @@ export const Drawer = () => {
 
   const logoutAndRedirect = () => {
     console.log("Logout");
-    oAuth.signoutSilent();
+    oAuth.logout();
     s3.logout();
     bucketStore.reset();
     navigate("/");

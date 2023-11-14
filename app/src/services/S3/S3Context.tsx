@@ -14,7 +14,7 @@ import type {
 } from "@aws-sdk/client-s3";
 import type { AwsCredentialIdentity } from "@aws-sdk/types";
 import type { BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
-import type { User } from "oidc-client-ts";
+import type { User } from "../OAuth";
 
 export interface S3ContextProps extends S3State {
 	client: S3Client;

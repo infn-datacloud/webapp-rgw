@@ -23,7 +23,7 @@ spec:
         app: rgw-s3
     spec:
       containers:
-        - image: baltig.infn.it:4567/infn-cloud/webapp-rgw:latest-dev
+        - image: baltig.infn.it:4567/infn-cloud/webapp-rgw/frontend:latest-dev
           imagePullPolicy: Always
           name: frontend
           ports:
@@ -46,11 +46,8 @@ spec:
                 secretKeyRef:
                   name: iam-client-secret
                   key: IAM_CLIENT_ID
-            - name: IAM_CLIENT_SECRET
-              valueFrom: 
-                secretKeyRef:
-                  name: iam-client-secret
-                  key: IAM_CLIENT_SECRET
+            - name: IAM_REDIRECT_URI
+              value: "https://cloud-vm22.cloud.cnaf.infn.it/callback"
             - name: IAM_SCOPE
               value: "openid email profile offline_access"
             - name: IAM_AUDIENCE
@@ -63,6 +60,34 @@ spec:
               value: "arn:aws:iam:::role/S3AccessIAM200"
             - name: S3_ROLE_DURATION_SECONDS
               value: "3600"
+        - image: baltig.infn.it:4567/infn-cloud/webapp-rgw/backend:latest-dev
+          imagePullPolicy: Always
+          name: backend
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 1G
+            limits:
+              cpu: 1
+              memory: 2G
+          env:
+            - name: IAM_AUTHORITY
+              value: https://keycloak-demo.cloud.cnaf.infn.it:8222
+            - name: IAM_CLIENT_ID
+              valueFrom: 
+                secretKeyRef:
+                  name: iam-client-secret
+                  key: IAM_CLIENT_ID
+            - name: IAM_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iam-client-secret
+                  key: IAM_CLIENT_SECRET
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
