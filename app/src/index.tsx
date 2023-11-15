@@ -5,11 +5,6 @@ import './index.css';
 
 // Add `env` namespace to window
 interface EnvInterface {
-  IAM_AUTHORITY: string;
-  IAM_CLIENT_ID: string;
-  IAM_CLIENT_SECRET?: string;
-  IAM_SCOPE: string;
-  IAM_AUDIENCE: string;
   S3_ENDPOINT: string;
   S3_REGION: string;
   S3_ROLE_ARN: string;

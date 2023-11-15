@@ -19,11 +19,6 @@ echo "Initialize environment variables"
 
 cp "$TEMPLATE_FILE" "$TMP_FILE"
 
-sed -i -e "s|IAM_AUTHORITY_VALUE|${IAM_AUTHORITY}|g" "$TMP_FILE"
-sed -i -e "s|IAM_CLIENT_ID_VALUE|${IAM_CLIENT_ID}|g" "$TMP_FILE"
-sed -i -e "s|IAM_CLIENT_SECRET_VALUE|${IAM_CLIENT_SECRET}|g" "$TMP_FILE"
-sed -i -e "s|IAM_SCOPE_VALUE|${IAM_SCOPE}|g" "$TMP_FILE"
-sed -i -e "s|IAM_AUDIENCE_VALUE|${IAM_AUDIENCE}|g" "$TMP_FILE"
 sed -i -e "s|S3_ENDPOINT_VALUE|${S3_ENDPOINT}|g" "$TMP_FILE"
 sed -i -e "s|S3_REGION_VALUE|${S3_REGION}|g" "$TMP_FILE"
 sed -i -e "s|S3_ROLE_ARN_VALUE|${S3_ROLE_ARN}|g" "$TMP_FILE"
