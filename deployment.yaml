@@ -23,7 +23,7 @@ spec:
         app: rgw-s3
     spec:
       containers:
-        - image: baltig.infn.it:4567/infn-cloud/webapp-rgw/frontend:latest-dev
+        - image: baltig.infn.it:4567/infn-cloud/webapp-rgw/webapp:latest-dev
           imagePullPolicy: Always
           name: frontend
           ports:

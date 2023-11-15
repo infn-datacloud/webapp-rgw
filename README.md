@@ -142,13 +142,13 @@ version: '3'
 services:  
   webapp:
     container_name: webapp-rgw-webapp
-    image: baltig.infn.it:4567/infn-cloud/webapp-rgw/webapp
+    image: baltig.infn.it:4567/infn-cloud/webapp-rgw/webapp:latest
     env_file:
       - ./envs/dev.env
   
   backend:
-    container_name: baltig.infn.it:4567/infn-cloud/webapp-rgw/backend
-    image: webapp-rgw/backend
+    container_name: webapp-rgw-backend
+    image: baltig.infn.it:4567/infn-cloud/webapp-rgw/backend:latest
     env_file:
       - ./envs/dev.env
   
