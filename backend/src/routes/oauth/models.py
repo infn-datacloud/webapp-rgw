@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 class OAuthTokenRequest(BaseModel):
     code: str
+    redirect_uri: str
     code_verifier: str | None = None
 
 class OAuthTokenResponse(BaseModel):

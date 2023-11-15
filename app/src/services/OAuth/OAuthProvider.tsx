@@ -21,7 +21,9 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
 	const login = () => {
 		if (!state.isLoading) {
 			console.debug("Logging with OIDC")
-			window.location.href = `${window.location.origin}/api/v1/oauth/authorize`;
+			const redirect_uri = `${window.location.origin}/callback`;
+			window.location.href = `${window.location.origin}/api/v1/oauth/authorize?` +
+				`redirect_uri=${redirect_uri}`;
 		}
 	}
 
@@ -31,7 +33,6 @@ export const OAuthProvider = (props: OAuthProviderProps): JSX.Element => {
 	}
 
 	const requestToken = async (payload: OAuthTokenRequest) => {
-		console.log("request token");
 		dispatch({ type: "LOGGING_IN" });
 		const url = `${window.location.origin}/api/v1/oauth/token`;
 		const response = await fetch(url, {

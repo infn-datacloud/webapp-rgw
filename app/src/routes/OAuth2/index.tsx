@@ -11,12 +11,12 @@ export const OAuth2 = () => {
 	const isLoading = useRef(false);
 
 	useEffect(() => {
-		console.log(oAuth.isLoading)
 		if (isLoading.current) {
 			return;
 		}
 		if (code) {
-			let payload: OAuthTokenRequest = { code };
+			const redirect_uri = `${window.location.origin}/callback`;
+			let payload: OAuthTokenRequest = { code, redirect_uri };
 			if (code_verifier) {
 				payload = { ...payload, code_verifier };
 			}
