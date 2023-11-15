@@ -11,3 +11,5 @@ app/public/env.js
 app/envs/*
 !app/envs/example.env
 __pycache__/
+docker-compose.*.yaml
+!docker-compose.yaml

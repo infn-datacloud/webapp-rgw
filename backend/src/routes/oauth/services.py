@@ -20,8 +20,8 @@ def decode_token(id_token: str, access_token):
 	jwks = requests.get(jwk_uri).json()
 	public_keys = {}
 	for jwk in jwks['keys']:
-			kid = jwk['kid']
-			public_keys[kid] = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
+		kid = jwk['kid']
+		public_keys[kid] = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
 
 	kid = jwt.get_unverified_header(id_token)['kid']
 	key = public_keys[kid]
