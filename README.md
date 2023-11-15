@@ -128,8 +128,6 @@ server {
 
   location /api/ {
     proxy_pass http://backend/api/;
-    proxy_set_header Origin $http_host;  # required
-    proxy_set_header Scheme $scheme;     # required
   }
 }
 ```

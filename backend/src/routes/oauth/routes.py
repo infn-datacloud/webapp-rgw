@@ -20,12 +20,12 @@ def redirect(request: Request):
 
 
 @router.get("/oauth/authorize")
-async def login(request: Request):
+async def login(redirect_uri: str, request: Request):
 	url_params = {
 		"response_type": "code",
 		"client_id": IAM_CLIENT_ID,
 		"scope": IAM_SCOPE,
-		"redirect_uri": get_redirect_uri(request)
+		"redirect_uri": redirect_uri
 	}
 
 	if IAM_AUDIENCE is not None:
@@ -42,7 +42,7 @@ async def get_token(oAuth: OAuthTokenRequest, request: Request) -> OAuthTokenRes
 		"client_secret": IAM_CLIENT_SECRET,
 		"code": oAuth.code,
 		"grant_type": "authorization_code",
-		"redirect_uri": get_redirect_uri(request)
+		"redirect_uri": oAuth.redirect_uri
 	}
 
 	if (oAuth.code_verifier is not None):
@@ -57,9 +57,3 @@ async def get_token(oAuth: OAuthTokenRequest, request: Request) -> OAuthTokenRes
 	
 	except Exception as e:
 		return HTTPException(500, detail=e)
-
-
-def get_redirect_uri(request: Request):
-	origin = request.headers.get("Origin")
-	scheme = request.headers.get("Scheme")
-	return f"{scheme}://{origin}/callback"
