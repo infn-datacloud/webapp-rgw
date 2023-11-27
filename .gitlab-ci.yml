@@ -1,179 +1,121 @@
 stages:
-  - fetch-version
+  - next-version
   - build
-  - test
+  - docker
   - release
-  - deploy
   - k8s
 
 variables:
-  PACKAGENAME: ${CI_REGISTRY_IMAGE}
-  BE_BASE_IMAGE: "${CI_REGISTRY_IMAGE}/backend"
-  BE_TEST_IMAGE: "${BE_BASE_IMAGE}:${CI_COMMIT_REF_SLUG}"
-  FE_BASE_IMAGE: "${CI_REGISTRY_IMAGE}/webapp"
-  FE_TEST_IMAGE: "${FE_BASE_IMAGE}:${CI_COMMIT_REF_SLUG}"
-  DEV_LATEST_IMAGE_TAG: "latest-dev"
-  PROD_LATEST_IMAGE_TAG: "latest"
-  IS_PROD_VERSION: '^(v(([0-9]+)\.)?([0-9]+)\.?([0-9]+)|main)$'
-  IS_DEV_VERSION: '^(v(([0-9]+)\.)?([0-9]+)\.?([0-9]+)?(-dev)\.?([0-9]+)|dev)$'
+  BACKEND_IMAGE: ${CI_REGISTRY_IMAGE}/backend
+  FRONTEND_IMAGE: ${CI_REGISTRY_IMAGE}/webapp
 
 fetch-next-version:
-  stage: fetch-version
+  stage: next-version
   image: node:20
-  script:
-    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
-    - npx semantic-release --generate-notes false --dry-run
+  tags: ["fast"]
+  script: |
+    npm install @semantic-release/exec @semantic-release/git @semantic-release/gitlab
+    npx semantic-release --generate-notes false --dry-run
+    if [ ! -f version.txt ]; then
+      VERSION=$(git describe --dirty --tags)
+      echo ${VERSION:1} > version.txt
+    fi 
   artifacts:
     paths:
       - version.txt
-  only:
-    refs:
-      - main
-      - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
-
-generate-dummy-version:
-  stage: fetch-version
-  script:
-    - echo build-${CI_PIPELINE_ID} > version.txt
-  artifacts:
-    paths:
-      - version.txt
-  except:
-    refs:
-      - main
-      - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
-
-build-backend:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-    - VERSION="$(cat version.txt)"
-  script:
-    - docker build --pull -t "${BE_TEST_IMAGE}" backend
-    - docker push "${BE_TEST_IMAGE}"
 
 build-frontend:
   stage: build
   image: node:20
+  tags: ["fast"]
   before_script:
-    - apt update && apt install -y jq
-    - VERSION="$(cat version.txt)"
-    - PACKAGENAME="$(jq -r '.name' app/package.json)"
-    - echo "$(jq '.version="'"${VERSION}"'"' app/package.json)" > app/package.json
-    - echo ${PACKAGENAME} > packagename.txt
-    - cd app
-  script:
-    - npm ci
-    - npm run build
-    - npm run compress
+   - VERSION=$(cat version.txt)
+  script: |
+    cd app
+    npm ci
+    npm test
+    npm run build
   artifacts:
     paths:
-      - packagename.txt
-      - app/*.tar.gz # Known issue w/ variable expansion https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29141
+      - app/dist
 
+build-backend-image:
+  stage: docker
+  image: docker:latest
+  tags: ["fast"]
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+  script:
+    - docker build --pull -t "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}" backend
+    - docker push "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+
+build-frontend-image:
+  stage: docker
+  image: docker:latest
+  tags: ["fast"]
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+  script:
+   - docker build app -f app/Dockerfile.prod --pull -t "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+   - docker push "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+  needs:
+    - build-frontend
+   
 release:
-  image: node:20
   stage: release
+  image: node:20
+  tags: ["fast"]
   script:
     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
     - npx semantic-release
   only:
-    refs:
-      - main
-      - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branch
+   refs:
+    - main
+    - dev
+    - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
 
-test:
-  stage: test
-  script: echo "Hello, Test!"
-
-deploy-app-package:
-  stage: deploy
-  before_script:
-    - PACKAGENAME="$(cat packagename.txt)"
-    - VERSION="$(cat version.txt)"
-    - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
-  script:
-    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "app/${PACKAGE_FULLNAME}"
-      "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGENAME}/$VERSION/${PACKAGE_FULLNAME}"'
-  only:
-    refs:
-      - main
-      - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
-
-deploy-frontend-docker:
-  stage: deploy
+tag-latest:
+  stage: release
   image: docker:latest
+  tags: ["fast"]
   services:
     - docker:dind
   before_script:
-    - PACKAGENAME="$(cat packagename.txt)"
-    - VERSION="$(cat version.txt)"
-    - PACKAGE_FULLNAME="${PACKAGENAME}_v${VERSION}.tar.gz"
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-  script:
-    - docker build app -f app/Dockerfile.prod --pull -t "${FE_TEST_IMAGE}" --build-arg VERSION="${VERSION}"
-    - docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:v${VERSION}"
-    - docker push "${FE_BASE_IMAGE}:v${VERSION}"
-    - |
-      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_PROD_VERSION}" ]]; then
-        docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
-        docker push "${FE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
-      fi
-    - |
-      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
-        docker tag "${FE_TEST_IMAGE}" "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
-        docker push "${FE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
-      fi
+  script: |
+    docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+    docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}" "${BACKEND_IMAGE}:latest"
+    docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+    docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}" "${FRONTEND_IMAGE}:latest"
   only:
-    refs:
-      - main
-      - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
+   refs:
+    - main
 
-deploy-backend-docker:
-  stage: deploy
+tag-latest-dev:
+  stage: release
   image: docker:latest
+  tags: ["fast"]
   services:
     - docker:dind
   before_script:
-    - VERSION="$(cat version.txt)"
-    - docker login -u gitlab-ci-token -p "${CI_JOB_TOKEN}" "${CI_REGISTRY}"
-  script:
-    - docker pull "${BE_TEST_IMAGE}"
-    - docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:v${VERSION}"
-    - docker push "${BE_BASE_IMAGE}:v${VERSION}"
-    - |
-      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_PROD_VERSION}" ]]; then
-        docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
-        docker push "${BE_BASE_IMAGE}:${PROD_LATEST_IMAGE_TAG}"
-      fi
-    - |
-      if [[ "${CI_COMMIT_REF_NAME}" =~ "${IS_DEV_VERSION}" ]]; then
-        docker tag "${BE_TEST_IMAGE}" "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
-        docker push "${BE_BASE_IMAGE}:${DEV_LATEST_IMAGE_TAG}"
-      fi
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+  script: |
+    docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+    docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}" "${BACKEND_IMAGE}:latest-dev"
+    docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+    docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}" "${FRONTEND_IMAGE}:latest-dev"
   only:
-    refs:
-      - main
-      - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches
+   refs:
+    - dev
 
 restart-deployment:
   stage: k8s
   image: ubuntu:latest
+  tags: ["fast"]
   before_script:
     - apt update && apt install curl -y
     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
@@ -186,5 +128,3 @@ restart-deployment:
     refs:
       - main
       - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-      - /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/ # Prerelease branches

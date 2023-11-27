@@ -5,7 +5,7 @@ plugins:
     - verifyReleaseCmd: "echo ${nextRelease.version} > version.txt"
   - "@semantic-release/gitlab"
   - - "@semantic-release/git"
-    - assets: [frontend/package.json]
+    - assets: [webapp/package.json]
       message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 
 branches:
