@@ -51,6 +51,9 @@ export const Login = () => {
     return <Navigate to="/" replace />;
   }
 
+  const oidcDisabled = oAuth.isLoading ||
+    (oAuth.isAuthenticated && !s3.isAuthenticated);
+
   return (
     <div className="bg-slate-100 w-2/3 xl:w-1/2 max-w-3xl m-auto p-8 shadow-lg mt-16 rounded-md">
       <img className="mx-auto bg-gray-100 p-4" alt="" src="/logo530.png" />
@@ -77,6 +80,7 @@ export const Login = () => {
           className="mx-auto w-full"
           onClick={login}
           title="Login with OpenID connect"
+          disabled={oidcDisabled}
         />
       </div>
     </div>
