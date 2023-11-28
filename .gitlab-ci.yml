@@ -23,6 +23,8 @@ fetch-next-version:
   artifacts:
     paths:
       - version.txt
+  except:
+    - tags
 
 build-frontend:
   stage: build
@@ -38,6 +40,8 @@ build-frontend:
   artifacts:
     paths:
       - app/dist
+  except:
+    - tags
 
 build-backend-image:
   stage: docker
@@ -50,6 +54,8 @@ build-backend-image:
   script:
     - docker build --pull -t "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" backend
     - docker push "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
+  except:
+    - tags
 
 build-frontend-image:
   stage: docker
@@ -64,6 +70,8 @@ build-frontend-image:
    - docker push "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
   needs:
     - build-frontend
+  except:
+    - tags
    
 release:
   stage: release
