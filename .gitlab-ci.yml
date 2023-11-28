@@ -48,8 +48,8 @@ build-backend-image:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-    - docker build --pull -t "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}" backend
-    - docker push "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+    - docker build --pull -t "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" backend
+    - docker push "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
 
 build-frontend-image:
   stage: docker
@@ -60,8 +60,8 @@ build-frontend-image:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-   - docker build app -f app/Dockerfile.prod --pull -t "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
-   - docker push "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+   - docker build app -f app/Dockerfile.prod --pull -t "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
+   - docker push "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
   needs:
     - build-frontend
    
@@ -87,10 +87,10 @@ tag-latest:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script: |
-    docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
-    docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}" "${BACKEND_IMAGE}:latest"
-    docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
-    docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}" "${FRONTEND_IMAGE}:latest"
+    docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
+    docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${BACKEND_IMAGE}:latest"
+    docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
+    docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${FRONTEND_IMAGE}:latest"
   only:
    refs:
     - main
@@ -104,10 +104,10 @@ tag-latest-dev:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script: |
-    docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
-    docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}" "${BACKEND_IMAGE}:latest-dev"
-    docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
-    docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_SLUG}" "${FRONTEND_IMAGE}:latest-dev"
+    docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
+    docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${BACKEND_IMAGE}:latest-dev"
+    docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
+    docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${FRONTEND_IMAGE}:latest-dev"
   only:
    refs:
     - dev
