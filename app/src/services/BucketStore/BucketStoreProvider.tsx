@@ -5,6 +5,8 @@ import { BucketInfo } from "../../models/bucket";
 import { useS3 } from "../S3";
 import { reducer } from "./reducer";
 import { initialState } from "./BucketStoreState";
+import { NotificationType, useNotifications } from "../Notifications";
+import { camelToWords } from "../../commons/utils";
 
 interface BucketStoreProviderBaseProps {
   children?: React.ReactNode;
@@ -16,7 +18,7 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
   const { children } = props;
   const { isAuthenticated, fetchBucketList, listObjects } = useS3();
   const [state, dispatch] = useReducer(reducer, initialState);
-  // const rootNodeRef = useRef<NodePath<BucketObject>>(new NodePath(""));
+  const { notify } = useNotifications();
 
   /** Return the list of owned buckets. */
   const fetchBuckets = async (): Promise<Bucket[]> => {
@@ -24,7 +26,12 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
     try {
       return await fetchBucketList();
     } catch (err) {
-      console.log(err);
+      if (err instanceof Error) {
+        notify("Cannot create Bucket", camelToWords(err.name),
+          NotificationType.error)
+      } else {
+        console.error(err);
+      }
     }
     return [];
   };
