@@ -2,9 +2,7 @@ import { Bucket, _Object } from "@aws-sdk/client-s3";
 import { useEffect, useRef, useReducer } from "react";
 import { BucketStoreContext } from "./BucketStoreContext";
 import { BucketInfo } from "../../models/bucket";
-// import { BucketInfo, BucketObject } from "../../models/bucket";
 import { useS3 } from "../S3";
-// import { NodePath } from "../../commons/utils";
 import { reducer } from "./reducer";
 import { initialState } from "./BucketStoreState";
 
@@ -65,7 +63,6 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
     const bucketsInfos = await Promise.all(bucketsInfosPromises);
     dispatch({ buckets, objects, bucketsInfos })
   }
-
 
   const fetchBucketLock = useRef<boolean>(false);
   useEffect(() => {
