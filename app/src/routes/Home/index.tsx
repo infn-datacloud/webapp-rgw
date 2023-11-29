@@ -7,14 +7,14 @@ import { BucketBrowser } from '../BucketBrowser';
 
 export const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { bucketList } = useBucketStore();
+  const { buckets } = useBucketStore();
 
   const columns: Column[] = [
     { id: "bucket", name: "Bucket" },
     { id: "creation_date", name: "Creation Date" },
   ];
 
-  const tableData = bucketList.map((bucket: Bucket) => {
+  const tableData = buckets.map((bucket: Bucket) => {
     return [
       { columnId: "bucket", value: bucket.Name ?? "N/A"},
       { columnId: "creation_date", value: bucket.CreationDate?.toString() ?? "N/A"},
@@ -22,7 +22,7 @@ export const Home = () => {
   });
 
   const onClick = (index: number) => {
-    const bucketName = bucketList[index].Name;
+    const bucketName = buckets[index].Name;
     if (bucketName) {
       setSearchParams(new URLSearchParams({ bucket: bucketName }));
     } else {

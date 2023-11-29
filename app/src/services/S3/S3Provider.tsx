@@ -19,6 +19,7 @@ import {
   PutObjectLockConfigurationCommand,
   ListObjectsV2CommandOutput,
   S3ClientConfig,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -324,6 +325,11 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const downloadObject = downloadInChunks;
   const uploadObject = uploadManaged;
 
+  const deleteObject = async (Bucket: string, Key: string) => {
+    const cmd = new DeleteObjectCommand({ Bucket, Key });
+    return await client.send(cmd);
+  }
+
   return (
     <S3Context.Provider
       value={{
@@ -338,6 +344,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         listObjects,
         downloadObject,
         uploadObject,
+        deleteObject,
         getBucketVersioning,
         setBucketVersioning,
         getBucketObjectLock,

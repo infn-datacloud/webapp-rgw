@@ -1,4 +1,4 @@
-import { NodePath } from "./utils";
+import { NodePath, extractPathAndBasename } from "./utils";
 
 test("NodePath 1", () => {
   const root = new NodePath<string>("/");
@@ -101,4 +101,31 @@ test("NodePath 3", () => {
   expect(deleted).toBe(false);
   expect(thisIs.children.size).toBe(1);
   expect(root.getAll().length).toBe(1);
+});
+
+test("extractPathAndBasename", () => {
+  let objectPath = "/this/is/a/long/path";
+  let [path, basename] = extractPathAndBasename(objectPath);
+  expect(path).toBe("/this/is/a/long");
+  expect(basename).toBe("path");
+
+  objectPath = "this/is/another/object";
+  [path, basename] = extractPathAndBasename(objectPath);
+  expect(path).toBe("this/is/another");
+  expect(basename).toBe("object");
+
+  objectPath = "/short/path";
+  [path, basename] = extractPathAndBasename(objectPath);
+  expect(path).toBe("/short");
+  expect(basename).toBe("path");
+
+  objectPath = "short/path";
+  [path, basename] = extractPathAndBasename(objectPath);
+  expect(path).toBe("short");
+  expect(basename).toBe("path");
+  
+  objectPath = "foo";
+  [path, basename] = extractPathAndBasename(objectPath);
+  expect(path).toBe("");
+  expect(basename).toBe("foo");
 });

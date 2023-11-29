@@ -27,7 +27,8 @@ export interface S3ContextProps extends S3State {
 	createBucket: (args: CreateBucketArgs) => Promise<CreateBucketCommandOutput>;
 	deleteBucket: (bucket: string) => Promise<DeleteBucketCommandOutput>;
 	downloadObject: (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => Promise<Blob>;
-	uploadObject: (bucket: string, object: FileObjectWithProgress, onChange?: () => void) => void;
+  uploadObject: (bucket: string, object: FileObjectWithProgress, onChange?: () => void) => void;
+  deleteObject: (bucket: string, key: string) => void;
 	getBucketVersioning: (bucket: string) => Promise<GetBucketVersioningCommandOutput>;
 	setBucketVersioning: (bucket: string, enabled: boolean) => Promise<PutBucketVersioningCommandOutput>;
 	getBucketObjectLock: (bucket: string) => Promise<GetObjectLockConfigurationCommandOutput>;

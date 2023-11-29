@@ -24,6 +24,12 @@ export const truncateString = (s: string, length: number) => {
   return s.slice(0, length) + "..."
 }
 
+export const extractPathAndBasename = (s: string) => {
+  const items = s.split("/");
+  const basename = items.length > 0 ? items.pop()! : s;
+  const path = items.join("/");
+  return [path, basename];
+}
 
 export class NodePath<T> {
   parent?: NodePath<T>;
