@@ -108,7 +108,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         previousPath = nodeTree.get(currentPath.path);
       }
       const newPath = previousPath ?? nodeTree
-      console.log("current path updated", newPath.path);
       dispatch({ type: "SET_CURRENT_PATH", nodePath: newPath });
       componentDidMount.current = true;
     }
@@ -203,7 +202,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         inputRef.current.files = null;
         inputRef.current.value = "";
       }
-      console.log("update store");
       bucketStore.updateStore();
     } catch (err) {
       if (err instanceof Error) {
