@@ -1,8 +1,12 @@
 import { Bucket, _Object } from "@aws-sdk/client-s3";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useReducer } from "react";
 import { BucketStoreContext } from "./BucketStoreContext";
 import { BucketInfo } from "../../models/bucket";
+// import { BucketInfo, BucketObject } from "../../models/bucket";
 import { useS3 } from "../S3";
+// import { NodePath } from "../../commons/utils";
+import { reducer } from "./reducer";
+import { initialState } from "./BucketStoreState";
 
 interface BucketStoreProviderBaseProps {
   children?: React.ReactNode;
@@ -13,52 +17,55 @@ export interface BucketStoreProviderProps extends BucketStoreProviderBaseProps {
 export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Element => {
   const { children } = props;
   const { isAuthenticated, fetchBucketList, listObjects } = useS3();
-  const [bucketList, setBucketList] = useState<Bucket[]>([]);
-  const [bucketsInfos, setBucketsInfos] = useState<BucketInfo[]>([]);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  // const rootNodeRef = useRef<NodePath<BucketObject>>(new NodePath(""));
 
-  const fetchBuckets = async () => {
+  /** Return the list of owned buckets. */
+  const fetchBuckets = async (): Promise<Bucket[]> => {
     console.debug("Fetching bucket list");
     try {
-      const buckets = await fetchBucketList();
-      setBucketList(buckets);
-      return buckets;
+      return await fetchBucketList();
     } catch (err) {
       console.log(err);
     }
+    return [];
   };
 
-  const fetchBucketsInfos = async (buckets: Bucket[]) => {
-    const promises = buckets.map(bucket => listObjects(bucket));
-    const objectsLists = await Promise.all(promises);
-    const infos = buckets.map((bucket, i) => {
-      const objects = objectsLists[i];
-      const info: BucketInfo = {
-        name: bucket.Name ?? "N/A",
-        creation_date: bucket.CreationDate?.toString() ?? "N/A",
-        rw_access: { read: true, write: true },
-        objects: 0,
-        size: 0
-      }
-      if (objects) {
-        objects.forEach(o => {
-          ++info.objects;
-          info.size += o.Size ?? 0.0;
-        });
-      }
-      return info;
-    });
-    setBucketsInfos(infos);
-  };
-
-
-  const fetchAll = async () => {
-    const buckets = await fetchBuckets();
-    if (buckets && buckets.length > 0) {
-      fetchBucketsInfos(buckets);
-    } else {
-      setBucketsInfos([]);
+  /** Compute Bucket Summary Info, counting all objects and summing their size */
+  const computeBucketSummary = async (bucket: Bucket, objects: _Object[]) => {
+    const info: BucketInfo = {
+      name: bucket.Name ?? "N/A",
+      creation_date: bucket.CreationDate?.toString() ?? "N/A",
+      rw_access: { read: true, write: true },
+      objects: 0,
+      size: 0
     }
+    if (objects) {
+      objects.forEach(o => {
+        ++info.objects;
+        info.size += o.Size ?? 0.0;
+      });
+    }
+    return info;
   };
+
+  /** Fetch buckets list, objects lists and bucket infos */
+  const updateStore = async () => {
+    const objects = new Map<string, _Object[]>();
+    const buckets = await fetchBuckets();
+    const listObjectsPromises = buckets.map(bucket => listObjects(bucket));
+    const bucketsInfosPromises = listObjectsPromises
+      .map(async (promise, index) => {
+        const bucket = buckets[index];
+        const name = bucket.Name!;
+        const objectList = await Promise.resolve(promise);
+        objects.set(name, objectList);
+        return computeBucketSummary(bucket, objectList);
+      });
+    const bucketsInfos = await Promise.all(bucketsInfosPromises);
+    dispatch({ buckets, objects, bucketsInfos })
+  }
+
 
   const fetchBucketLock = useRef<boolean>(false);
   useEffect(() => {
@@ -68,21 +75,16 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
     }
   });
 
-  const updateStore = () => {
-    fetchAll();
-  }
-
+  /** Empty the store */
   const reset = () => {
-    setBucketList([]);
-    setBucketsInfos([]);
+    dispatch(initialState);
     fetchBucketLock.current = false;
   }
 
   return (
     <BucketStoreContext.Provider
       value={{
-        bucketList,
-        bucketsInfos,
+        ...state,
         updateStore,
         reset
       }}

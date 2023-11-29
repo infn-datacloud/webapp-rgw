@@ -1,4 +1,4 @@
-import { ChangeEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, MouseEvent, useCallback, useEffect, useMemo, useRef, useReducer } from 'react';
 import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from '../../models/bucket';
 import { Column, Table } from '../../components/Table';
 import { Button } from '../../components/Button';
@@ -16,19 +16,18 @@ import { InputFile } from '../../components/InputFile';
 import {
   initNodePathTree,
   getTableData,
-  downloadFiles,
-  uploadFiles,
-  deleteObjects,
 } from './services';
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
-import { NodePath, camelToWords } from '../../commons/utils';
+import { NodePath, camelToWords, extractPathAndBasename } from '../../commons/utils';
 import { NotificationType, useNotifications } from '../../services/Notifications';
 import { ProgressBar } from "../../components/ProgressBar";
 import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
 import { SearchFiled } from '../../components/SearchField';
 import { ArrowUturnRightIcon } from '@heroicons/react/24/solid';
 import { Modal } from '../../components/Modal';
+import { useBucketStore } from '../../services/BucketStore';
+import { initialState, reducer } from './reducer';
 
 const columns: Column[] = [
   { id: "icon" },
@@ -60,80 +59,63 @@ type PropsType = {
 
 export const BucketBrowser = ({ bucketName }: PropsType) => {
   const MAX_DOWNLOADABLE_ITEMS = 10;
-  const bucketObjects = useRef<BucketObject[]>([]);
-  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentPath, setCurrentPath] = useState(new NodePath<BucketObject>(""));
-  const s3 = useS3();
-  const navigate = useNavigate();
-  const inputRef = useRef<HTMLInputElement>();
-  const lockRef = useRef<boolean>(false);
-  const rootNodeRef = useRef<NodePath<BucketObject>>(new NodePath(""));
-  const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
-  const toDownload = useRef<BucketObjectWithProgress[]>([]);
-  const toUpload = useRef<FileObjectWithProgress[]>([]);
-  const [downloading, setDownloading] = useState<BucketObjectWithProgress[]>([]);
-  const [uploading, setUploading] = useState<BucketObjectWithProgress[]>([]);
-  const [showTooManyObjectsAlert, setShowTooManyObjectsAlert] = useState(false);
   const { notify } = useNotifications();
+  const { uploadObject, deleteObject, getPresignedUrl } = useS3();
+  const navigate = useNavigate();
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const bucketStore = useBucketStore();
 
-  const restorePreviousPath = useCallback(() => {
-    // If a node different than root was set, set it back
-    if (currentPath.path != "") {
-      const allFiles = rootNodeRef.current.getAll();
-      for (const file of allFiles) {
-        if (file.parent && file.parent.path == currentPath.path) {
-          setCurrentPath(file.parent);
-          return;
-        }
-      }
-    }
-    // Otherwise, set current path to root
-    setCurrentPath(rootNodeRef.current);
-  }, [currentPath.path]);
+  const inputRef = useRef<HTMLInputElement>();
+  const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
+  const componentDidMount = useRef(false);
+  const toUpload = useRef<FileObjectWithProgress[]>([]);
+  const toDownload = useRef<BucketObjectWithProgress[]>([]);
 
-  const refreshBucketObjects = useCallback(() => {
-    const f = async () => {
-      s3.listObjects({ Name: bucketName })
-        .then(contents => {
-          if (contents) {
-            rootNodeRef.current = new NodePath("");
-            bucketObjects.current = contents.reduce((acc: BucketObject[], el) => {
-              if (el.Key) {
-                acc.push({
-                  Key: el.Key,
-                  LastModified: el.LastModified ? new Date(el.LastModified) : undefined,
-                  ETag: el.ETag,
-                  Size: el.Size
-                });
-              }
-              return acc;
-            }, [])
-            initNodePathTree(bucketObjects.current, rootNodeRef.current);
-            restorePreviousPath();
-          } else {
-            rootNodeRef.current = new NodePath("");
-            setCurrentPath(rootNodeRef.current);
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          if (err instanceof Error) {
-            notify("Cannot fetch bucket content",
-              camelToWords(err.name), NotificationType.error)
-          }
+  const {
+    currentPath,
+    selectedRows,
+    showModal,
+    showAlert,
+    downloadingObjects,
+    uploadingObjects
+  } = state;
+
+  const bucketObjects: BucketObject[] = useMemo(() => {
+    const objects = bucketStore.objects.get(bucketName) ?? [];
+    return objects.reduce((acc: BucketObject[], el) => {
+      if (el.Key) {
+        acc.push({
+          Key: el.Key,
+          LastModified: el.LastModified ? new Date(el.LastModified) : undefined,
+          ETag: el.ETag,
+          Size: el.Size
         });
-    };
-    f();
-  }, [s3, bucketName, notify, restorePreviousPath]);
+      }
+      return acc;
+    }, []);
+  }, [bucketName, bucketStore.objects])
+
+  const nodeTree = useMemo(() => {
+    return initNodePathTree(bucketObjects);
+  }, [bucketObjects]);
 
 
   useEffect(() => {
-    if (!lockRef.current) {
-      refreshBucketObjects()
-      lockRef.current = true;
+    if (!componentDidMount.current) {
+      let previousPath: NodePath<BucketObject> | undefined;
+      // we are not at the tree's root
+      if (currentPath.parent) {
+        previousPath = nodeTree.get(currentPath.path);
+      }
+      const newPath = previousPath ?? nodeTree
+      console.log("current path updated", newPath.path);
+      dispatch({ type: "SET_CURRENT_PATH", nodePath: newPath });
+      componentDidMount.current = true;
     }
-  }, [s3, refreshBucketObjects])
+    return (() => {
+      componentDidMount.current = false;
+    });
+  }, [nodeTree, currentPath]);
 
 
   const onSelect = (checked: boolean, index: number) => {
@@ -143,7 +125,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       throw new Error(`Child with name ${objectName} not found.`);
     }
     const isDir = next.children.size > 0;
-    const newSelection = new Set(selectedRows);
     const elements = isDir ? next.getAll() : [next];
     const select = (n: NodePath<BucketObject>) => {
       if (n.value) {
@@ -156,11 +137,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     const strategy = checked ? select : deselect;
     elements.forEach(strategy);
     if (checked) {
-      newSelection.add(index);
+      selectedRows.add(index);
     } else {
-      newSelection.delete(index);
+      selectedRows.delete(index);
     }
-    setSelectedRows(newSelection);
+    dispatch({ type: "SELECT_ROWS", selectedRows });
   }
 
   const onClick = (index: number) => {
@@ -171,12 +152,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     }
 
     if (selectedRows.has(index)) {
-      const newState = new Set(selectedRows);
-      newState.delete(index);
+      selectedRows.delete(index);
       selectedObjects.current = new Map(
         Object.entries(selectedObjects.current)
           .filter(([key]) => key.startsWith(objectName)));
-      setSelectedRows(newState);
+      dispatch({ type: "SELECT_ROWS", selectedRows });
       return;
     }
 
@@ -187,63 +167,99 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     const isDir = next.children.size > 0;
 
     if (isDir) {
-      setCurrentPath(next);
+      dispatch({ type: "SET_CURRENT_PATH", nodePath: next });
     } else {
       // By default, deselect all
-      const newState = new Set<number>();
-      const newSelectedObjects = new Map();
+      selectedRows.clear();
+      selectedObjects.current.clear();
       // If selected row was not selected, select it now
       if (!selectedRows.has(index) && next.value) {
-        newState.add(index);
-        newSelectedObjects.set(next.path, next.value);
+        selectedRows.add(index);
+        selectedObjects.current.set(next.path, next.value);
       }
-      selectedObjects.current = newSelectedObjects;
-      setSelectedRows(newState);
+      dispatch({ type: "SELECT_ROWS", selectedRows });
     }
   }
 
-  const deleteSelectedObjects = () => {
+  const deleteSelectedObjects = async () => {
     const toDelete = Array.from(selectedObjects.current.values());
     // Queue all delete asynchronously
-    deleteObjects(s3, bucketName, toDelete)
-      .then(() => {
-        selectedObjects.current = new Map();
-        setSelectedRows(new Set());
-        refreshBucketObjects();
-      });
+    await Promise.all(toDelete.map(o => {
+      const { Key } = o;
+      deleteObject(bucketName, Key);
+      console.log(`Object with key ${Key} deleted.`);
+    }))
+    dispatch({ type: "DESELECT_ALL" });
+    bucketStore.updateStore();
   }
 
-  const createNewPath = () => {
-    setModalOpen(true);
+  const uploadFiles = async () => {
+    try {
+      await Promise.all(toUpload.current.map(o =>
+        uploadObject(bucketName, o, handleUploadsUpdates))
+      );
+      notify("File(s) uploaded", undefined, NotificationType.success);
+      if (inputRef.current) {
+        inputRef.current.files = null;
+        inputRef.current.value = "";
+      }
+      console.log("update store");
+      bucketStore.updateStore();
+    } catch (err) {
+      if (err instanceof Error) {
+        notify("Cannot upload file(s)", camelToWords(err.name),
+          NotificationType.error);
+      }
+      (err: Error) => notify("Cannot upload file", camelToWords(err.name),
+        NotificationType.error);
+    }
   }
 
   const handleModalClose = (newPath: string) => {
-    setModalOpen(false);
-    if (newPath !== currentPath.basename && newPath !== "") {
-      const newNode = new NodePath<BucketObject>(newPath)
-      currentPath.addChild(newNode)
-      console.log("Set new path", newPath);
-      setCurrentPath(newNode);
+    dispatch({ type: "HIDE_MODAL" });
+    if (newPath && newPath !== currentPath.basename) {
+      const [path, basename] = extractPathAndBasename(newPath);
+      const newNode = new NodePath<BucketObject>(basename)
+      currentPath.addChild(newNode, path)
+      dispatch({ type: "SET_CURRENT_PATH", nodePath: newNode });
     }
   }
 
   const handleBucketInspectorClose = () => {
-    selectedObjects.current = new Map();
-    setSelectedRows(new Set());
+    selectedObjects.current.clear();
+    selectedObjects.current.clear();
+    dispatch({ type: "DESELECT_ALL" });
   }
 
   const handleDownloadFiles = async () => {
     if (selectedObjects.current.size > MAX_DOWNLOADABLE_ITEMS) {
-      setShowTooManyObjectsAlert(true);
+      dispatch({ type: "SHOW_TOO_MANY_DOWNLOAD_ALERT" });
       return;
     }
-
     try {
       toDownload.current = Array.from(selectedObjects.current.values())
         .map(el => new BucketObjectWithProgress(el));
-      await downloadFiles(s3, bucketName, toDownload.current);
-      selectedObjects.current = new Map();
-      setSelectedRows(new Set());
+      const keys = toUpload.current.map(el => el.object.Key);
+      const urlPromises = toUpload.current.map(el => {
+        return getPresignedUrl(bucketName, el.object.Key);
+      });
+
+      const urls = await Promise.all(urlPromises)
+        .then(contents => {
+          return contents.map((url, i) => {
+            return { key: keys[i], url: url };
+          })
+        });
+
+      const link = document.createElement("a");
+      link.onclick = () => {
+        urls.map(el => window.open(el.url, "_blank"));
+      }
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      selectedObjects.current.clear();
+      dispatch({ type: "DESELECT_ALL" });
     } catch (err) {
       if (err instanceof Error) {
         notify("Cannot download file(s)", camelToWords(err.name),
@@ -264,83 +280,56 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     const n_files = files.length;
 
     toUpload.current = [];
-    const path = currentPath.clone();
-
     for (let i = 0; i < n_files; ++i) {
-      const node = new NodePath<BucketObject>(files[i].name, { Key: files[i].name });
-      path.addChild(node);
+      const node = new NodePath<BucketObject>(
+        files[i].name,
+        { Key: files[i].name }
+      );
+      currentPath.addChild(node);
       toUpload.current.push(
         new FileObjectWithProgress({ Key: node.path }, files[i]));
     }
-
-    const startUpload = async () => {
-      try {
-        await uploadFiles(s3, bucketName, toUpload.current, handleUploadsUpdates)
-        notify("File(s) uploaded", undefined, NotificationType.success);
-        if (inputRef.current) {
-          inputRef.current.files = null;
-          inputRef.current.value = "";
-          refreshBucketObjects();
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          notify("Cannot upload file(s)", camelToWords(err.name),
-            NotificationType.error);
-        }
-        (err: Error) => notify("Cannot upload file", camelToWords(err.name),
-          NotificationType.error);
-      }
-    }
-    startUpload();
+    uploadFiles();
   }
-
 
   const handleUploadsUpdates = () => {
     const t = [...toUpload.current];
-    setUploading(t);
+    dispatch({ type: "UPLOADING", uploadingObjects: t })
   }
 
   const handleCloseDownloadPopup = () => {
-    setDownloading([]);
+    dispatch({ type: "DOWNLOADING", downloadingObjects: [] })
     toDownload.current = [];    // TODO: not sure about this
   }
 
   const handleCloseUploadPopup = () => {
-    setUploading([]);
+    dispatch({ type: "UPLOADING", uploadingObjects: [] })
     toUpload.current = [];      // TODO: not sure about this
   }
 
   const goBack = useCallback(() => {
-    const newPath: NodePath<BucketObject> = currentPath.parent && currentPath.parent.basename !== "" ?
-      currentPath.parent : rootNodeRef.current;
-
+    const newPath: NodePath<BucketObject> = currentPath.parent ?
+      currentPath.parent : nodeTree
     // No file was uploaded, remove the path
     if (currentPath.children.size === 0) {
       newPath.removeChild(currentPath);
     }
-
     selectedObjects.current = new Map();
-    setCurrentPath(newPath);
-    setSelectedRows(new Set());
-  }, [currentPath]);
+    dispatch({ type: "SET_CURRENT_PATH", nodePath: newPath });
+  }, [nodeTree, currentPath]);
 
   const handleSearchQuery = (query: string) => {
-    let objects: BucketObject[] = [];
+    let objects = bucketObjects;
     if (query) {
-      objects = bucketObjects.current.filter(o => o.Key.toLowerCase().includes(query));
-    } else {
-      objects = bucketObjects.current;
+      objects = objects.filter(o => o.Key.toLowerCase().includes(query));
     }
-    rootNodeRef.current = new NodePath("");
-    initNodePathTree(objects, rootNodeRef.current);
-    restorePreviousPath();
+    const nodePath = initNodePathTree(objects);
+    dispatch({ type: "SET_CURRENT_PATH", nodePath })
   }
 
   const TooManyDownloadsAlert = () => {
     return (
-      <Modal
-        open={showTooManyObjectsAlert}
-      >
+      <Modal open={showAlert} >
         <div className='p-4'>
           <p className='text-xl font-bold'>Warning</p>
           <p className='mt-4'>
@@ -351,7 +340,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             <Button
               className="w-24"
               title="OK"
-              onClick={() => setShowTooManyObjectsAlert(false)}
+              onClick={() => dispatch({ type: "HIDE_TOO_MANY_DOWNLOAD_ALERT" })}
             />
           </div>
         </div>
@@ -364,7 +353,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   return (
     <>
       <NewPathModal
-        open={modalOpen}
+        open={showModal}
         prefix={bucketName + '/'}
         currentPath={currentPath.path}
         onClose={handleModalClose}
@@ -402,14 +391,14 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
               <Button
                 title="Refresh"
                 icon={<ArrowUturnRightIcon />}
-                onClick={() => refreshBucketObjects()}
+                onClick={() => bucketStore.updateStore()}
               />
             </div>
             <div className='flex space-x-4'>
               <Button
                 title="New path"
                 icon={<FolderIcon />}
-                onClick={createNewPath}
+                onClick={() => dispatch({ type: "SHOW_MODAL" })}
               />
               <Button
                 title="Delete file(s)"
@@ -448,10 +437,10 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       </div>
       {/* Downloads */}
       <DownloadStatusPopup
-        show={downloading.length > 0}
+        show={downloadingObjects.length > 0}
         onClose={handleCloseDownloadPopup}
       >
-        {downloading.map(el => {
+        {downloadingObjects.map(el => {
           return <ProgressBar
             key={el.object.Key!}
             title={el.object.Key!}
@@ -461,11 +450,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       </DownloadStatusPopup>
       {/* Uploads */}
       <DownloadStatusPopup
-        show={uploading.length > 0}
+        show={uploadingObjects.length > 0}
         onClose={handleCloseUploadPopup}
         upload={true}
       >
-        {uploading.map(el => {
+        {uploadingObjects.map(el => {
           return <ProgressBar
             key={el.object.Key!}
             title={el.object.Key!}
