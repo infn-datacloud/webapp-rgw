@@ -12,7 +12,7 @@ variables:
 fetch-next-version:
   stage: next-version
   image: node:20
-  tags: ["fast"]
+  # tags: ["fast"]
   script: |
     npm install @semantic-release/exec @semantic-release/git @semantic-release/gitlab
     npx semantic-release --generate-notes false --dry-run
@@ -29,7 +29,7 @@ fetch-next-version:
 build-frontend:
   stage: build
   image: node:20
-  tags: ["fast"]
+  # tags: ["fast"]
   before_script:
    - VERSION=$(cat version.txt)
   script: |
@@ -47,7 +47,7 @@ build-frontend:
 build-backend-image:
   stage: docker
   image: docker:latest
-  tags: ["fast"]
+  # tags: ["fast"]
   services:
     - docker:dind
   before_script:
@@ -61,7 +61,7 @@ build-backend-image:
 build-frontend-image:
   stage: docker
   image: docker:latest
-  tags: ["fast"]
+  # tags: ["fast"]
   services:
     - docker:dind
   before_script:
@@ -77,7 +77,7 @@ build-frontend-image:
 release:
   stage: release
   image: node:20
-  tags: ["fast"]
+  # tags: ["fast"]
   script:
     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
     - npx semantic-release
@@ -90,7 +90,7 @@ release:
 tag-latest:
   stage: release
   image: docker:latest
-  tags: ["fast"]
+  # tags: ["fast"]
   services:
     - docker:dind
   before_script:
@@ -107,7 +107,7 @@ tag-latest:
 tag-latest-dev:
   stage: release
   image: docker:latest
-  tags: ["fast"]
+  # tags: ["fast"]
   services:
     - docker:dind
   before_script:
@@ -124,7 +124,7 @@ tag-latest-dev:
 restart-deployment:
   stage: k8s
   image: ubuntu:latest
-  tags: ["fast"]
+  # tags: ["fast"]
   before_script:
     - apt update && apt install curl -y
     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
