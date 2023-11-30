@@ -317,7 +317,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       objects = objects.filter(o => o.Key.toLowerCase().includes(query));
     }
     const nodePath = initNodePathTree(objects);
-    console.log(nodePath);
     dispatch({ type: "SET_CURRENT_PATH", nodePath })
   }
 
@@ -342,7 +341,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     )
   }
 
-  console.log(currentPath);
   const tableData = getTableData(currentPath);
 
   return (
