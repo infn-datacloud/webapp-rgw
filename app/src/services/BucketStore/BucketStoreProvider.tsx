@@ -1,5 +1,5 @@
 import { Bucket, _Object } from "@aws-sdk/client-s3";
-import { useEffect, useReducer, useState, useCallback, useRef } from "react";
+import { useEffect, useReducer, useCallback, useRef } from "react";
 import { BucketStoreContext } from "./BucketStoreContext";
 import { BucketInfo } from "../../models/bucket";
 import { useS3 } from "../S3";
@@ -16,7 +16,7 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
   const { children } = props;
   const { isAuthenticated, fetchBucketList, headBucket, listObjects } = useS3();
   const [state, dispatch] = useReducer(reducer, initialState);
-  const [externalBuckets, setExternalBuckets] = useState<Bucket[]>([]);
+  const externalBuckets = useRef<Bucket[]>([]);
   const componentDidMount = useRef(false);
 
   /** Compute Bucket Summary Info, counting all objects and summing their size */
@@ -44,7 +44,7 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
     console.log("Update store");
     const objects = new Map<string, _Object[]>();
     const ownedBuckets = await fetchBucketList()
-    const buckets = externalBuckets.concat(ownedBuckets);
+    const buckets = externalBuckets.current.concat(ownedBuckets);
     const listObjectsPromises = buckets.map(bucket => listObjects(bucket));
     const bucketsInfosPromises = listObjectsPromises
       .map(async (promise, index) => {
@@ -52,25 +52,31 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
         const name = bucket.Name!;
         const objectList = await Promise.resolve(promise);
         objects.set(name, objectList);
-        return computeBucketSummary(bucket, objectList, index < externalBuckets.length);
+        const isExternal = index < externalBuckets.current.length;
+        return computeBucketSummary(bucket, objectList, isExternal);
       });
     const bucketsInfos = await Promise.all(bucketsInfosPromises);
     dispatch({ buckets, objects, bucketsInfos })
   }, [fetchBucketList, listObjects, externalBuckets]);
 
+  /** Mount a not owned bucket as external bucket */
   const mountBucket = async (bucket: Bucket) => {
     if (!(await headBucket(bucket))) {
       return false;
     }
-    if (!externalBuckets.find(b => b.Name === bucket.Name)) {
-      setExternalBuckets(externalBuckets.concat([bucket]));
+    const found = state.buckets.find(b => b.Name === bucket.Name);
+    if (!found) {
+      externalBuckets.current.push(bucket);
+      updateStore();
     }
     return true;
   }
 
+  /** Unmount an external bucket */
   const unmountBucket = async (bucket: Bucket) => {
-    const extBuckets = externalBuckets.filter(b => b.Name !== bucket.Name)
-    setExternalBuckets(extBuckets);
+    externalBuckets.current = externalBuckets.current
+      .filter(b => b.Name !== bucket.Name)
+    updateStore();
   }
 
   useEffect(() => {
