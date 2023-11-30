@@ -191,8 +191,12 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       await client.send(cmd);
       return true;
     } catch (err) {
-      notify(`Cannot access bucket ${bucket.Name}`, String(err),
-        NotificationType.error);
+      if (err instanceof Error) {
+        const msg = err.name === "403" ? "Access Denied" :
+          camelToWords(err.name);
+        notify(`Cannot access bucket "${bucket.Name}"`, msg,
+          NotificationType.error);
+      }
     }
     return false;
   }
