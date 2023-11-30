@@ -237,17 +237,15 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     try {
       toDownload.current = Array.from(selectedObjects.current.values())
         .map(el => new BucketObjectWithProgress(el));
-      const keys = toUpload.current.map(el => el.object.Key);
-      const urlPromises = toUpload.current.map(el => {
+      const keys = toDownload.current.map(el => el.object.Key);
+      const urlPromises = toDownload.current.map(el => {
         return getPresignedUrl(bucketName, el.object.Key);
       });
 
-      const urls = await Promise.all(urlPromises)
-        .then(contents => {
-          return contents.map((url, i) => {
-            return { key: keys[i], url: url };
-          })
-        });
+      let results = await Promise.all(urlPromises);
+      const urls = results.map((url, i) => {
+        return { key: keys[i], url: url };
+      });
 
       const link = document.createElement("a");
       link.onclick = () => {
