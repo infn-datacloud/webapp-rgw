@@ -12,12 +12,26 @@ interface BucketStoreProviderBaseProps {
 
 export interface BucketStoreProviderProps extends BucketStoreProviderBaseProps { }
 
+const S3_EXTERNAL_BUCKETS_KEY = "S3_EXTERNAL_BUCKETS_KEY";
+
 export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Element => {
   const { children } = props;
   const { isAuthenticated, fetchBucketList, headBucket, listObjects } = useS3();
   const [state, dispatch] = useReducer(reducer, initialState);
-  const externalBuckets = useRef<Bucket[]>([]);
   const componentDidMount = useRef(false);
+
+  const cacheExternalBuckets = (buckets: Bucket[]) => {
+    const t = JSON.stringify(buckets);
+    localStorage.setItem(S3_EXTERNAL_BUCKETS_KEY, t);
+  }
+
+  const loadCachedExternalBuckets = (): Bucket[] => {
+    const maybeExternalBuckets = localStorage.getItem(S3_EXTERNAL_BUCKETS_KEY);
+    if (maybeExternalBuckets) {
+      return JSON.parse(maybeExternalBuckets);
+    }
+    return [];
+  };
 
   /** Compute Bucket Summary Info, counting all objects and summing their size */
   const computeBucketSummary = async (bucket: Bucket, objects: _Object[],
@@ -43,8 +57,9 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
   const updateStore = useCallback(async () => {
     console.log("Update store");
     const objects = new Map<string, _Object[]>();
-    const ownedBuckets = await fetchBucketList()
-    const buckets = externalBuckets.current.concat(ownedBuckets);
+    const ownedBuckets = await fetchBucketList();
+    const externalBuckets = loadCachedExternalBuckets();
+    const buckets = externalBuckets.concat(ownedBuckets);
     const listObjectsPromises = buckets.map(bucket => listObjects(bucket));
     const bucketsInfosPromises = listObjectsPromises
       .map(async (promise, index) => {
@@ -52,12 +67,12 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
         const name = bucket.Name!;
         const objectList = await Promise.resolve(promise);
         objects.set(name, objectList);
-        const isExternal = index < externalBuckets.current.length;
+        const isExternal = index < externalBuckets.length;
         return computeBucketSummary(bucket, objectList, isExternal);
       });
     const bucketsInfos = await Promise.all(bucketsInfosPromises);
     dispatch({ buckets, objects, bucketsInfos })
-  }, [fetchBucketList, listObjects, externalBuckets]);
+  }, [fetchBucketList, listObjects]);
 
   /** Mount a not owned bucket as external bucket */
   const mountBucket = async (bucket: Bucket) => {
@@ -66,7 +81,9 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
     }
     const found = state.buckets.find(b => b.Name === bucket.Name);
     if (!found) {
-      externalBuckets.current.push(bucket);
+      const externalBuckets = loadCachedExternalBuckets();
+      externalBuckets.push(bucket);
+      cacheExternalBuckets(externalBuckets);
       updateStore();
     }
     return true;
@@ -74,8 +91,8 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
 
   /** Unmount an external bucket */
   const unmountBucket = async (bucket: Bucket) => {
-    externalBuckets.current = externalBuckets.current
-      .filter(b => b.Name !== bucket.Name)
+    const externalBuckets = loadCachedExternalBuckets();
+    cacheExternalBuckets(externalBuckets.filter(b => b.Name !== bucket.Name));
     updateStore();
   }
 
