@@ -21,7 +21,8 @@ export interface S3ContextProps extends S3State {
 	loginWithSTS: (user: User) => Promise<void>;
 	loginWithCredentials: (credentials: AwsCredentialIdentity) => void;
 	logout: () => void;
-	fetchBucketList: () => Promise<Bucket[]>;
+  fetchBucketList: () => Promise<Bucket[]>;
+  headBucket: (bucket: Bucket) => Promise<boolean>;
 	listObjects: (bucket: Bucket) => Promise<_Object[]>;
 	getPresignedUrl: (bucket: string, key: string) => Promise<string>;
 	createBucket: (args: CreateBucketArgs) => Promise<CreateBucketCommandOutput>;

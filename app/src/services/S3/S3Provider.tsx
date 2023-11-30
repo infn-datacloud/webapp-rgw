@@ -20,6 +20,7 @@ import {
   ListObjectsV2CommandOutput,
   S3ClientConfig,
   DeleteObjectCommand,
+  HeadBucketCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -30,7 +31,7 @@ import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { initialAuthState } from "./S3State";
 import { reducer } from "./reducer";
 import { S3Context } from "./S3Context";
-import type{ User } from "../OAuth";
+import type { User } from "../OAuth";
 
 const ONE_MB = 1024 * 1024;
 const S3_CONFIG_STORAGE_KEY = "s3-config-storage-key";
@@ -175,6 +176,18 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       return [];
     }
   };
+
+  const headBucket = async (bucket: Bucket) => {
+    const cmd = new HeadBucketCommand({ Bucket: bucket.Name });
+    try {
+      await client.send(cmd);
+      return true;
+    } catch (err) {
+      notify(`Cannot access bucket ${bucket.Name}`, String(err),
+        NotificationType.error);
+    }
+    return false;
+  }
 
   const createBucket = async (args: CreateBucketArgs) => {
     const { bucketName, objectLockEnabled, versioningEnabled } = args;
@@ -338,6 +351,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         loginWithCredentials,
         logout,
         fetchBucketList,
+        headBucket,
         getPresignedUrl,
         createBucket,
         deleteBucket,
