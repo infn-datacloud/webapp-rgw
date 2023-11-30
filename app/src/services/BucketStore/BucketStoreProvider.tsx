@@ -1,5 +1,5 @@
 import { Bucket, _Object } from "@aws-sdk/client-s3";
-import { useEffect, useRef, useReducer } from "react";
+import { useEffect, useReducer, useState, useCallback } from "react";
 import { BucketStoreContext } from "./BucketStoreContext";
 import { BucketInfo } from "../../models/bucket";
 import { useS3 } from "../S3";
@@ -16,12 +16,13 @@ export interface BucketStoreProviderProps extends BucketStoreProviderBaseProps {
 
 export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Element => {
   const { children } = props;
-  const { isAuthenticated, fetchBucketList, listObjects } = useS3();
+  const { isAuthenticated, fetchBucketList, headBucket, listObjects } = useS3();
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [externalBuckets, setExternalBuckets] = useState<Bucket[]>([]);
   const { notify } = useNotifications();
 
   /** Return the list of owned buckets. */
-  const fetchBuckets = async (): Promise<Bucket[]> => {
+  const fetchBuckets = useCallback(async (): Promise<Bucket[]> => {
     console.debug("Fetching bucket list");
     try {
       return await fetchBucketList();
@@ -34,16 +35,18 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
       }
     }
     return [];
-  };
+  }, [fetchBucketList, notify]);
 
   /** Compute Bucket Summary Info, counting all objects and summing their size */
-  const computeBucketSummary = async (bucket: Bucket, objects: _Object[]) => {
+  const computeBucketSummary = async (bucket: Bucket, objects: _Object[],
+    external: boolean) => {
     const info: BucketInfo = {
       name: bucket.Name ?? "N/A",
       creation_date: bucket.CreationDate?.toString() ?? "N/A",
       rw_access: { read: true, write: true },
       objects: 0,
-      size: 0
+      size: 0,
+      external: external
     }
     if (objects) {
       objects.forEach(o => {
@@ -55,16 +58,10 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
   };
 
   /** Fetch buckets list, objects lists and bucket infos */
-  const updateStore = async () => {
-    try {
-      const r = await listObjects({ Name: "cygno-scratch" });
-      console.log(r);
-    } catch (err) {
-      if (err instanceof Error)
-        notify(err.name, err.message)
-    }
+  const updateStore = useCallback(async () => {
     const objects = new Map<string, _Object[]>();
-    const buckets = await fetchBuckets();
+    let buckets = externalBuckets;
+    buckets = buckets.concat(await fetchBuckets());
     const listObjectsPromises = buckets.map(bucket => listObjects(bucket));
     const bucketsInfosPromises = listObjectsPromises
       .map(async (promise, index) => {
@@ -72,24 +69,36 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
         const name = bucket.Name!;
         const objectList = await Promise.resolve(promise);
         objects.set(name, objectList);
-        return computeBucketSummary(bucket, objectList);
+        return computeBucketSummary(bucket, objectList, index < externalBuckets.length);
       });
     const bucketsInfos = await Promise.all(bucketsInfosPromises);
     dispatch({ buckets, objects, bucketsInfos })
+  }, [fetchBuckets, listObjects, externalBuckets]);
+
+  const mountBucket = async (bucket: Bucket) => {
+    if (!(await headBucket(bucket))) {
+      return false;
+    }
+    if (!externalBuckets.find(b => b.Name === bucket.Name)) {
+      setExternalBuckets(externalBuckets.concat([bucket]));
+    }
+    return true;
   }
 
-  const fetchBucketLock = useRef<boolean>(false);
+  const unmountBucket = async (bucket: Bucket) => {
+    const extBuckets = externalBuckets.filter(b => b.Name !== bucket.Name)
+    setExternalBuckets(extBuckets);
+  }
+
   useEffect(() => {
-    if (isAuthenticated && !fetchBucketLock.current) {
+    if (isAuthenticated) {
       updateStore();
-      fetchBucketLock.current = true;
     }
-  });
+  }, [isAuthenticated, updateStore]);
 
   /** Empty the store */
   const reset = () => {
     dispatch(initialState);
-    fetchBucketLock.current = false;
   }
 
   return (
@@ -97,6 +106,8 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
       value={{
         ...state,
         updateStore,
+        mountBucket,
+        unmountBucket,
         reset
       }}
     >
