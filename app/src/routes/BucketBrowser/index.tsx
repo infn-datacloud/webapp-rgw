@@ -242,7 +242,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         return getPresignedUrl(bucketName, el.object.Key);
       });
 
-      let results = await Promise.all(urlPromises);
+      const results = await Promise.all(urlPromises);
       const urls = results.map((url, i) => {
         return { key: keys[i], url: url };
       });
