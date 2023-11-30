@@ -34,6 +34,7 @@ build-frontend:
    - VERSION=$(cat version.txt)
   script: |
     cd app
+    npm version ${VERSION}
     npm ci
     npm test
     npm run build

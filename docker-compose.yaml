@@ -11,7 +11,7 @@ services:
       - ./app/:/app/
       - node_modules:/app/node_modules
     env_file:
-      - ./envs/dev.env
+      - ./envs/prod.env
   
   webapp:
     container_name: webapp-rgw

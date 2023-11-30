@@ -56,6 +56,13 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
 
   /** Fetch buckets list, objects lists and bucket infos */
   const updateStore = async () => {
+    try {
+      const r = await listObjects({ Name: "cygno-scratch" });
+      console.log(r);
+    } catch (err) {
+      if (err instanceof Error)
+        notify(err.name, err.message)
+    }
     const objects = new Map<string, _Object[]>();
     const buckets = await fetchBuckets();
     const listObjectsPromises = buckets.map(bucket => listObjects(bucket));
