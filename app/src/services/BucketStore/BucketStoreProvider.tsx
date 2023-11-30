@@ -1,12 +1,10 @@
 import { Bucket, _Object } from "@aws-sdk/client-s3";
-import { useEffect, useReducer, useState, useCallback } from "react";
+import { useEffect, useReducer, useState, useCallback, useRef } from "react";
 import { BucketStoreContext } from "./BucketStoreContext";
 import { BucketInfo } from "../../models/bucket";
 import { useS3 } from "../S3";
 import { reducer } from "./reducer";
 import { initialState } from "./BucketStoreState";
-import { NotificationType, useNotifications } from "../Notifications";
-import { camelToWords } from "../../commons/utils";
 
 interface BucketStoreProviderBaseProps {
   children?: React.ReactNode;
@@ -19,23 +17,7 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
   const { isAuthenticated, fetchBucketList, headBucket, listObjects } = useS3();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [externalBuckets, setExternalBuckets] = useState<Bucket[]>([]);
-  const { notify } = useNotifications();
-
-  /** Return the list of owned buckets. */
-  const fetchBuckets = useCallback(async (): Promise<Bucket[]> => {
-    console.debug("Fetching bucket list");
-    try {
-      return await fetchBucketList();
-    } catch (err) {
-      if (err instanceof Error) {
-        notify("Cannot create Bucket", camelToWords(err.name),
-          NotificationType.error)
-      } else {
-        console.error(err);
-      }
-    }
-    return [];
-  }, [fetchBucketList, notify]);
+  const componentDidMount = useRef(false);
 
   /** Compute Bucket Summary Info, counting all objects and summing their size */
   const computeBucketSummary = async (bucket: Bucket, objects: _Object[],
@@ -59,9 +41,10 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
 
   /** Fetch buckets list, objects lists and bucket infos */
   const updateStore = useCallback(async () => {
+    console.log("Update store");
     const objects = new Map<string, _Object[]>();
-    let buckets = externalBuckets;
-    buckets = buckets.concat(await fetchBuckets());
+    const ownedBuckets = await fetchBucketList()
+    const buckets = externalBuckets.concat(ownedBuckets);
     const listObjectsPromises = buckets.map(bucket => listObjects(bucket));
     const bucketsInfosPromises = listObjectsPromises
       .map(async (promise, index) => {
@@ -73,7 +56,7 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
       });
     const bucketsInfos = await Promise.all(bucketsInfosPromises);
     dispatch({ buckets, objects, bucketsInfos })
-  }, [fetchBuckets, listObjects, externalBuckets]);
+  }, [fetchBucketList, listObjects, externalBuckets]);
 
   const mountBucket = async (bucket: Bucket) => {
     if (!(await headBucket(bucket))) {
@@ -91,7 +74,8 @@ export const BucketStoreProvider = (props: BucketStoreProviderProps): JSX.Elemen
   }
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !componentDidMount.current) {
+      componentDidMount.current = true;
       updateStore();
     }
   }, [isAuthenticated, updateStore]);

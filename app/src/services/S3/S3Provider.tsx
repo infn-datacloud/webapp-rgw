@@ -166,15 +166,23 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   }
 
   const fetchBucketList = async () => {
-    const listBucketCmd = new ListBucketsCommand({});
-    const response = await client.send(listBucketCmd)
-    const { Buckets } = response;
-    if (Buckets) {
-      return Buckets;
-    } else {
-      console.warn("Warning: Expected Bucket[], got undefined");
-      return [];
+    try {
+      const listBucketCmd = new ListBucketsCommand({});
+      const response = await client.send(listBucketCmd)
+      const { Buckets } = response;
+      if (Buckets) {
+        return Buckets;
+      } else {
+        console.warn("Warning: Expected Bucket[], got undefined");
+        return [];
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        notify("Cannot fetch buckets list",
+          camelToWords(err.name), NotificationType.error);
+      }
     }
+    return []
   };
 
   const headBucket = async (bucket: Bucket) => {
