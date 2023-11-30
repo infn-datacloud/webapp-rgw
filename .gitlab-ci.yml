@@ -98,8 +98,10 @@ tag-latest:
   script: |
     docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
     docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${BACKEND_IMAGE}:latest"
+    docker push "${BACKEND_IMAGE}:latest"
     docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
     docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${FRONTEND_IMAGE}:latest"
+    docker push "${FRONTEND_IMAGE}:latest"
   only:
    refs:
     - main
@@ -115,8 +117,10 @@ tag-latest-dev:
   script: |
     docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
     docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${BACKEND_IMAGE}:latest-dev"
+    docker push "${BACKEND_IMAGE}:latest-dev"
     docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
     docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${FRONTEND_IMAGE}:latest-dev"
+    docker push "${FRONTEND_IMAGE}:latest-dev"
   only:
    refs:
     - dev
