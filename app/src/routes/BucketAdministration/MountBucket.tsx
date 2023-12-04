@@ -1,10 +1,11 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Modal } from "../../components/Modal"
 import { TextField } from "../../components/TextField";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Button } from "../../components/Button";
 import { useBucketStore } from "../../services/BucketStore";
 import { useNotifications, NotificationType } from "../../services/Notifications";
+import { addKeyHandler } from "../../commons/utils";
 
 interface MountBucketModalProps {
   open: boolean;
@@ -17,6 +18,20 @@ export const MountBucketModal = (props: MountBucketModalProps) => {
   const [error, setError] = useState<string | undefined | ReactNode>();
   const store = useBucketStore();
   const { notify } = useNotifications();
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+
+    const cleanupKeyHandler = addKeyHandler("Enter", () => {
+      mountBucket(bucketName);
+      close();
+    });
+    return () => {
+      cleanupKeyHandler();
+    }
+  }, [open, bucketName]);
 
   const clear = () => {
     setBucketName("");
