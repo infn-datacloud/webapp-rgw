@@ -1,8 +1,9 @@
+import { useState, useEffect } from "react";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "../../components/Button";
 import { Modal } from "../../components/Modal";
 import { TextField } from "../../components/TextField";
-import { useState } from "react";
+import { addKeyHandler } from "../../commons/utils";
 
 interface ModalProps {
   open: boolean;
@@ -14,6 +15,18 @@ interface ModalProps {
 export const NewPathModal = (props: ModalProps) => {
   const { open, prefix, currentPath, onClose } = props;
   const [path, setPath] = useState<string>("");
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const cleanupKeyHandler = addKeyHandler("Enter", () => {
+      handleClose();
+    });
+    return () => {
+      cleanupKeyHandler();
+    }
+  }), [open];
 
   const handleClose = () => {
     onClose(path);
@@ -48,11 +61,10 @@ export const NewPathModal = (props: ModalProps) => {
           <CloseButton />
         </div>
 
-        <h2 className="mt-8 font-semibold">
-          Current Path:
-        </h2>
-
-        <p className="mb-16">{prefix + currentPath}</p>
+        <div className="flex mt-8">
+          <h2 className="font-semibold mr-2">Current Path: </h2>
+          {prefix + currentPath}
+        </div>
         <div className="mt-16 flex space-x-8 content-center">
           <div className="lg:w-52 my-auto">
             New Folder Path
