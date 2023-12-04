@@ -67,7 +67,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
   const inputRef = useRef<HTMLInputElement>();
   const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
-  const componentDidMount = useRef(false);
+  const tempPath = useRef<string | undefined>(undefined);
   const toUpload = useRef<FileObjectWithProgress[]>([]);
   const toDownload = useRef<BucketObjectWithProgress[]>([]);
 
@@ -101,18 +101,16 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
 
   useEffect(() => {
-    if (!componentDidMount.current) {
-      let previousPath: NodePath<BucketObject> | undefined;
-      // we are not at the tree's root
-      if (currentPath.parent) {
-        previousPath = nodeTree.get(currentPath.path);
+    let nodePath = nodeTree;
+    if (tempPath.current) {
+      const t = nodeTree.get(tempPath.current);
+      if (t) {
+        nodePath = t;
       }
-      const newPath = previousPath ?? nodeTree
-      dispatch({ type: "SET_CURRENT_PATH", nodePath: newPath });
-      componentDidMount.current = true;
+      tempPath.current = undefined;
     }
-  }, [nodeTree, currentPath]);
-
+    dispatch({ type: "SET_CURRENT_PATH", nodePath });
+  }, [nodeTree]);
 
   const onSelect = (checked: boolean, index: number) => {
     const objectName = Array.from(currentPath.children.values())[index].basename;
@@ -211,13 +209,15 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }
 
   const handleModalClose = (newPath: string) => {
-    dispatch({ type: "HIDE_MODAL" });
+    let nextPath = currentPath;
     if (newPath && newPath !== currentPath.basename) {
       const [path, basename] = extractPathAndBasename(newPath);
       const newNode = new NodePath<BucketObject>(basename)
       currentPath.addChild(newNode, path)
-      dispatch({ type: "SET_CURRENT_PATH", nodePath: newNode });
+      nextPath = newNode;
+      tempPath.current = newNode.path
     }
+    dispatch({ type: "HIDE_MODAL", nextPath });
   }
 
   const handleBucketInspectorClose = () => {
@@ -306,6 +306,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     // No file was uploaded, remove the path
     if (currentPath.children.size === 0) {
       newPath.removeChild(currentPath);
+      tempPath.current = undefined;
     }
     selectedObjects.current = new Map();
     dispatch({ type: "SET_CURRENT_PATH", nodePath: newPath });

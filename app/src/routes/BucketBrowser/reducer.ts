@@ -23,7 +23,7 @@ type Action =
   | { type: "SELECT_ROWS"; selectedRows: Set<number> }
   | { type: "DESELECT_ALL" }
   | { type: "SHOW_MODAL" }
-  | { type: "HIDE_MODAL" }
+  | { type: "HIDE_MODAL", nextPath: NodePath<BucketObject> }
   | { type: "SET_CURRENT_PATH", nodePath: NodePath<BucketObject> }
   | { type: "UPLOADING", uploadingObjects: BucketObjectWithProgress[] }
   | { type: "DOWNLOADING", downloadingObjects: BucketObjectWithProgress[] }
@@ -53,9 +53,14 @@ export const reducer = (state: State, action: Action) => {
         showModal: true
       }
     case "HIDE_MODAL":
+      const currentPath = action.nextPath;
+      const { selectedRows } = state;
+      selectedRows.clear();
       return {
         ...state,
-        showModal: false
+        showModal: false,
+        currentPath,
+        selectedRows,
       }
     case "SET_CURRENT_PATH": {
       const currentPath = action.nodePath;
