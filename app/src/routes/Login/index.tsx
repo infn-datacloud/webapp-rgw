@@ -4,7 +4,7 @@ import { TextField } from "../../components/TextField"
 import { useOAuth } from "../../services/OAuth";
 import { useS3 } from "../../services/S3";
 import { Navigate } from "react-router-dom";
-
+import { addKeyHandler } from "../../commons/utils";
 
 export const Login = () => {
   const oAuth = useOAuth();
@@ -32,18 +32,13 @@ export const Login = () => {
   }, [awsAccessKeyId, awsSecretAccessKey, s3])
 
   useEffect(() => {
-    const keyDownHandler = (event: KeyboardEvent) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        if (loginEnabled) {
-          handleLogin();
-        }
+    const cleanupKeyHandler = addKeyHandler("Enter", function () {
+      if (loginEnabled) {
+        handleLogin();
       }
-    };
-
-    document.addEventListener('keydown', keyDownHandler);
+    });
     return () => {
-      document.removeEventListener('keydown', keyDownHandler);
+      cleanupKeyHandler();
     };
   }, [loginEnabled, handleLogin]);
 

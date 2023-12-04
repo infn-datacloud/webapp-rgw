@@ -31,6 +31,23 @@ export const extractPathAndBasename = (s: string) => {
   return [path, basename];
 }
 
+/** Add a custom key handler and provides a cleanup callback function.
+ * Please remember to call the cleanup function when you have done with it.
+ */
+export const addKeyHandler = (key: string, callback: () => void) => {
+  const keyDownHandler = (event: KeyboardEvent) => {
+    if (event.key === key) {
+      event.preventDefault();
+      callback();
+    }
+  }
+  document.addEventListener("keydown", keyDownHandler);
+  const cleanupCallback = function () {
+    document.removeEventListener("keydown", keyDownHandler);
+  };
+  return cleanupCallback;
+}
+
 export class NodePath<T> {
   parent?: NodePath<T>;
   basename: string;
