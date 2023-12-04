@@ -36,7 +36,6 @@ export const extractPathAndBasename = (s: string) => {
  */
 export const addKeyHandler = (key: string, callback: () => void) => {
   let cancel = false;
-  console.log("add")
   const keyDownHandler = (event: KeyboardEvent) => {
     if (cancel) {
       return;
@@ -51,7 +50,6 @@ export const addKeyHandler = (key: string, callback: () => void) => {
   const cleanupCallback = function () {
     cancel = true;
     document.removeEventListener("keydown", keyDownHandler);
-    console.log("removed")
   };
   return cleanupCallback;
 }
