@@ -35,15 +35,23 @@ export const extractPathAndBasename = (s: string) => {
  * Please remember to call the cleanup function when you have done with it.
  */
 export const addKeyHandler = (key: string, callback: () => void) => {
+  let cancel = false;
+  console.log("add")
   const keyDownHandler = (event: KeyboardEvent) => {
+    if (cancel) {
+      return;
+    }
     if (event.key === key) {
       event.preventDefault();
       callback();
     }
   }
   document.addEventListener("keydown", keyDownHandler);
+
   const cleanupCallback = function () {
+    cancel = true;
     document.removeEventListener("keydown", keyDownHandler);
+    console.log("removed")
   };
   return cleanupCallback;
 }
