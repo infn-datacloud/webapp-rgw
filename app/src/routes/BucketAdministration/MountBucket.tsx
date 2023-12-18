@@ -1,7 +1,7 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Modal } from "../../components/Modal"
 import { TextField } from "../../components/TextField";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useCallback } from "react";
 import { Button } from "../../components/Button";
 import { useBucketStore } from "../../services/BucketStore";
 import { useNotifications, NotificationType } from "../../services/Notifications";
@@ -19,11 +19,29 @@ export const MountBucketModal = (props: MountBucketModalProps) => {
   const store = useBucketStore();
   const { notify } = useNotifications();
 
+  const clear = useCallback(() => {
+    setBucketName("");
+    setError(null);
+  }, []);
+
+  const close = useCallback(async () => {
+    clear();
+    onClose();
+  }, [clear, onClose]);
+
+  const mountBucket = useCallback(async (bucket: string) => {
+    if (await store.mountBucket({ Name: bucket })) {
+      notify(`Bucket ${bucket} successfully mounted`, "", NotificationType.success);
+      close();
+    } else {
+      setError("Cannot mount bucket");
+    }
+  }, [close, store, notify]);
+
   useEffect(() => {
     if (!open) {
       return
     }
-
     const cleanupKeyHandler = addKeyHandler("Enter", () => {
       mountBucket(bucketName);
       close();
@@ -31,26 +49,7 @@ export const MountBucketModal = (props: MountBucketModalProps) => {
     return () => {
       cleanupKeyHandler();
     }
-  }, [open, bucketName]);
-
-  const clear = () => {
-    setBucketName("");
-    setError(null);
-  }
-
-  const mountBucket = async (bucket: string) => {
-    if (await store.mountBucket({ Name: bucket })) {
-      notify(`Bucket ${bucket} successfully mounted`, "", NotificationType.success);
-      close();
-    } else {
-      setError("Cannot mount bucket");
-    }
-  }
-
-  const close = async () => {
-    clear();
-    onClose();
-  }
+  }, [open, close, bucketName, mountBucket]);
 
   // Components
   const CloseButton = () => {
