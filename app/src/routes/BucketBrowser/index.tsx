@@ -1,6 +1,6 @@
 import { ChangeEvent, MouseEvent, useCallback, useEffect, useMemo, useRef, useReducer } from 'react';
 import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from '../../models/bucket';
-import { Column, Table } from '../../components/Table';
+import { Table } from '../../components/Table';
 import { Button } from '../../components/Button';
 import { BucketInspector } from '../../components/BucketInspector';
 import {
@@ -13,10 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useS3 } from '../../services/S3';
 import { InputFile } from '../../components/InputFile';
-import {
-  initNodePathTree,
-  getTableData,
-} from './services';
+import { initNodePathTree } from './services';
 import { NewPathModal } from './NewPathModal';
 import { PathViewer } from './PathViewer';
 import { NodePath, camelToWords, extractPathAndBasename } from '../../commons/utils';
@@ -29,12 +26,6 @@ import { Modal } from '../../components/Modal';
 import { useBucketStore } from '../../services/BucketStore';
 import { initialState, reducer } from './reducer';
 
-const columns: Column[] = [
-  { id: "icon" },
-  { id: "name", name: "Name" },
-  { id: "last_modified", name: "Last Modified" },
-  { id: "bucket_size", name: "Size" },
-];
 
 interface PathBackButtonProps {
   className?: string;
@@ -72,8 +63,9 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const toDownload = useRef<BucketObjectWithProgress[]>([]);
 
   const {
-    currentPath,
+    tableData,
     selectedRows,
+    currentPath,
     showModal,
     showAlert,
     downloadingObjects,
@@ -98,7 +90,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const nodeTree = useMemo(() => {
     return initNodePathTree(bucketObjects);
   }, [bucketObjects]);
-
 
   useEffect(() => {
     let nodePath = nodeTree;
@@ -130,12 +121,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     }
     const strategy = checked ? select : deselect;
     elements.forEach(strategy);
-    if (checked) {
-      selectedRows.add(index);
-    } else {
-      selectedRows.delete(index);
-    }
-    dispatch({ type: "SELECT_ROWS", selectedRows });
+    dispatch({ type: checked ? "SELECT_ROW" : "DESELECT_ROW", index });
   }
 
   const onClick = (index: number) => {
@@ -145,12 +131,11 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       throw new Error("Object name is undefined");
     }
 
-    if (selectedRows.has(index)) {
-      selectedRows.delete(index);
+    if (tableData.rows[index].selected) {
       selectedObjects.current = new Map(
         Object.entries(selectedObjects.current)
           .filter(([key]) => key.startsWith(objectName)));
-      dispatch({ type: "SELECT_ROWS", selectedRows });
+      dispatch({ type: "DESELECT_ROW", index });
       return;
     }
 
@@ -163,15 +148,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     if (isDir) {
       dispatch({ type: "SET_CURRENT_PATH", nodePath: next });
     } else {
-      // By default, deselect all
-      selectedRows.clear();
-      selectedObjects.current.clear();
-      // If selected row was not selected, select it now
-      if (!selectedRows.has(index) && next.value) {
-        selectedRows.add(index);
-        selectedObjects.current.set(next.path, next.value);
-      }
-      dispatch({ type: "SELECT_ROWS", selectedRows });
+      dispatch({ type: "SELECT_ROW", index });
     }
   }
 
@@ -342,8 +319,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     )
   }
 
-  const tableData = getTableData(currentPath);
-
   return (
     <>
       <NewPathModal
@@ -368,7 +343,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       </div>
       {/* Transition to open the right drawer */}
       <div className={`w-full transition-all ease-in-out duration-200 
-        ${selectedRows.size > 0 ? "mr-72" : "mr-0"}`}>
+        ${selectedRows > 0 ? "mr-72" : "mr-0"}`}>
         <div className='container'>
           {/* Buttons */}
           <div className="flex mt-8 place-content-between">
@@ -398,7 +373,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
                 title="Delete file(s)"
                 icon={<TrashIcon />}
                 onClick={deleteSelectedObjects}
-                disabled={selectedRows.size === 0}
+                disabled={selectedRows === 0}
               />
             </div>
           </div>
@@ -420,11 +395,9 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           <div className="flex place-content-center mt-4">
             <Table
               selectable={true}
-              columns={columns}
               data={tableData}
               onSelect={onSelect}
               onClick={onClick}
-              selectedRows={selectedRows}
             />
           </div>
         </div>
