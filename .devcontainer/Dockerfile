@@ -1,6 +1,9 @@
 FROM node:lts-slim
-COPY . /app
-WORKDIR /app
+
+ARG WORKSPACE="/workspace"
+
+COPY ../ ${WORKSPACE}
+WORKDIR ${WORKSPACE}/app
 
 RUN npm install && npm cache clean --force
 

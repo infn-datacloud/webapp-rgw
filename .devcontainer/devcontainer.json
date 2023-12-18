@@ -1,0 +1,22 @@
+{
+	"name": "Webapp RGW",
+  "dockerComposeFile": ["docker-compose.yaml"],
+  "service": "webapp-dev",
+  "workspaceFolder": "/workspace",
+	"features": {
+		"git": "os-provided"
+	},
+	"postCreateCommand": "cd app && npm install && npm run dev",
+	"customizations": {
+    "vscode": {
+      "settings": {
+        "remote.autoForwardPorts": false
+      },
+      "extensions": [
+        "wayou.vscode-todo-highligh",
+        "github.vscode-github-actions"
+      ]
+    }
+  },
+	"remoteUser": "node"
+}
