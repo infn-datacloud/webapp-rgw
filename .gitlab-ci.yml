@@ -67,7 +67,7 @@ build-frontend-image:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-   - docker build app -f app/Dockerfile.prod --pull -t "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
+   - docker build app -f app/Dockerfile --pull -t "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
    - docker push "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
   needs:
     - build-frontend
