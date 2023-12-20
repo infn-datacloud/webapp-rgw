@@ -6,9 +6,8 @@ import { staticRoutes } from './routes';
 import { withBucketStore } from './services/BucketStore';
 import { S3ProviderProps, useS3, withS3 } from './services/S3';
 import { withNotifications } from './services/Notifications';
-import { useOAuth } from './services/OAuth';
+import { useOAuth, withOAuth } from './services/OAuth';
 import { useEffect, useRef } from 'react';
-import { withOAuth } from './services/OAuth';
 
 const AppRaw = () => {
   const oAuth = useOAuth();
@@ -18,9 +17,7 @@ const AppRaw = () => {
   // If authenticated via oidc, try login with STS
   useEffect(() => {
     if (!didInit.current) {
-      oAuth.events.addUserLoaded((user) => {
-        s3.loginWithSTS(user);
-      })
+      oAuth.events.addUserLoaded(s3.loginWithSTS);
       didInit.current = true;
     }
   }, [oAuth.events, s3])
