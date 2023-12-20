@@ -18,6 +18,7 @@ const AppRaw = () => {
   useEffect(() => {
     if (!didInit.current) {
       oAuth.events.addUserLoaded(s3.loginWithSTS);
+      oAuth.events.userSignedOut(s3.logout);
       didInit.current = true;
     }
   }, [oAuth.events, s3])
