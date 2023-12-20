@@ -1,8 +1,5 @@
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from 'react-router-dom';
-import { staticRoutes } from './routes';
+import { RouterProvider} from 'react-router-dom';
+import { router } from './routes';
 import { withBucketStore } from './services/BucketStore';
 import { S3ProviderProps, useS3, withS3 } from './services/S3';
 import { withNotifications } from './services/Notifications';
@@ -24,15 +21,6 @@ const AppRaw = () => {
   }, [oAuth.events, s3])
 
   // Create router
-  const routes = staticRoutes.map(route => {
-    return {
-      path: route.path,
-      element: route.element
-    }
-  });
-
-  const router = createBrowserRouter(routes);
-
   return (
     <div className="flex mb-4">
       <RouterProvider router={router} />
