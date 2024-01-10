@@ -1,11 +1,11 @@
-# Project Tree 
+# Project Tree
 
-This documents shows the current project tree structure and how code is
+This documents describes the current project tree structure and how code is
 organized.
 
 ## Main Tree
 
-The main tree looks like the following
+The root tree of this repository is
 
 ```shell
 ├── app
@@ -15,15 +15,17 @@ The main tree looks like the following
 └── nginx
 ```
 
+**Folder description**
+
 - `app`: webapp/frontend source code
 - `backend`: backend source code
 - `docs`: documentation
-- `envs`: directory where to put custom environment files
-- `nginx`: directory with NGINX configurations for development and production
+- `envs`: where to put custom environment files
+- `nginx`: NGINX configurations for development and production
 
 ## App
 
-The webapp tree looks like the following
+The webapp tree
 
 ```shell
 app
@@ -38,25 +40,29 @@ app
     └── services
 ```
 
-- `dist`: where build artifacts are saved
-- `public`: public static files like favicon, logos, robots.txt, fonts and env files
+**Folder description**
+ 
+- `dist`: build artifacts destination folder (git-ignored)
+- `public`: public static files like logos, fonts, env files and more
 - `src`: source code
 
-And in particular, the `src`'s directories:
+<br/>
 
-- `commons`: directory containing general purpose utilities
-- `components`: collection of JSX components (Button, TextField, etc)
+`src` folder tree
+
+- `commons`: general purpose utilities
+- `components`: collection of general JSX components (Button, TextField, etc)
 - `models`: collection of data models
-- `routes`: collection of routes used by `react-router`. Equivalent of "site pages"
-- `services`: collection of main services like OAuth2, Notifications, S3
-operations etc
+- `routes`: collection of routes used by `react-router`. Equivalent of site pages
+- `services`: collection of main services like OAuth2, Notifications S3
+operations, etc
 
 ### Routes
 
-This section describes how to organize the routes, or site pages, code.
+This section describes how to organize routes, or site pages, code.
 
-The `index.tsx` file located in `app/src/routes` is a file containing "general"
-variables, like the `router` or `staticRoutes` objects, 
+The [`app/src/routes/index.tsx`](app/src/routes/index.tsx) file contains general
+variables, like the `router` or `staticRoutes` objects,
 which can be directly imported from the `routes` module, for example
 
 ```tsx
@@ -84,11 +90,10 @@ and the route is used with
 
 ```tsx
 import { Login } from 'routes/login';
-// do stuff with Login JSX component
 ```
 
-If the route (page) needs more functionalities or custom (non-general purpose)
-components, their can be defined within the route subdirectory, for example
+If the route (page) needs advance functionality and/or custom components, they
+can be defined within the route subdirectory, for example
 
 ```shell
 app/src/routes
@@ -113,7 +118,8 @@ To learn how to organize the services source code, please refer to the
 
 
 ## Backend
-The backend tree
+
+The backend tree structure
 
 ```shell
 backend
@@ -131,28 +137,30 @@ backend
 
 ```
 
-- `src`: source code directory
+**Folder/file description**
+
+- `src`: source code
 - `src/app.py`: entrypoint
-- `src/routes`: directory whose children are subdirectory containing code per
-each route. The `oauth` subdirectory contains code for the `/api/v1/oauth` route
+- `src/routes`: collection of children subdirectories representing routes.
+- `src/routes/<endpoint>`: implementation of the `/api/v1/<endpoint>` route
 
 ### Routes
 
-The `src/routes` directory contains code organized per different routes,
-maintaining the same structure. For example, code for the API route
-`<endpoint>/api/v1/foo`, will be organized like
+The `src/routes` directory contains code organized in subdirectory, one per each
+router. Every router directory respect the same structure as shown below
 
 ```shell
 ..
 └── routes
     ├── ...
-    └── foo
+    └── <endpoint>
         ├── __init__.py
         ├── models.py
         ├── routes.py
         └── services.py
 ```
-where the files represent
+
+where files contains
 
 -  `__init__.py`: modules what must be exported to the router
 - `models.py`: collection Pydantic modules representing the route data models

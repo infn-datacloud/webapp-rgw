@@ -1,48 +1,49 @@
 # GitLab CI/CD Pipeline
 
-This repository utilizes
+This repository makes usage of
 [GitLab's CI/CD Pipelines](https://docs.gitlab.com/ee/ci/pipelines/)
 to build the artifacts to be deployed, and empowers the
 [semantic-release](https://semantic-release.gitbook.io/semantic-release/)
-tool to manage semantic versioning.
-The pipeline runs at each push to build and test the artifacts.
+tool for semantic versioning.
+The CI pipeline it triggered by every push to all branches, running tests and
+the artifacts.
 
 ## Docker Images
 
-Pipeline's artifacts are two docker images (frontend and backend)
+Pipeline's artifacts consists in two docker images (frontend and backend)
 that are pushed on the Baltig's internal
 [Container Registry](https://baltig.infn.it/infn-cloud/webapp-rgw/container_registry/)
 
-Images are tagged accordingly with the name of the branch that triggered the
-pipeline, for example, if you are working on the branch named `awesome-feature`,
-each push will trigger the pipeline that will produces the following images
+Images are tagged as the name of the branch that triggered the
+pipeline. If you are working on the branch named `awesome-feature`,
+each push to origin will run the pipeline, producing the following images
 
 - `webapp-rgw/webapp:awesome-feature`
 - `webapp-rgw/backend:awesome-feature`
 
-> **Note** that a new push il overwrite those tags.
+> **Note** that a new push will overwrite those tags.
 
-This is true for all branches different from `main` and `dev`. Since pushes
-on `main` and `dev` generate new release or pre-release, respectively,
+This is true for all branches different from `main` and `dev`.
+Since pushes to (`dev`)/`main` and `dev` generate new (pre-)release
 as discussed in the [versioning guide](git-workflow.md#versioning), the images
-tags will be the new versions. For example, if a push to the `dev` branch
-produces the new version `v0.20.1-dev.3`, the docker images will be tagged as
+tags will correspond to the new version. For example, pushes to `dev` will
+produce the `v0.20.1-dev.3` pre-release and the docker images
 
 ```
 webapp-rgw/webapp:v0.20.1-dev.3
 webapp-rgw/backend:v0.20.1-dev.3
 ```
 
-In addition, the `latest-dev` tag will be updated to point the new tag
-corresponding to the last version, i.e.:
+In addition, the `latest-dev` tag is updated to point to the new tag
+corresponding to the last version, i.e:
 
 ```
 webapp-rgw/webapp:latest-dev   ->   webapp-rgw/webapp:v0.20.1-dev.3
 webapp-rgw/backend:latest-dev  ->   webapp-rgw/backend:v0.20.1-dev.3
 ```
 
-Similarly, a push on the`main` branch, that will produce the, for example, the
-`v0.20.1` version, will generate the following images
+Similarly, a push to the`main` branch will produce, for example, the
+`v0.20.1` release and the following images
 
 ```
 webapp-rgw/webapp:v0.20.1
@@ -54,8 +55,8 @@ webapp-rgw/backend:latest   ->   webapp-rgw/backend:v0.20.1
 
 ## Kubernetes
 
-When pushing on the `dev` or `main` branches, the last step of the pipeline will
-trigger a restart of the Kubernetes test deployment, which will automatically
-pull the `latest-dev` images.
+When pushing to `dev` and `main` branches, the pipeline triggers a restart of
+the Kubernetes test deployment, which will automatically
+pull the `latest-dev` images and reload the services.
 
 The testbed deployment is located at https://cloud-vm22.cloud.cnaf.infn.it.

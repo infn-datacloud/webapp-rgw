@@ -1,6 +1,6 @@
 ## React Hooks (Services)
 
-Services are pieces of code implementing a set of functionalities or activities
+Services are pieces of code implementing a set of functionalities and actions
 logically tied together to perform a specific task and/or interact with an
 external system. Example of services are the `S3` service, which allows the
 interaction with the S3 backend and perform buckets operations, or the
@@ -8,20 +8,21 @@ interaction with the S3 backend and perform buckets operations, or the
 
 Services are implemented similarly to the native
 [React Hooks](https://react.dev/reference/react/hooks), empowering the notion
-of [Contexts](https://react.dev/reference/react/useContext) in order to 
+of [Contexts](https://react.dev/reference/react/useContext) in order to
 make service accessible globally.
 
-Let's say that we want to build the `Unicorns` service that ask to some external
-server (API) to get the list of all the Unicorns present in the database,
-or to add a new one.
-Would be nice to be able to use this service like
+Let's say that we want to build the `Unicorns` service that asks for the list of
+all the Unicorns present in the database to some external server, or to add a
+new one.
+Would be nice to use this service like
 
 ```jsx
-import { useUnicorns, type Unicorn } from './services/unicorns';
+// AwesomeComponent.tsx
+import { useUnicorns, type Unicorn } from './services/Unicorns';
 import { useState, useEffect } from 'react';
 
 const AwesomeComponent = (): JSX => {
-  const { getUnicorns, addUnicorn } = useUnicorns;  // hook!
+  const { getUnicorns, addUnicorn } = useUnicorns();  // hook!
   const [unicorns, setUnicorns] = useState<Unicorn[]>([]);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ const AwesomeComponent = (): JSX => {
 
   return (
     <>
-      <div>We have {unicorns.length}</div>
+      <div>We have {unicorns.length} unicorns</div>
       <button onclick={() => addUnicorn("James")}>
         Click to add a Unicorn!
       </button>
@@ -42,7 +43,7 @@ const AwesomeComponent = (): JSX => {
 
 ## Service Provider
 
-In order to use the `useUnicorns` hook, the hook must be called within its own
+In order to use the `useUnicorns` hook, it must be called within its own
 [Context Provider](https://react.dev/reference/react/useContext).
 
 Continuing with the above `Unicorns` service example, `AwesomeComponent` must
@@ -50,8 +51,8 @@ be defined with the `UnicornContext`
 
 ```jsx
 // App.tsx
-import { UnicornsContext } from './services/unicorns';
-import { AwesomeComponent } from './components/awesome';
+import { UnicornsContext } from './services/Unicorns';
+import { AwesomeComponent } from './components/Awesome';
 
 const App = (): JSX => {
   return (
@@ -66,13 +67,13 @@ Otherwise, it could be handy to have something like
 
 ```jsx
 // App.tsx
-import { withUnicorns, type UnicornsProps } from './service/unicorns';
-import { AwesomeComponent } from './components/awesome';
+import { withUnicorns, type UnicornsProps } from './service/Unicorns';
+import { AwesomeComponent } from './components/Awesome';
 
 const App = (): JSX => {
-  const unicornsProps: UnicornsProps = { ... };
-  const SuperAwesomeComponent = withUnicorns(AwesomeComponent, unicornsProps);
-  
+  const unicornsConfig: UnicornsProps = { ... };
+  const SuperAwesomeComponent = withUnicorns(AwesomeComponent, unicornsConfig);
+
   return (
     <SuperAwesomeComponent />
   )
@@ -97,10 +98,12 @@ app/src/services
     └── withUnicorns.tsx        # mandatory
 ```
 
+Let's start with mandatory files.
+
 ### `index.ts`
 
-Let's start with mandatory files. `index.ts` expose all the exported fields that
-we want to make publicly accessible, for example
+`index.ts` exposes all the exported fields that we want to make publicly
+accessible, for example
 
 ```ts
 // index.ts
@@ -110,7 +113,7 @@ export { withUnicorns } from "./withUnicorns";
 export { useUnicorns } from "./useUnicorns";
 ```
 
-and this allows use to import everything from `./service/Unicorns`, i.e.:
+and this permits to import from `./service/Unicorns`
 
 ```jsx
 // App.tsx
@@ -121,12 +124,7 @@ const App = (): JSX => {
   ...
 }
 
-...
-```
 
-and 
-
-```jsx
 // AwesomeComponent.tsx
 import { useUnicorns, type Unicorn } from "./services/Unicorns";
 
@@ -138,9 +136,9 @@ const AwesomeComponent = (): JSX => {
 
 ## Service Context
 
-The service context defines the interface of our service (i.e. all the available
-service's methods) and create and sets the context using the
-React's [createContext](https://react.dev/reference/react/createContext)
+The service context defines the interface of our service (i.e, public API
+methods) and creates and sets the React's context
+via the [createContext](https://react.dev/reference/react/createContext)
 function.
 
 Suppose that our service must define the `getAllUnicorns` and `addUnicorn`
@@ -161,18 +159,19 @@ export const UnicornsContext =
   createContext<UnicornsContextProps | undefined>(undefined);
 ```
 
-In the above snipped we create the context as `undefined`. We'll set it when
-we create the context provider.
+In the above snippet we have created the context as `undefined`.
+We will set it later when we create the context provider.
 
 ## Service Provider
 
-The service provider is the component that implements the actual logic. It is
-full-fledged standard React component which implements all the methods listed
-in the context interface.
+The service provider is the component in charge of implementing actual logic.
+It is a full-fledged standard React component which implements the methods
+listed in the context interface.
 
 ```jsx
 // UnicornsProvider.tsx
 import { type UnicornsContext } from './UnicornsContext'
+import { useCallback, useMemo } from 'react';
 
 // we want enable children components to access our context provider
 interface UnicornsProviderPropsBase {
@@ -190,19 +189,20 @@ export interface UnicornsProviderProps extends UnicornsProviderPropsBase {
 export const UnicornsProvider = (props: UnicornsProviderProps): JSX => {
   const { user, password } = props;
   const { children } = props;
+  // encode to base64 and memoize
+  const credentials = useMemo(() => btoa(`${user}:${password}`));
 
-  const getAllUnicorns = async () => Unicorn[] {
-    const credentials = btoa(`${user}:${password}`);
+  const getAllUnicorns = useCallback(async () => Unicorn[] {
     const response = await fetch('/unicorns', {
       headers: {
         Authorization: `Basic ${credentials}`
       }
     });
     return await response.json();
-  }
+  }, [credentials]);
 
-  const addUnicorn = async (name: string) => {
-    const credentials = btoa(`${user}:${password}`); 
+  const addUnicorn = useCallback(async (name: string) => {
+    const credentials = btoa(`${user}:${password}`);
     await fetch('/unicorns', {
       method: "POST",
       headers: {
@@ -211,10 +211,10 @@ export const UnicornsProvider = (props: UnicornsProviderProps): JSX => {
       },
       body: JSON.stringify({unicornName: name});
     });
-  }
+  }, [credentials]);
 
   return (
-    <UnicornsContext.Provider 
+    <UnicornsContext.Provider
       value={{
         getAllUnicorns,
         addUnicorn
@@ -248,15 +248,14 @@ export const useUnicorns = (): UnicornsContextProps => {
 }
 ```
 
-As you can see, we check if the context is well defined. It means that the
-context must be forwarded to the component which will utilize the `useUnicorns`
+We check if the context is well defined because we want to be sure that the
+context is forwarded to the component which will make access to the `useUnicorns`
 hook, as child of the `UnicornsProvider` component.
 
 ## Extend components with service
 
-Actually we already have everything needed to initialize and use the service.
-If we want forward the `UnicornsContext` to all children component we can
-write something like
+Now we have everything needed to initialize and use the service.
+To forward the `UnicornsContext` to all its children component we write
 
 ```jsx
 // App.jsx
@@ -266,8 +265,10 @@ import {
 } from './services/Unicorns';
 
 const App = (): JSX => {
-  const unicornsConfig: UnicornsProviderProps = { ... }; 
-  // stuff
+  const unicornsConfig: UnicornsProviderProps = { ... };
+
+  // useful thins
+
   return (
     <UnicornsProvider {...unicornsConfig}>
       <AwesomeComponent />
@@ -276,8 +277,8 @@ const App = (): JSX => {
 }
 ```
 
-This is nice, but the "sandwich" can escalate quickly. Indeed, if we add another
-service, we need to rewrite the returned value such as
+This is nice, but the sandwich hight can escalate quickly.
+Indeed, if we add another service, we need to rewrite the returned value such as
 
 ```jsx
   return (
@@ -289,9 +290,9 @@ service, we need to rewrite the returned value such as
   );
 ```
 
-Adding one more service will add a new level of nesting. As alternative we can
+Adding one more service will add a new level of nesting. As alternative, we can
 hide the nesting wrapping our component in new function called `withUnicorns`
-which returns an "augmented" version of the `AwesomeComponent` with the service
+which returns an augmented version of the `AwesomeComponent` with the service
 exposed
 
 ```jsx
@@ -323,12 +324,14 @@ Now we can extend our component with all the services that we want
 // App.tsx
 import { withUnicorns } from "./services/Unicorns";
 import { withElves } from "./services/Elves";
+import { AwesomeComponent } from "./components/AwesomeComponent";
 
 const App = (): JSX =>  {
   // more stuff
   let SuperAwesomeComponent = withUnicorns(AwesomeComponent);
   SuperAwesomeComponent = withElves(SuperAwesomeComponent);
-  return (
+
+return (
     <SuperAwesomeComponent />
   )
 }
@@ -339,8 +342,9 @@ const App = (): JSX =>  {
 Our service can be quite complex and thus it may require some advanced
 functionalities. For example, an authentication service may need to handle a
 user that can potentially be in one of many different states, such
-`loggingIn`, `loggedIn`, `loggingOut`, `loggingOut` etc. In such cases, it comes
-the use of [useReducer](https://react.dev/reference/react/useReducer) hooks.
+`loggingIn`, `loggedIn`, `loggingOut`, `loggingOut` etc.
+In such cases, it we can use the
+[useReducer](https://react.dev/reference/react/useReducer) hooks.
 
 To use the reducer, we can create a `UnicornsState.ts` file which defines
 the state interface and a default state value. Then, we create a `reducer.ts`
@@ -364,7 +368,7 @@ export const UnicornsProvider = (...): JSX => {
     dispatch({type: "LOGGED_IN" });
   }
 
-  const foo() => {
+  const foo () => {
     const { loggedIn } = state;
     if (loggedIn) {
       console.log("We are logged in!");
