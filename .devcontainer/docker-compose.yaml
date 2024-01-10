@@ -11,7 +11,7 @@ services:
       - ../envs/dev.env
   
   backend:
-    container_name: backend
+    container_name: webapp-rgw-dev-backend
     image: backend
     build:
       context: ../backend
@@ -24,7 +24,7 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: nginx
+    container_name: webapp-rgw-dev-nginx
     volumes:
       - ../nginx/dev.conf:/etc/nginx/conf.d/default.conf
     ports:
