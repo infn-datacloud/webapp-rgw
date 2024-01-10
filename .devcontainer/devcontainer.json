@@ -14,8 +14,9 @@
       },
       "extensions": [
         "wayou.vscode-todo-highligh",
-        "github.vscode-github-actions"
-      ]
+        "GitLab.gitlab-workflow",
+        "streetsidesoftware.code-spell-checker"
+	    ]
     }
   },
 	"remoteUser": "node"
