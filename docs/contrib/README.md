@@ -11,7 +11,7 @@ handle the Oidc/OAuth2 authN/authZ flow.
 The frontend is a Typescript ReactJS based web application, and is the core of
 the project. Is relies on main frameworks: the official
 [AWS JavaScript SDK](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/)
-fo rall S3 operations, and [TailwindCSS](https://tailwindcss.com) as styling
+for all S3 operations, and [TailwindCSS](https://tailwindcss.com) as styling
 framework.
 
 In addition, NGINX is required to proxy pass the requests to backend and
