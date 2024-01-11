@@ -232,7 +232,7 @@ Let's see now how to implement the `useUnicorns` hook. To get access to the
 
 ```jsx
 // useUnicorns.tsx
-import { useContext } from "react;
+import { useContext } from "react";
 import { UnicornsContext, type UnicornsContextProps } from "./UnicornsContext";
 
 export const useUnicorns = (): UnicornsContextProps => {
@@ -413,7 +413,6 @@ export interface UnicornsState {
 export const initialState: UnicornsState = {
   unicorns: []
 }
-
 
 // reducer.ts
 import { type UnicornsState } from "./UnicornsState";
