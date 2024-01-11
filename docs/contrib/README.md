@@ -20,7 +20,7 @@ deployment.
 
 ## Getting Started
 
-To run the backend, the frontend and NGINX, docker is the only requirement.
+To run the backend, the frontend and NGINX, Docker is the only requirement.
 The project is configured to be executed via the
 [Visual Studio Code Dev Container](https://code.visualstudio.com/docs/devcontainers/containers)
 extension for VSCode, since it provides a common and convenient ecosystem with

@@ -8,20 +8,12 @@ organized.
 The root tree of this repository is
 
 ```shell
-├── app
-├── backend
-├── docs
-├── envs
-└── nginx
+├── app           # frontend source code
+├── backend       # backend source code
+├── docs          # documentation
+├── envs          # where to put custom environment files
+└── nginx         # NGINX configurations for development and production
 ```
-
-**Folder description**
-
-- `app`: webapp/frontend source code
-- `backend`: backend source code
-- `docs`: documentation
-- `envs`: where to put custom environment files
-- `nginx`: NGINX configurations for development and production
 
 ## App
 
@@ -29,33 +21,15 @@ The webapp tree
 
 ```shell
 app
-├── dist  # git-ignored, present only after npm build
-│   └── assets
-├── public
+├── dist           # build artifacts. git-ignored, present only after npm build
+├── public         # public static files like logos, fonts, env files and more
 └── src
-    ├── commons
-    ├── components
-    ├── models
-    ├── routes
-    └── services
+    ├── commons    # general purpose utilities
+    ├── components # collection of general JSX components (Button, TextField, etc)
+    ├── models     # collection of data models
+    ├── routes     # collection of routes used by react-router (site pages)
+    └── services   # collection of main services like OAuth2, Notifications S3
 ```
-
-**Folder description**
- 
-- `dist`: build artifacts destination folder (git-ignored)
-- `public`: public static files like logos, fonts, env files and more
-- `src`: source code
-
-<br/>
-
-`src` folder tree
-
-- `commons`: general purpose utilities
-- `components`: collection of general JSX components (Button, TextField, etc)
-- `models`: collection of data models
-- `routes`: collection of routes used by `react-router`. Equivalent of site pages
-- `services`: collection of main services like OAuth2, Notifications S3
-operations, etc
 
 ### Routes
 
@@ -119,51 +93,20 @@ To learn how to organize the services source code, please refer to the
 
 ## Backend
 
-The backend tree structure
+The backend tree structure. The `src/routes` directory contains code organized
+in subdirectory, one per each route.
+Every router directory respect the same structure as shown below
 
 ```shell
 backend
 ├── Dockerfile
 └── src
-    ├── app.py
-    ├── requirements.txt
+    ├── app.py              # entrypoint
+    ├── requirements.txt    # dependency manifest
     └── routes
-        ├── __init__.py
-        └── oauth
-            ├── __init__.py
-            ├── models.py
-            ├── routes.py
-            └── services.py
-
-```
-
-**Folder/file description**
-
-- `src`: source code
-- `src/app.py`: entrypoint
-- `src/routes`: collection of children subdirectories representing routes.
-- `src/routes/<endpoint>`: implementation of the `/api/v1/<endpoint>` route
-
-### Routes
-
-The `src/routes` directory contains code organized in subdirectory, one per each
-router. Every router directory respect the same structure as shown below
-
-```shell
-..
-└── routes
-    ├── ...
-    └── <endpoint>
-        ├── __init__.py
-        ├── models.py
-        ├── routes.py
-        └── services.py
-```
-
-where files contains
-
--  `__init__.py`: modules what must be exported to the router
-- `models.py`: collection Pydantic modules representing the route data models
-- `routes.py`: definition of the HTTP requests like GET/POST/DELETE etc
-- `services.py`: functions and utilities used by `routes.py` and specific for
-this route.
+        ├── __init__.py     # routes module definitions
+        └── <endpoint>      # implementation of the /api/v1/<endpoint> route
+            ├── __init__.py # define functions to be exported to the router
+            ├── models.py   # Pydantic data models of the route
+            ├── routes.py   # definition of the HTTP requests (GET/POST/DELETE, ...)
+            └── services.py # functions and utilities used by `routes.py`

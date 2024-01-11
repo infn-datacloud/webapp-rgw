@@ -5,16 +5,16 @@ This repository relies on
 the artifacts to be deployed, and empowers the
 [semantic-release](https://semantic-release.gitbook.io/semantic-release/) tool
 to manage semantic versioning.
-The pipeline runs at each push to build and test the artifacts.
-
+The pipeline runs on all pushes to every branches, with the distinctions
+describe in the following paragraphs.
 
 ## Commit Messages
 
-`semantic-release` is infers the next version by analyzing commit
-messages and automatically generates release notes for each version.
+semantic-release infers the next version by analyzing commit messages and
+automatically generates release notes for each version.
 It makes usage of the
 [Angular Commit Message Conventions](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#-commit-message-format).
-For this project, it is sufficient to specify the `<type>` and the `<summary>`
+For this project is sufficient to specify the `<type>` and the `<summary>`
 fields, leaving out the `<scope>`.
 
 In order to generate proper versions and release notes, commit messages MUST
@@ -68,9 +68,9 @@ and pushes to `main` generate `v0.18.1`, `v0.19.0`, etc.
 
 Direct pushes to `main` are not allowed and thus is only possible to
 include changes only with via Merge Requests (MR). As described in the
-[gitlab-ci guide](gitlab-ci.md), pushes to `dev` trigger a new versions
-that will be deployed to the testbed cluster as a stage environment for testing
-before the final release.
+[gitlab-ci guide](gitlab-ci.md), pushes to `dev` trigger pre-releases that will
+be deployed to the testbed cluster as a stage environment for testing before the
+final release.
 
 Despite pushes to `dev` are always allowed, especially for rapid
 fixes, we encourage to work on a dedicated branch, especially when developing a
@@ -94,11 +94,10 @@ git checkout -b new-feature v0.20.0
 ```
 
 We now apply all the needed changes with as many commits as needed.
-When we think we have, it is possible to merge (rebasing eventual other
-changes from `dev`) `new-feature` into `dev` branch to test it on on the
-testbed cluster.
-If `semantic-release` finds at least one commit message starting with the
-`feat:` token, it will increment the minor version number creating the
+When we are done, we merge (rebasing eventual other changes from`dev`)
+`new-feature` into `dev` branch to test it on the testbed cluster.
+If semantic-release finds at least one commit message starting with the
+`feat:` token, it increments the minor version number and creates the
 pre-release `v0.21.0-dev.1`.
 The CI/CD pipeline will build and deploy the pre-release to the
 Kubernetes test cluster.
@@ -107,5 +106,5 @@ the `new-feature` branch. Again, we want to the them in the staging environment,
 thus we merge `new-feature` into `dev`. A new pre-release tagged
 `v0.21.0-dev.2` will be created. After proper testing we elect the pre-release
 as candidate for the final release. Thus, we merge `dev` to `main` (via merge
-request) and `v0.21.0` version is released and Docker images deployed to the
+request), version `v0.21.0` is released and Docker images deployed to the
 container registry.

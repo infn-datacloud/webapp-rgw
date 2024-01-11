@@ -24,29 +24,30 @@ The webapp configuration deserves few more words to understand the mechanism
 under the hood. Since it is served as *static* website through NGINX configured
 as web server, all the environment variables must be provided ad *build* time,
 making the deployment cumbersome. For example, if you want to change one single
-variable, such as `S3_ENDPOINT` or `S3_REGION` (or both), it would require a new
+variable, such as `S3_ENDPOINT` or `S3_REGION`, it would require a new
 build just for that.
 
-All environmental variables needed by the frontend, are stored in `env.js` file
-located at `app/public`, which is then imported by `app/index.html`.
-This file actually doesn't not exists at build time, but it is rather created at
-*runtime* by the `app/init_env.sh` script.
-When the container starts, as first thing it runs the `init_env.sh` script,
-which copies of the `app/public/env.template.js` file to `app/public/env.js`
-substituting the variable templates with the hardcoded real value.
+The environmental variables needed by the frontend are stored in the `env.js`
+file located at `app/public`, which is then imported by `app/index.html`.
+This file actually doesn't not exists at build time, but it is rather *created
+at runtime* by the `app/init_env.sh` script.
+When the container starts, the first thing it runs is `init_env.sh`,
+which makes a copy of the `app/public/env.template.js` file named
+`app/public/env.js`, and replaces the variable placeholders with the hardcoded
+values.
 
 To add/modify an environmental variables, the following steps are required
 
-1. Add the name of variable you want to use to `app/public/env.template.js` and
-its value placeholder, for example `MY_VAR_FOO`: 
+1. Add the name of the variable you want to use to `app/public/env.template.js`
+along its value placeholder, for example `FOO`:
 
 ```js
 // app/public/env.template.js
+
 window.env = {
-  // other vars
-  ...
   // add "key" and "value" placeholder for later substitution
-  MY_VAR_FOO: MY_VAR_FOO_VALUE
+  FOO: FOO_VALUE
+  // more vars
 }
 ```
 
@@ -55,33 +56,30 @@ window.env = {
 ```sh
 # app/init_env.sh
 
-...
+# ...
 
 # key and value placeholder must match those written in env.template.js, 
 # $TMP_FILE must no be changed
-sed -i -e "s|MY_VAR_FOO|${MY_VAR_FOO_VALUE}|g" "$TMP_FILE"
-
-...
+sed -i -e "s|FOO|${FOO_VALUE}|g" "$TMP_FILE"
+# ...
 ```
 
-3. Edit the `app/src/index.tsx` to make the new variable visible by the
+3. Edit the `app/src/index.tsx` file to make the new variable visible to the
 typescript compiler
 
 ```tsx
 // app/src/index.tsx
 
 interface EnvInterface {
+  FOO: string;
   // more vars
-  MY_VAR_FOO: string;
 }
 ```
 
+Your env variable is finally the accessible with
 
-Your env variable is the accessible with
-
-```
+```tsx
 // someFile.tsx
 
-const foo = window.env.MY_VAR_FOO;
-// do something nice with foo
+const foo = window.env.FOO;   // do something nice with foo
 ```

@@ -2,13 +2,13 @@
 
 Services are pieces of code implementing a set of functionalities and actions
 logically tied together to perform a specific task and/or interact with an
-external system. Example of services are the `S3` service, which allows the
-interaction with the S3 backend and perform buckets operations, or the
-`Notifications` service, that handle all the logic of push notifications.
+external system. Example of services are the `S3` service that allows the
+interaction with the S3 backend and to perform buckets operations, or the
+`Notifications` service that handle all the logic of the notifications system.
 
 Services are implemented similarly to the native
-[React Hooks](https://react.dev/reference/react/hooks), empowering the notion
-of [Contexts](https://react.dev/reference/react/useContext) in order to
+[React Hooks](https://react.dev/reference/react/hooks), empowering the concept
+of [React Contexts](https://react.dev/reference/react/useContext) in order to
 make service accessible globally.
 
 Let's say that we want to build the `Unicorns` service that asks for the list of
@@ -19,20 +19,21 @@ Would be nice to use this service like
 ```jsx
 // AwesomeComponent.tsx
 import { useUnicorns, type Unicorn } from './services/Unicorns';
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 const AwesomeComponent = (): JSX => {
   const { getUnicorns, addUnicorn } = useUnicorns();  // hook!
   const [unicorns, setUnicorns] = useState<Unicorn[]>([]);
 
-  useEffect(() => {
+  const updateUnicorns = useCallback(() => {
     const foundUnicorns: Unicorn[] = getUnicorns();
     setUnicornsCount(foundUnicorns);
-  });
+  }, [getUnicorns]);
 
   return (
     <>
       <div>We have {unicorns.length} unicorns</div>
+      <button onclick={() => updateUnicorns()}>
       <button onclick={() => addUnicorn("James")}>
         Click to add a Unicorn!
       </button>
@@ -43,16 +44,16 @@ const AwesomeComponent = (): JSX => {
 
 ## Service Provider
 
-In order to use the `useUnicorns` hook, it must be called within its own
+In order make the `useUnicorns` hook able to access its own internal context,
+it must be called within its
 [Context Provider](https://react.dev/reference/react/useContext).
-
-Continuing with the above `Unicorns` service example, `AwesomeComponent` must
-be defined with the `UnicornContext`
+Continuing with `Unicorns` service example, `AwesomeComponent` must be defined
+within the `UnicornsContext`
 
 ```jsx
 // App.tsx
 import { UnicornsContext } from './services/Unicorns';
-import { AwesomeComponent } from './components/Awesome';
+import { AwesomeComponent } from './components/AwesomeComponent';
 
 const App = (): JSX => {
   return (
@@ -68,7 +69,7 @@ Otherwise, it could be handy to have something like
 ```jsx
 // App.tsx
 import { withUnicorns, type UnicornsProps } from './service/Unicorns';
-import { AwesomeComponent } from './components/Awesome';
+import { AwesomeComponent } from './components/AwesomeComponent';
 
 const App = (): JSX => {
   const unicornsConfig: UnicornsProps = { ... };
@@ -141,7 +142,7 @@ methods) and creates and sets the React's context
 via the [createContext](https://react.dev/reference/react/createContext)
 function.
 
-Suppose that our service must define the `getAllUnicorns` and `addUnicorn`
+Suppose that our service must implement the `getAllUnicorns` and `addUnicorn`
 functions. Our `UnicornsContext.tsx` will be something like
 
 ```jsx
@@ -154,9 +155,7 @@ export interface UnicornsContextProps {
   addUnicorn: (name: string) => void;
 }
 
-
-export const UnicornsContext = 
-  createContext<UnicornsContextProps | undefined>(undefined);
+export const UnicornsContext = createContext<UnicornsContextProps | undefined>(undefined);
 ```
 
 In the above snippet we have created the context as `undefined`.
@@ -164,9 +163,9 @@ We will set it later when we create the context provider.
 
 ## Service Provider
 
-The service provider is the component in charge of implementing actual logic.
+The service provider is the component in charge of implementing the actual logic.
 It is a full-fledged standard React component which implements the methods
-listed in the context interface.
+listed in the context's interface.
 
 ```jsx
 // UnicornsProvider.tsx
@@ -178,18 +177,18 @@ interface UnicornsProviderPropsBase {
   children?: React.ReactNode;
 }
 
-// here we can add initialization parameters, such as credentials to access the 
-// API
+// here we can add initialization parameters, such as credentials to access to
+// the API
 export interface UnicornsProviderProps extends UnicornsProviderPropsBase {
   user: string;
   password: string;
 }
 
-
+// the service provider
 export const UnicornsProvider = (props: UnicornsProviderProps): JSX => {
   const { user, password } = props;
   const { children } = props;
-  // encode to base64 and memoize
+  // encode to base64 and memoize the output
   const credentials = useMemo(() => btoa(`${user}:${password}`));
 
   const getAllUnicorns = useCallback(async () => Unicorn[] {
@@ -233,7 +232,7 @@ Let's see now how to implement the `useUnicorns` hook. To get access to the
 
 ```jsx
 // useUnicorns.tsx
-import { useContext };
+import { useContext } from "react;
 import { UnicornsContext, type UnicornsContextProps } from "./UnicornsContext";
 
 export const useUnicorns = (): UnicornsContextProps => {
@@ -241,7 +240,7 @@ export const useUnicorns = (): UnicornsContextProps => {
   if (!context) {
     throw new Error(
       "UnicornsContext is undefined, please verify you are calling " +
-      "'useUnicorns' as a child of <UnicornsProvider> component."
+      "'useUnicorns' as a child of the <UnicornsProvider> component."
     );
   }
   return context;
@@ -250,11 +249,12 @@ export const useUnicorns = (): UnicornsContextProps => {
 
 We check if the context is well defined because we want to be sure that the
 context is forwarded to the component which will make access to the `useUnicorns`
-hook, as child of the `UnicornsProvider` component.
+hook. In other words, `useUnicorns` must be called from a `UnicornsProvider`'s
+child component.
 
 ## Extend components with service
 
-Now we have everything needed to initialize and use the service.
+At this point we have everything needed to initialize and use the service.
 To forward the `UnicornsContext` to all its children component we write
 
 ```jsx
@@ -265,9 +265,7 @@ import {
 } from './services/Unicorns';
 
 const App = (): JSX => {
-  const unicornsConfig: UnicornsProviderProps = { ... };
-
-  // useful thins
+  const unicornsConfig: UnicornsProviderProps = { /* ... */ };
 
   return (
     <UnicornsProvider {...unicornsConfig}>
@@ -277,10 +275,14 @@ const App = (): JSX => {
 }
 ```
 
-This is nice, but the sandwich hight can escalate quickly.
-Indeed, if we add another service, we need to rewrite the returned value such as
+This is nice, but the sandwich hight can grow quickly.
+Indeed, if we add another service, we need to rewrite the returned value like so
 
 ```jsx
+
+const App = (): JSX => {
+  const unicornsConfig: UnicornsProviderProps = { /* ... */ };
+
   return (
     <AnotherServiceProvider>
         <UnicornsProvider {...unicornsConfig}>
@@ -288,12 +290,13 @@ Indeed, if we add another service, we need to rewrite the returned value such as
         </UnicornsProvider>
     </AnotherServiceProvider>
   );
+}
 ```
 
-Adding one more service will add a new level of nesting. As alternative, we can
-hide the nesting wrapping our component in new function called `withUnicorns`
-which returns an augmented version of the `AwesomeComponent` with the service
-exposed
+Adding one more service will add a new level of nesting. As an alternative, we
+can hide the nesting wrapping our component in new function called
+`withUnicorns`, which returns an augmented version of the `AwesomeComponent`
+with the exposed service
 
 ```jsx
 // withUnicorns.tsx
@@ -318,7 +321,7 @@ export function withUnicorns(WrappedComponent: React.FunctionComponent<Props>,
 }
 ```
 
-Now we can extend our component with all the services that we want
+Now we can extend our component with all the services we want
 
 ```jsx
 // App.tsx
@@ -327,7 +330,6 @@ import { withElves } from "./services/Elves";
 import { AwesomeComponent } from "./components/AwesomeComponent";
 
 const App = (): JSX =>  {
-  // more stuff
   let SuperAwesomeComponent = withUnicorns(AwesomeComponent);
   SuperAwesomeComponent = withElves(SuperAwesomeComponent);
 
@@ -337,14 +339,28 @@ return (
 }
 ```
 
+and use them in the `AwesomeComponent` component like so
+
+```jsx
+// AwesomeComponent.tsx
+import { useUnicorns } from "./services/Unicorns";
+import { useElves } from "./services/Elves";
+
+const AwesomeComponent = () => {
+  const { getUnicorns, addUnicorn } = useUnicorns();
+  const { getElves, addElf } = useElves();
+  //...
+}
+```
+
 ## Other files
 
-Our service can be quite complex and thus it may require some advanced
+Our service can be quite complex and it might require some advanced
 functionalities. For example, an authentication service may need to handle a
-user that can potentially be in one of many different states, such
-`loggingIn`, `loggedIn`, `loggingOut`, `loggingOut` etc.
-In such cases, it we can use the
-[useReducer](https://react.dev/reference/react/useReducer) hooks.
+user that can potentially be in one of many different states, such as
+`loggingIn`, `loggedIn`, `loggingOut`, `loggingOut`.
+In such cases, we can use the
+[useReducer](https://react.dev/reference/react/useReducer) hook.
 
 To use the reducer, we can create a `UnicornsState.ts` file which defines
 the state interface and a default state value. Then, we create a `reducer.ts`
@@ -359,20 +375,69 @@ Our Unicorns example will be similar to
 import { useReducer } from "react";
 import { reducer } from "./reducer";
 import { initialState } from "./UnicornsState";
+import { type Unicorn } from "./types";
 
 export const UnicornsProvider = (...): JSX => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const login() => {
-    // do stuff
-    dispatch({type: "LOGGED_IN" });
-  }
+  const refreshUnicorn = async () => {
+    const response = await fetch("/unicorns", { /* ... */ });
+    const unicorns: Unicorn[] = await response.json();
+    dispatch({ type: "REFRESH_UNICORNS", unicorns });
+  };
 
-  const foo () => {
-    const { loggedIn } = state;
-    if (loggedIn) {
-      console.log("We are logged in!");
-    }
-  }
+  const flushUnicorns = () => {
+    dispatch({ type: "FLUSH_UNICORNS" });
+  };
+
+  return (
+    <UnicornsContext.Provider
+      value={{
+        ...state,
+        refreshUnicorns,
+        flushUnicorns
+      }}
+    >
+      {children}
+    </UnicornsContext.Provider>
+  )
+}
+
+// UnicornsState.ts
+import { Unicorn } from "./types";
+
+export interface UnicornsState {
+	unicorns: Unicorn[];
+}
+
+export const initialState: UnicornsState = {
+	unicorns: []
+}
+
+
+// reducer.ts
+import { type UnicornsState } from "./UnicornsState";
+
+type Action =
+	| { type: "REFRESH_UNICORNS"; unicorns: Unicorn[] }
+	| { type: "FLUSH_UNICORNS";}
+
+export const reducer = (state: UnicornsState, action: Action): UnicornsState => {
+	switch (action.type) {
+		case "REFRESH_UNICORNS":
+			return {
+				...state,
+				unicorns: action.unicorns;
+			};
+		case "FLUSH_UNICORNS":
+			return {
+				...state,
+				unicorns: []
+			}
+		default:
+			return {
+				...state,
+			}
+	}
 }
 ```
