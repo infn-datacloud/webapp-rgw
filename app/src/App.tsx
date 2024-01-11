@@ -1,10 +1,10 @@
-import { RouterProvider} from 'react-router-dom';
-import { router } from './routes';
-import { withBucketStore } from './services/BucketStore';
-import { S3ProviderProps, useS3, withS3 } from './services/S3';
-import { withNotifications } from './services/Notifications';
-import { useOAuth, withOAuth } from './services/OAuth';
-import { useEffect, useRef } from 'react';
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routes";
+import { withBucketStore } from "./services/BucketStore";
+import { S3ProviderProps, useS3, withS3 } from "./services/S3";
+import { withNotifications } from "./services/Notifications";
+import { useOAuth, withOAuth } from "./services/OAuth";
+import { useEffect, useRef } from "react";
 
 const AppRaw = () => {
   const oAuth = useOAuth();
@@ -18,19 +18,19 @@ const AppRaw = () => {
       oAuth.events.userSignedOut(s3.logout);
       didInit.current = true;
     }
-  }, [oAuth.events, s3])
+  }, [oAuth.events, s3]);
 
   // Create router
   return (
     <div className="flex mb-4">
       <RouterProvider router={router} />
     </div>
-  )
-}
+  );
+};
 
 type AppProps = {
   s3Config: S3ProviderProps;
-}
+};
 
 export const App = ({ s3Config }: AppProps) => {
   let ExtendedApp = withBucketStore(AppRaw);
@@ -38,4 +38,4 @@ export const App = ({ s3Config }: AppProps) => {
   ExtendedApp = withNotifications(ExtendedApp);
   ExtendedApp = withOAuth(ExtendedApp);
   return ExtendedApp({});
-}
+};

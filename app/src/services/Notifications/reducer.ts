@@ -6,7 +6,9 @@ export interface NotificationsProviderState {
 
 export const initialState: NotificationsProviderState = { notifications: [] };
 
-export const reducer = (oldState: NotificationsProviderState,
-  newState: NotificationsProviderState) => {
-  return { ...oldState, ...newState }
-}
+export const reducer = (
+  oldState: NotificationsProviderState,
+  newState: NotificationsProviderState
+) => {
+  return { ...oldState, ...newState };
+};

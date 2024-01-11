@@ -1,10 +1,13 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Modal } from "../../components/Modal"
+import { Modal } from "../../components/Modal";
 import { TextField } from "../../components/TextField";
 import { ReactNode, useState, useEffect, useCallback } from "react";
 import { Button } from "../../components/Button";
 import { useBucketStore } from "../../services/BucketStore";
-import { useNotifications, NotificationType } from "../../services/Notifications";
+import {
+  useNotifications,
+  NotificationType,
+} from "../../services/Notifications";
 import { addKeyHandler } from "../../commons/utils";
 
 interface MountBucketModalProps {
@@ -29,18 +32,25 @@ export const MountBucketModal = (props: MountBucketModalProps) => {
     onClose();
   }, [clear, onClose]);
 
-  const mountBucket = useCallback(async (bucket: string) => {
-    if (await store.mountBucket({ Name: bucket })) {
-      notify(`Bucket ${bucket} successfully mounted`, "", NotificationType.success);
-      close();
-    } else {
-      setError("Cannot mount bucket");
-    }
-  }, [close, store, notify]);
+  const mountBucket = useCallback(
+    async (bucket: string) => {
+      if (await store.mountBucket({ Name: bucket })) {
+        notify(
+          `Bucket ${bucket} successfully mounted`,
+          "",
+          NotificationType.success
+        );
+        close();
+      } else {
+        setError("Cannot mount bucket");
+      }
+    },
+    [close, store, notify]
+  );
 
   useEffect(() => {
     if (!open) {
-      return
+      return;
     }
     const cleanupKeyHandler = addKeyHandler("Enter", () => {
       mountBucket(bucketName);
@@ -48,21 +58,23 @@ export const MountBucketModal = (props: MountBucketModalProps) => {
     });
     return () => {
       cleanupKeyHandler();
-    }
+    };
   }, [open, close, bucketName, mountBucket]);
 
   // Components
   const CloseButton = () => {
     return (
-      <button className="w-8 p-[5px] text-neutral-500
+      <button
+        className="w-8 p-[5px] text-neutral-500
       hover:bg-neutral-200 rounded-full"
         onClick={() => {
           onClose();
-        }}>
+        }}
+      >
         <XMarkIcon />
       </button>
-    )
-  }
+    );
+  };
 
   const Title = () => {
     return (
@@ -71,19 +83,17 @@ export const MountBucketModal = (props: MountBucketModalProps) => {
         <CloseButton />
       </div>
     );
-  }
+  };
 
   const BucketNameTextField = () => {
     return (
       <div className="flex justify-between mt-16">
-        <div className="lg:w-52 my-auto">
-          Bucket Name*
-        </div>
+        <div className="lg:w-52 my-auto">Bucket Name*</div>
         <TextField
           className="w-2/3 px-4"
           placeholder={"Enter a name for your bucket"}
           value={bucketName}
-          onChange={(e) => setBucketName(e.target.value)}
+          onChange={e => setBucketName(e.target.value)}
           error={error}
         />
       </div>
@@ -93,17 +103,11 @@ export const MountBucketModal = (props: MountBucketModalProps) => {
   const Buttons = () => {
     return (
       <div className="flex justify-end p-4 space-x-4">
-        <Button
-          title="Clear"
-          onClick={clear}
-        />
-        <Button
-          title="Mount Bucket"
-          onClick={() => mountBucket(bucketName)}
-        />
+        <Button title="Clear" onClick={clear} />
+        <Button title="Mount Bucket" onClick={() => mountBucket(bucketName)} />
       </div>
-    )
-  }
+    );
+  };
 
   const bucketNameTextField = BucketNameTextField();
   return (

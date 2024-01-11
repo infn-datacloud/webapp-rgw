@@ -12,9 +12,17 @@ export const Toolbar = (params: ToolbarParams) => {
   return (
     <div id="toolbar" className={className}>
       <div className="flex justify-between">
-        <Button title="Create Bucket" icon={<PlusIcon />} onClick={onClickNewBucket} />
-        <Button title="Mount Bucket" icon={<ServerIcon />} onClick={onClickMountBucket} />
+        <Button
+          title="Create Bucket"
+          icon={<PlusIcon />}
+          onClick={onClickNewBucket}
+        />
+        <Button
+          title="Mount Bucket"
+          icon={<ServerIcon />}
+          onClick={onClickMountBucket}
+        />
       </div>
     </div>
-  )
-}
+  );
+};

@@ -7,19 +7,14 @@ import { Body } from "./Body";
 const DEFAULT_NUM_ITEMS_PER_PAGE = 10;
 
 interface TableParams {
-  data: TableData
+  data: TableData;
   selectable?: boolean;
-  onClick?: (index: number) => void
-  onSelect?: (selected: boolean, index: number) => void
+  onClick?: (index: number) => void;
+  onSelect?: (selected: boolean, index: number) => void;
 }
 
 export const Table = (props: TableParams) => {
-  const {
-    data,
-    selectable = false,
-    onClick,
-    onSelect
-  } = props;
+  const { data, selectable = false, onClick, onSelect } = props;
 
   const { rows, cols } = data;
   const [currentPage, setCurrentPage] = useState(0);
@@ -33,10 +28,7 @@ export const Table = (props: TableParams) => {
   return (
     <div className="w-full bg-slate-100 shadow-lg rounded-xl">
       <table className={"table-auto w-full text-sm mt-8 mb-6"}>
-        <Header
-          selectable={selectable}
-          columns={cols}
-        />
+        <Header selectable={selectable} columns={cols} />
         <Body
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
@@ -50,9 +42,9 @@ export const Table = (props: TableParams) => {
         currentPage={currentPage}
         numberOfPages={numberOfPages}
         itemsPerPage={itemsPerPage}
-        onChangeItemsPerPage={(n) => setItemsPerPage(n)}
-        onChangePage={(page) => setCurrentPage(page)}
+        onChangeItemsPerPage={n => setItemsPerPage(n)}
+        onChangePage={page => setCurrentPage(page)}
       />
     </div>
-  )
-}
+  );
+};

@@ -1,31 +1,49 @@
-import { ChangeEvent, MouseEvent, useCallback, useEffect, useMemo, useRef, useReducer } from 'react';
-import { BucketObject, BucketObjectWithProgress, FileObjectWithProgress } from '../../models/bucket';
-import { Table } from '../../components/Table';
-import { Button } from '../../components/Button';
-import { BucketInspector } from '../../components/BucketInspector';
+import {
+  ChangeEvent,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useReducer,
+} from "react";
+import {
+  BucketObject,
+  BucketObjectWithProgress,
+  FileObjectWithProgress,
+} from "../../models/bucket";
+import { Table } from "../../components/Table";
+import { Button } from "../../components/Button";
+import { BucketInspector } from "../../components/BucketInspector";
 import {
   ArrowUpOnSquareIcon,
   ChevronLeftIcon,
   FolderIcon,
   HomeIcon,
-  TrashIcon
-} from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
-import { useS3 } from '../../services/S3';
-import { InputFile } from '../../components/InputFile';
-import { initNodePathTree } from './services';
-import { NewPathModal } from './NewPathModal';
-import { PathViewer } from './PathViewer';
-import { NodePath, camelToWords, extractPathAndBasename } from '../../commons/utils';
-import { NotificationType, useNotifications } from '../../services/Notifications';
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
+import { useS3 } from "../../services/S3";
+import { InputFile } from "../../components/InputFile";
+import { initNodePathTree } from "./services";
+import { NewPathModal } from "./NewPathModal";
+import { PathViewer } from "./PathViewer";
+import {
+  NodePath,
+  camelToWords,
+  extractPathAndBasename,
+} from "../../commons/utils";
+import {
+  NotificationType,
+  useNotifications,
+} from "../../services/Notifications";
 import { ProgressBar } from "../../components/ProgressBar";
-import { DownloadStatusPopup } from '../../components/DownloadStatusPopup';
-import { SearchFiled } from '../../components/SearchField';
-import { ArrowUturnRightIcon } from '@heroicons/react/24/solid';
-import { Modal } from '../../components/Modal';
-import { useBucketStore } from '../../services/BucketStore';
-import { initialState, reducer } from './reducer';
-
+import { DownloadStatusPopup } from "../../components/DownloadStatusPopup";
+import { SearchFiled } from "../../components/SearchField";
+import { ArrowUturnRightIcon } from "@heroicons/react/24/solid";
+import { Modal } from "../../components/Modal";
+import { useBucketStore } from "../../services/BucketStore";
+import { initialState, reducer } from "./reducer";
 
 interface PathBackButtonProps {
   className?: string;
@@ -35,18 +53,19 @@ interface PathBackButtonProps {
 const PathBackButton = ({ className, onClick }: PathBackButtonProps) => {
   return (
     <div className={className}>
-      <button className="w-8 h-8 p-[5px] text-neutral-500 hover:bg-neutral-200 rounded-full"
+      <button
+        className="w-8 h-8 p-[5px] text-neutral-500 hover:bg-neutral-200 rounded-full"
         onClick={onClick}
       >
         <ChevronLeftIcon />
       </button>
     </div>
-  )
-}
+  );
+};
 
 type PropsType = {
-  bucketName: string
-}
+  bucketName: string;
+};
 
 export const BucketBrowser = ({ bucketName }: PropsType) => {
   const MAX_DOWNLOADABLE_ITEMS = 10;
@@ -69,7 +88,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     showModal,
     showAlert,
     downloadingObjects,
-    uploadingObjects
+    uploadingObjects,
   } = state;
 
   const bucketObjects: BucketObject[] = useMemo(() => {
@@ -80,12 +99,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           Key: el.Key,
           LastModified: el.LastModified ? new Date(el.LastModified) : undefined,
           ETag: el.ETag,
-          Size: el.Size
+          Size: el.Size,
         });
       }
       return acc;
     }, []);
-  }, [bucketName, bucketStore.objects])
+  }, [bucketName, bucketStore.objects]);
 
   const nodeTree = useMemo(() => {
     return initNodePathTree(bucketObjects);
@@ -104,7 +123,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   }, [nodeTree]);
 
   const onSelect = (checked: boolean, index: number) => {
-    const objectName = Array.from(currentPath.children.values())[index].basename;
+    const objectName = Array.from(currentPath.children.values())[index]
+      .basename;
     const next = currentPath.get(objectName);
     if (!next) {
       throw new Error(`Child with name ${objectName} not found.`);
@@ -115,17 +135,18 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       if (n.value) {
         selectedObjects.current.set(n.path, n.value);
       }
-    }
+    };
     const deselect = (n: NodePath<BucketObject>) => {
       selectedObjects.current.delete(n.path);
-    }
+    };
     const strategy = checked ? select : deselect;
     elements.forEach(strategy);
     dispatch({ type: checked ? "SELECT_ROW" : "DESELECT_ROW", index });
-  }
+  };
 
   const onClick = (index: number) => {
-    const objectName = Array.from(currentPath.children.values())[index].basename;
+    const objectName = Array.from(currentPath.children.values())[index]
+      .basename;
 
     if (!objectName) {
       throw new Error("Object name is undefined");
@@ -133,8 +154,10 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
     if (tableData.rows[index].selected) {
       selectedObjects.current = new Map(
-        Object.entries(selectedObjects.current)
-          .filter(([key]) => key.startsWith(objectName)));
+        Object.entries(selectedObjects.current).filter(([key]) =>
+          key.startsWith(objectName)
+        )
+      );
       dispatch({ type: "DESELECT_ROW", index });
       return;
     }
@@ -150,24 +173,28 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     } else {
       dispatch({ type: "SELECT_ROW", index });
     }
-  }
+  };
 
   const deleteSelectedObjects = async () => {
     const toDelete = Array.from(selectedObjects.current.values());
     // Queue all delete asynchronously
-    await Promise.all(toDelete.map(o => {
-      const { Key } = o;
-      deleteObject(bucketName, Key);
-      console.log(`Object with key ${Key} deleted.`);
-    }))
+    await Promise.all(
+      toDelete.map(o => {
+        const { Key } = o;
+        deleteObject(bucketName, Key);
+        console.log(`Object with key ${Key} deleted.`);
+      })
+    );
     dispatch({ type: "DESELECT_ALL" });
     bucketStore.updateStore();
-  }
+  };
 
   const uploadFiles = async () => {
     try {
-      await Promise.all(toUpload.current.map(o =>
-        uploadObject(bucketName, o, handleUploadsUpdates))
+      await Promise.all(
+        toUpload.current.map(o =>
+          uploadObject(bucketName, o, handleUploadsUpdates)
+        )
       );
       notify("File(s) uploaded", undefined, NotificationType.success);
       if (inputRef.current) {
@@ -177,31 +204,38 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       bucketStore.updateStore();
     } catch (err) {
       if (err instanceof Error) {
-        notify("Cannot upload file(s)", camelToWords(err.name),
-          NotificationType.error);
+        notify(
+          "Cannot upload file(s)",
+          camelToWords(err.name),
+          NotificationType.error
+        );
       }
-      (err: Error) => notify("Cannot upload file", camelToWords(err.name),
-        NotificationType.error);
+      (err: Error) =>
+        notify(
+          "Cannot upload file",
+          camelToWords(err.name),
+          NotificationType.error
+        );
     }
-  }
+  };
 
   const handleModalClose = (newPath: string) => {
     let nextPath = currentPath;
     if (newPath && newPath !== currentPath.basename) {
       const [path, basename] = extractPathAndBasename(newPath);
-      const newNode = new NodePath<BucketObject>(basename)
-      currentPath.addChild(newNode, path)
+      const newNode = new NodePath<BucketObject>(basename);
+      currentPath.addChild(newNode, path);
       nextPath = newNode;
-      tempPath.current = newNode.path
+      tempPath.current = newNode.path;
     }
     dispatch({ type: "HIDE_MODAL", nextPath });
-  }
+  };
 
   const handleBucketInspectorClose = () => {
     selectedObjects.current.clear();
     selectedObjects.current.clear();
     dispatch({ type: "DESELECT_ALL" });
-  }
+  };
 
   const handleDownloadFiles = async () => {
     if (selectedObjects.current.size > MAX_DOWNLOADABLE_ITEMS) {
@@ -209,8 +243,9 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       return;
     }
     try {
-      toDownload.current = Array.from(selectedObjects.current.values())
-        .map(el => new BucketObjectWithProgress(el));
+      toDownload.current = Array.from(selectedObjects.current.values()).map(
+        el => new BucketObjectWithProgress(el)
+      );
       const keys = toDownload.current.map(el => el.object.Key);
       const urlPromises = toDownload.current.map(el => {
         return getPresignedUrl(bucketName, el.object.Key);
@@ -224,7 +259,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       const link = document.createElement("a");
       link.onclick = () => {
         urls.map(el => window.open(el.url, "_blank"));
-      }
+      };
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
@@ -232,13 +267,16 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       dispatch({ type: "DESELECT_ALL" });
     } catch (err) {
       if (err instanceof Error) {
-        notify("Cannot download file(s)", camelToWords(err.name),
-          NotificationType.error);
+        notify(
+          "Cannot download file(s)",
+          camelToWords(err.name),
+          NotificationType.error
+        );
       } else {
         console.error(err);
       }
     }
-  }
+  };
 
   const handleSelectFilesToUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -251,35 +289,36 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
 
     toUpload.current = [];
     for (let i = 0; i < n_files; ++i) {
-      const node = new NodePath<BucketObject>(
-        files[i].name,
-        { Key: files[i].name }
-      );
+      const node = new NodePath<BucketObject>(files[i].name, {
+        Key: files[i].name,
+      });
       currentPath.addChild(node);
       toUpload.current.push(
-        new FileObjectWithProgress({ Key: node.path }, files[i]));
+        new FileObjectWithProgress({ Key: node.path }, files[i])
+      );
     }
     uploadFiles();
-  }
+  };
 
   const handleUploadsUpdates = () => {
     const t = [...toUpload.current];
-    dispatch({ type: "UPLOADING", uploadingObjects: t })
-  }
+    dispatch({ type: "UPLOADING", uploadingObjects: t });
+  };
 
   const handleCloseDownloadPopup = () => {
-    dispatch({ type: "DOWNLOADING", downloadingObjects: [] })
-    toDownload.current = [];    // TODO: not sure about this
-  }
+    dispatch({ type: "DOWNLOADING", downloadingObjects: [] });
+    toDownload.current = []; // TODO: not sure about this
+  };
 
   const handleCloseUploadPopup = () => {
-    dispatch({ type: "UPLOADING", uploadingObjects: [] })
-    toUpload.current = [];      // TODO: not sure about this
-  }
+    dispatch({ type: "UPLOADING", uploadingObjects: [] });
+    toUpload.current = []; // TODO: not sure about this
+  };
 
   const goBack = useCallback(() => {
-    const newPath: NodePath<BucketObject> = currentPath.parent ?
-      currentPath.parent : nodeTree
+    const newPath: NodePath<BucketObject> = currentPath.parent
+      ? currentPath.parent
+      : nodeTree;
     // No file was uploaded, remove the path
     if (currentPath.children.size === 0) {
       newPath.removeChild(currentPath);
@@ -295,19 +334,19 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       objects = objects.filter(o => o.Key.toLowerCase().includes(query));
     }
     const nodePath = initNodePathTree(objects);
-    dispatch({ type: "SET_CURRENT_PATH", nodePath })
-  }
+    dispatch({ type: "SET_CURRENT_PATH", nodePath });
+  };
 
   const TooManyDownloadsAlert = () => {
     return (
-      <Modal open={showAlert} >
-        <div className='p-4'>
-          <p className='text-xl font-bold'>Warning</p>
-          <p className='mt-4'>
+      <Modal open={showAlert}>
+        <div className="p-4">
+          <p className="text-xl font-bold">Warning</p>
+          <p className="mt-4">
             {`Too many file selected for downloading. Please select maximum ` +
               `${MAX_DOWNLOADABLE_ITEMS} objects or less.`}
           </p>
-          <div className='flex justify-end'>
+          <div className="flex justify-end">
             <Button
               className="w-24"
               title="OK"
@@ -316,14 +355,14 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           </div>
         </div>
       </Modal>
-    )
-  }
+    );
+  };
 
   return (
     <>
       <NewPathModal
         open={showModal}
-        prefix={bucketName + '/'}
+        prefix={bucketName + "/"}
         currentPath={currentPath.path}
         onClose={handleModalClose}
       />
@@ -331,7 +370,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       {/* Inspector */}
       <div
         // id="inspector-container"
-        className='top-0 fixed z-10 right-0 w-64 bg-slate-300'
+        className="top-0 fixed z-10 right-0 w-64 bg-slate-300"
       >
         <BucketInspector
           isOpen={selectedObjects.current.size > 0}
@@ -342,12 +381,14 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         />
       </div>
       {/* Transition to open the right drawer */}
-      <div className={`w-full transition-all ease-in-out duration-200 
-        ${selectedRows > 0 ? "mr-72" : "mr-0"}`}>
-        <div className='container'>
+      <div
+        className={`w-full transition-all ease-in-out duration-200 
+        ${selectedRows > 0 ? "mr-72" : "mr-0"}`}
+      >
+        <div className="container">
           {/* Buttons */}
           <div className="flex mt-8 place-content-between">
-            <div className='flex space-x-4'>
+            <div className="flex space-x-4">
               <Button
                 title="Home"
                 icon={<HomeIcon />}
@@ -363,7 +404,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
                 onClick={() => bucketStore.updateStore()}
               />
             </div>
-            <div className='flex space-x-4'>
+            <div className="flex space-x-4">
               <Button
                 title="New path"
                 icon={<FolderIcon />}
@@ -378,17 +419,17 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
             </div>
           </div>
           {/* PathViewer */}
-          <div className='flex mt-8 justify-between'>
+          <div className="flex mt-8 justify-between">
             <div className="flex space-x-4">
-              <PathBackButton className='my-auto' onClick={goBack} />
+              <PathBackButton className="my-auto" onClick={goBack} />
               <PathViewer
-                className='my-auto'
+                className="my-auto"
                 path={currentPath.path}
-                prefix={bucketName + '/'}
+                prefix={bucketName + "/"}
               />
             </div>
             <div className="flex space-x-4 mt-4 justify-end">
-              <SearchFiled onChange={(query => handleSearchQuery(query))} />
+              <SearchFiled onChange={query => handleSearchQuery(query)} />
             </div>
           </div>
           {/* Table */}
@@ -408,11 +449,13 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         onClose={handleCloseDownloadPopup}
       >
         {downloadingObjects.map(el => {
-          return <ProgressBar
-            key={el.object.Key!}
-            title={el.object.Key!}
-            value={el.progress}
-          />
+          return (
+            <ProgressBar
+              key={el.object.Key!}
+              title={el.object.Key!}
+              value={el.progress}
+            />
+          );
         })}
       </DownloadStatusPopup>
       {/* Uploads */}
@@ -422,13 +465,15 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
         upload={true}
       >
         {uploadingObjects.map(el => {
-          return <ProgressBar
-            key={el.object.Key!}
-            title={el.object.Key!}
-            value={el.progress}
-          />
+          return (
+            <ProgressBar
+              key={el.object.Key!}
+              title={el.object.Key!}
+              value={el.progress}
+            />
+          );
         })}
       </DownloadStatusPopup>
     </>
-  )
-}
+  );
+};

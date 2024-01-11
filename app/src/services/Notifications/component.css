@@ -6,7 +6,7 @@
 .notification:not(:last-child) {
   margin-bottom: 8px;
 }
- 
+
 .notification.shrink {
   max-height: 0;
 }

@@ -4,10 +4,12 @@ import { OAuthTokenRequest } from ".";
 import { UserManagerEvents } from "./utils/UserManagerEvents";
 
 export interface OAuthContextProps extends OAuthState {
-	events: UserManagerEvents;
-	login: () => void;
-	logout: () => void;
-	requestToken: (payload: OAuthTokenRequest) => void;
+  events: UserManagerEvents;
+  login: () => void;
+  logout: () => void;
+  requestToken: (payload: OAuthTokenRequest) => void;
 }
 
-export const OAuthContext = createContext<OAuthContextProps | undefined>(undefined);
+export const OAuthContext = createContext<OAuthContextProps | undefined>(
+  undefined
+);

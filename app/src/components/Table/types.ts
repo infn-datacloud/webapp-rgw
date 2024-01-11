@@ -5,8 +5,8 @@ export interface Cell {
 }
 
 export interface Column {
-  id: ColumnId
-  name?: string,
+  id: ColumnId;
+  name?: string;
 }
 
 export interface Row {

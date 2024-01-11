@@ -9,5 +9,6 @@ export interface BucketStoreContextProps extends BucketStoreState {
   reset: () => void;
 }
 
-export const BucketStoreContext =
-  createContext<BucketStoreContextProps | undefined>(undefined);
+export const BucketStoreContext = createContext<
+  BucketStoreContextProps | undefined
+>(undefined);

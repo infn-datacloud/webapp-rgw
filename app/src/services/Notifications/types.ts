@@ -2,7 +2,7 @@ export enum NotificationType {
   info,
   success,
   warning,
-  error
+  error,
 }
 
 export interface NotificationProps {

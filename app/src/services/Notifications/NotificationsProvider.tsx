@@ -7,9 +7,12 @@ interface NotificationsProviderBaseProps {
   children?: React.ReactNode;
 }
 
-export interface NotificationsProviderProps extends NotificationsProviderBaseProps { }
+export interface NotificationsProviderProps
+  extends NotificationsProviderBaseProps {}
 
-export const NotificationsProvider = (props: NotificationsProviderProps): JSX.Element => {
+export const NotificationsProvider = (
+  props: NotificationsProviderProps
+): JSX.Element => {
   const { children } = props;
   const [state, dispatch] = useReducer(reducer, initialState);
   const { notifications } = state;
@@ -18,14 +21,19 @@ export const NotificationsProvider = (props: NotificationsProviderProps): JSX.El
     dispatch({ notifications: notifications.filter(n => n.id !== id) });
   }
 
-  function notify(title: string, subtitle?: string, type: NotificationType = NotificationType.info, timeout: number = 5000) {
+  function notify(
+    title: string,
+    subtitle?: string,
+    type: NotificationType = NotificationType.info,
+    timeout: number = 5000
+  ) {
     const notification = {
       id: Date.now(),
       title: title,
       subtitle: subtitle,
       timeout: timeout,
       type: type,
-      onDelete: handleDelete
+      onDelete: handleDelete,
     };
     dispatch({ notifications: notifications.concat(notification) });
     console.log("Notification", title, subtitle);
@@ -34,10 +42,10 @@ export const NotificationsProvider = (props: NotificationsProviderProps): JSX.El
     <NotificationsContext.Provider
       value={{
         notify,
-        notifications
+        notifications,
       }}
     >
       {children}
     </NotificationsContext.Provider>
-  )
-}
+  );
+};

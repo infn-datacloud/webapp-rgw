@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import {
   NotificationsContext,
-  NotificationsContextProps
+  NotificationsContextProps,
 } from "./NotificationsContext";
 
 export const useNotifications = (): NotificationsContextProps => {
@@ -9,9 +9,9 @@ export const useNotifications = (): NotificationsContextProps => {
   if (!context) {
     throw new Error(
       "NotificationsContext is undefined, " +
-      "please verify you are calling useNotifications " +
-      "as a child of NotificationsContext component."
+        "please verify you are calling useNotifications " +
+        "as a child of NotificationsContext component."
     );
   }
   return context;
-}
+};

@@ -1,22 +1,22 @@
 export interface RWAccess {
-  read: boolean
-  write: boolean
+  read: boolean;
+  write: boolean;
 }
 
 export interface BucketInfo {
-  name: string,
+  name: string;
   creation_date: string;
-  rw_access: RWAccess
-  objects: number,
-  size: number,
-  external:boolean
+  rw_access: RWAccess;
+  objects: number;
+  size: number;
+  external: boolean;
 }
 
 export interface BucketObject {
-  Key: string,
-  LastModified?: Date,
-  ETag?: string,
-  Size?: number,
+  Key: string;
+  LastModified?: Date;
+  ETag?: string;
+  Size?: number;
 }
 
 export class BucketObjectWithProgress {

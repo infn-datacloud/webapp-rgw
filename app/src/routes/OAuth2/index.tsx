@@ -1,7 +1,10 @@
 import { Navigate } from "react-router-dom";
 import { OAuthTokenRequest, useOAuth } from "../../services/OAuth";
 import { useEffect, useRef } from "react";
-import { useNotifications, NotificationType } from "../../services/Notifications";
+import {
+  useNotifications,
+  NotificationType,
+} from "../../services/Notifications";
 
 export const OAuth2 = () => {
   const oAuth = useOAuth();
@@ -19,8 +22,11 @@ export const OAuth2 = () => {
       return;
     }
     if (error) {
-      notify("Login Failed", `${error}: ${error_description}`,
-        NotificationType.error)
+      notify(
+        "Login Failed",
+        `${error}: ${error_description}`,
+        NotificationType.error
+      );
       return;
     }
     if (code) {
@@ -32,10 +38,12 @@ export const OAuth2 = () => {
       oAuth.requestToken(payload);
       isLoading.current = true;
     } else {
-      notify("Login Failed",
+      notify(
+        "Login Failed",
         "Cannot perform token request: missing 'code'",
-        NotificationType.error)
-      console.error("Cannot perform token request: missing 'code'")
+        NotificationType.error
+      );
+      console.error("Cannot perform token request: missing 'code'");
     }
   }, [notify, code, code_verifier, oAuth, error, error_description]);
 
@@ -44,4 +52,4 @@ export const OAuth2 = () => {
   }
 
   return <Navigate to="/" replace />;
-}
+};

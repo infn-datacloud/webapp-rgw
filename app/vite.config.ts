@@ -1,26 +1,26 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     nodePolyfills({
-      protocolImports: true
-    })
+      protocolImports: true,
+    }),
   ],
   server: {
     port: 3000,
     hmr: {
       path: "/ws",
-      clientPort: 3000
+      clientPort: 3000,
     },
     watch: {
-      usePolling: true
-    }
+      usePolling: true,
+    },
   },
   define: {
-    'APP_VERSION': JSON.stringify(process.env.npm_package_version),
-  }
-})
+    APP_VERSION: JSON.stringify(process.env.npm_package_version),
+  },
+});

@@ -5,21 +5,21 @@ export interface HeaderProps {
   columns: Column[];
 }
 
-const thClassName = "border-b font-medium p-4 first:pl-8 last:pr-8 pt-0" +
+const thClassName =
+  "border-b font-medium p-4 first:pl-8 last:pr-8 pt-0" +
   "pb-3 text-left text-slate-800";
-    
+
 export const Header = (props: HeaderProps) => {
   const { selectable, columns } = props;
   return (
     <thead>
-      <tr >
+      <tr>
         {selectable ? <th></th> : null}
-        {columns.map(column =>
-          <th
-            className={thClassName}
-            key={column.id}>
+        {columns.map(column => (
+          <th className={thClassName} key={column.id}>
             {column.name}
-          </th>)}
+          </th>
+        ))}
       </tr>
     </thead>
   );

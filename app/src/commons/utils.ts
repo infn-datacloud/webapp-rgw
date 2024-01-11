@@ -6,30 +6,35 @@ export const getHumanSize = (size: number) => {
   if (size < 1000000000) return `${(size / 1000000).toFixed(1)} MB`;
   if (size < 1000000000000) return `${(size / 1000000000).toFixed(1)} GB`;
   return "N/A";
-}
+};
 
 export const parseReadWriteAccess = (rwAccess: RWAccess) => {
-  return rwAccess.read && rwAccess.write ? "R/W" :
-    rwAccess.read ? "R" : rwAccess.write ? "R" : "Unknown";
-}
+  return rwAccess.read && rwAccess.write
+    ? "R/W"
+    : rwAccess.read
+      ? "R"
+      : rwAccess.write
+        ? "R"
+        : "Unknown";
+};
 
 export const camelToWords = (s: string) => {
   return s.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
-}
+};
 
 export const truncateString = (s: string, length: number) => {
   if (s.length <= length) {
     return s;
   }
-  return s.slice(0, length) + "..."
-}
+  return s.slice(0, length) + "...";
+};
 
 export const extractPathAndBasename = (s: string) => {
   const items = s.split("/");
   const basename = items.length > 0 ? items.pop()! : s;
   const path = items.join("/");
   return [path, basename];
-}
+};
 
 /** Add a custom key handler and provides a cleanup callback function.
  * Please remember to call the cleanup function when you have done with it.
@@ -44,7 +49,7 @@ export const addKeyHandler = (key: string, callback: () => void) => {
       event.preventDefault();
       callback();
     }
-  }
+  };
   document.addEventListener("keydown", keyDownHandler);
 
   const cleanupCallback = function () {
@@ -52,7 +57,7 @@ export const addKeyHandler = (key: string, callback: () => void) => {
     document.removeEventListener("keydown", keyDownHandler);
   };
   return cleanupCallback;
-}
+};
 
 export class NodePath<T> {
   parent?: NodePath<T>;
@@ -62,8 +67,12 @@ export class NodePath<T> {
   size: number;
   lastModified: Date;
 
-  constructor(basename: string, value?: T, size: number = 0,
-    lastModified = new Date("1970-01-01")) {
+  constructor(
+    basename: string,
+    value?: T,
+    size: number = 0,
+    lastModified = new Date("1970-01-01")
+  ) {
     this.basename = basename;
     this.value = value;
     this.size = size;
@@ -118,10 +127,10 @@ export class NodePath<T> {
     const { parent } = this;
     let p = "";
     if (parent) {
-      if (parent.path === '/' || parent.path === '') {
+      if (parent.path === "/" || parent.path === "") {
         p = parent.path + this.basename;
       } else {
-        p = parent.path + '/' + this.basename;
+        p = parent.path + "/" + this.basename;
       }
     } else {
       p = this.basename;
@@ -143,14 +152,15 @@ export class NodePath<T> {
     let currentNode: NodePath<T> | undefined = this;
     while (nextLevel) {
       currentNode = currentNode?.children.get(nextLevel);
-      nextLevel = levels.shift()
+      nextLevel = levels.shift();
     }
     return currentNode;
   }
 
   getAll() {
-    let result: NodePath<T>[] = Array.from(this.children.values())
-      .filter(c => c.children.size === 0);
+    let result: NodePath<T>[] = Array.from(this.children.values()).filter(
+      c => c.children.size === 0
+    );
     this.children.forEach(c => {
       result = result.concat(c.getAll());
     });

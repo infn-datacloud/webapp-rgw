@@ -10,5 +10,5 @@ export interface BucketStoreState {
 export const initialState: BucketStoreState = {
   buckets: [],
   bucketsInfos: [],
-  objects: new Map()
-}
+  objects: new Map(),
+};

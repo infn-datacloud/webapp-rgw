@@ -1,7 +1,7 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { App } from './App';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { App } from "./App";
+import "./index.css";
 
 // Add `env` namespace to window
 interface EnvInterface {
@@ -11,11 +11,13 @@ interface EnvInterface {
   S3_ROLE_DURATION_SECONDS: string;
 }
 declare global {
-  interface Window { env: EnvInterface }
+  interface Window {
+    env: EnvInterface;
+  }
 }
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
 
 const s3Config = {
@@ -23,9 +25,9 @@ const s3Config = {
     endpoint: window.env.S3_ENDPOINT,
     region: window.env.S3_REGION,
     roleArn: window.env.S3_ROLE_ARN,
-    roleSessionDurationSeconds: parseInt(window.env.S3_ROLE_DURATION_SECONDS)
-  }
-}
+    roleSessionDurationSeconds: parseInt(window.env.S3_ROLE_DURATION_SECONDS),
+  },
+};
 
 root.render(
   <React.StrictMode>

@@ -1,3 +1,3 @@
 import { OidcStandardClaims } from "./Claims";
 
-export interface UserProfile extends OidcStandardClaims { }
+export interface UserProfile extends OidcStandardClaims {}

@@ -25,31 +25,34 @@ export const NewPathModal = (props: ModalProps) => {
     });
     return () => {
       cleanupKeyHandler();
-    }
-  }), [open];
+    };
+  }),
+    [open];
 
   const handleClose = () => {
     onClose(path);
     setPath("");
-  }
+  };
 
   // TODO: expand
   const pathIsValid = () => {
     return path !== "";
-  }
+  };
 
   const CloseButton = () => {
     return (
-      <button className="w-8 p-[5px] text-neutral-500
+      <button
+        className="w-8 p-[5px] text-neutral-500
       hover:bg-neutral-200 rounded-full"
         onClick={() => {
           onClose("");
           setPath("");
-        }}>
+        }}
+      >
         <XMarkIcon />
       </button>
-    )
-  }
+    );
+  };
 
   return (
     <Modal open={open}>
@@ -66,13 +69,11 @@ export const NewPathModal = (props: ModalProps) => {
           {prefix + currentPath}
         </div>
         <div className="mt-16 flex space-x-8 content-center">
-          <div className="lg:w-52 my-auto">
-            New Folder Path
-          </div>
+          <div className="lg:w-52 my-auto">New Folder Path</div>
           <TextField
             placeholder={"Enter the new Folder Path"}
             value={path}
-            onChange={(e) => setPath(e.target.value)}
+            onChange={e => setPath(e.target.value)}
           />
         </div>
         <div className="flex place-content-between mt-16">
@@ -92,9 +93,8 @@ export const NewPathModal = (props: ModalProps) => {
               />
             </div>
           </div>
-
         </div>
       </div>
     </Modal>
-  )
-}
+  );
+};
