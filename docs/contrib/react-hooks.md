@@ -407,11 +407,11 @@ export const UnicornsProvider = (...): JSX => {
 import { Unicorn } from "./types";
 
 export interface UnicornsState {
-	unicorns: Unicorn[];
+  unicorns: Unicorn[];
 }
 
 export const initialState: UnicornsState = {
-	unicorns: []
+  unicorns: []
 }
 
 
@@ -419,25 +419,25 @@ export const initialState: UnicornsState = {
 import { type UnicornsState } from "./UnicornsState";
 
 type Action =
-	| { type: "REFRESH_UNICORNS"; unicorns: Unicorn[] }
-	| { type: "FLUSH_UNICORNS";}
+  | { type: "REFRESH_UNICORNS"; unicorns: Unicorn[] }
+  | { type: "FLUSH_UNICORNS";}
 
 export const reducer = (state: UnicornsState, action: Action): UnicornsState => {
-	switch (action.type) {
-		case "REFRESH_UNICORNS":
-			return {
-				...state,
-				unicorns: action.unicorns;
-			};
-		case "FLUSH_UNICORNS":
-			return {
-				...state,
-				unicorns: []
-			}
-		default:
-			return {
-				...state,
-			}
-	}
+  switch (action.type) {
+    case "REFRESH_UNICORNS":
+      return {
+        ...state,
+        unicorns: action.unicorns;
+      };
+    case "FLUSH_UNICORNS":
+      return {
+        ...state,
+        unicorns: []
+      }
+    default:
+      return {
+      ...state,
+    }
+  }
 }
 ```
