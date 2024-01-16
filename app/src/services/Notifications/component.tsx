@@ -5,7 +5,7 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  XCircleIcon
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
 import { Transition } from "@headlessui/react";
@@ -16,7 +16,7 @@ const icons = [
   <CheckCircleIcon className="text-green-500" />,
   <ExclamationTriangleIcon className="text-amber-500" />,
   <ExclamationCircleIcon className="text-red-500" />,
-]
+];
 
 const createCointainer = () => {
   const id = "notification-container";
@@ -30,7 +30,7 @@ const createCointainer = () => {
   element.className = "fixed top-8 right-8";
   document.body.appendChild(element);
   return element;
-}
+};
 
 const notificationContainer = createCointainer();
 
@@ -44,17 +44,19 @@ export const Notification = (props: NotificationProps) => {
 
   const close = () => {
     setIsOpen(false);
-  }
+  };
 
   const CloseButton = () => {
     return onDelete ? (
-      <button className="w-8 p-[5px] text-neutral-500
+      <button
+        className="w-8 p-[5px] text-neutral-500
       hover:bg-neutral-200 rounded-full"
-        onClick={close}>
+        onClick={close}
+      >
         <XCircleIcon />
       </button>
-    ) : null
-  }
+    ) : null;
+  };
 
   useEffect(() => {
     let deleteTimeout: ReturnType<typeof setTimeout> | null;
@@ -70,7 +72,7 @@ export const Notification = (props: NotificationProps) => {
       }
     }
 
-    return (() => {
+    return () => {
       lockRef.current = false;
       if (deleteTimeout) {
         clearTimeout(deleteTimeout);
@@ -78,7 +80,7 @@ export const Notification = (props: NotificationProps) => {
       if (dismissTimerRef.current) {
         clearTimeout(dismissTimerRef.current);
       }
-    });
+    };
   }, [onDelete, id, isOpen, timeout]);
 
   return createPortal(
@@ -91,7 +93,7 @@ export const Notification = (props: NotificationProps) => {
         enterFrom="translate-x-full"
         enterTo="translate-x-0"
         leave="transition-transform duration-200"
-        leaveFrom='translate-x-0'
+        leaveFrom="translate-x-0"
         leaveTo="translate-x-full"
       >
         <div className={"flex w-96"}>
@@ -108,10 +110,8 @@ export const Notification = (props: NotificationProps) => {
             </div>
           </div>
         </div>
-      </Transition >
-    </div>
-    ,
+      </Transition>
+    </div>,
     notificationContainer
-  )
-}
-
+  );
+};

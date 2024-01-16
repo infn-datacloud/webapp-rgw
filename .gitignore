@@ -1,8 +1,9 @@
 .vscode/
+venv/
 .DS_Store
 nginx/cert/
-backend/envs/*
-!backend/envs/example.env
+*.env
+!example.env
 node_modules/
 app/node_modules/
 app/dist/
@@ -10,3 +11,5 @@ app/public/env.js
 app/envs/*
 !app/envs/example.env
 __pycache__/
+docker-compose.*.yaml
+!docker-compose.yaml

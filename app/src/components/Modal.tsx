@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { ReactNode } from "react";
 
 interface ModalProps {
   children?: ReactNode;
@@ -8,9 +8,9 @@ interface ModalProps {
 
 export const Modal = (props: ModalProps) => {
   const { open, children } = props;
-  
+
   if (!open) {
-    return <></>
+    return <></>;
   }
 
   return (
@@ -23,5 +23,5 @@ export const Modal = (props: ModalProps) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

@@ -1,5 +1,5 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Modal } from "../../components/Modal"
+import { Modal } from "../../components/Modal";
 import { TextField } from "../../components/TextField";
 import { ToggleSwitch, ToggleSwitchProps } from "../../components/ToggleSwitch";
 import { ReactNode, useState } from "react";
@@ -12,7 +12,9 @@ interface NewBucketModalProps {
   onCreateBucket: (args: CreateBucketArgs) => void;
 }
 
-const bucketValidator = new RegExp("(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$");
+const bucketValidator = new RegExp(
+  "(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$"
+);
 const bucketInvalidErrorMessage = () => {
   return (
     <>
@@ -20,7 +22,9 @@ const bucketInvalidErrorMessage = () => {
       <p className="text-xs">Bucket name must:</p>
       <ul className="list-disc text-xs ml-3">
         <li>be between 3(min) and 63(max) characters long.</li>
-        <li>consist only of lowercase letters, numbers, dots(.), and hyphens(-).</li>
+        <li>
+          consist only of lowercase letters, numbers, dots(.), and hyphens(-).
+        </li>
         <li>begin and end with a letter or number.</li>
         <li>not contain two adjacent periods.</li>
         <li>not be formatted as an IP addressa(for example, 192.168.5.4).</li>
@@ -29,8 +33,8 @@ const bucketInvalidErrorMessage = () => {
         <li>not end with the suffix--ol - s3.</li>
       </ul>
     </>
-  )
-}
+  );
+};
 
 export const NewBucketModal = (props: NewBucketModalProps) => {
   const { open, onClose, onCreateBucket } = props;
@@ -41,40 +45,42 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
 
   const isBuketNameValid = (): boolean => {
     return bucketValidator.test(bucketName);
-  }
+  };
 
   const validateBucketName = () => {
     setError(isBuketNameValid() ? undefined : bucketInvalidErrorMessage);
-  }
+  };
 
   const clear = () => {
     setBucketName("");
     setError(null);
     setVersioningEnabled(false);
     setObjectLockEnabled(false);
-  }
+  };
 
   const createBucket = () => {
     const args: CreateBucketArgs = {
       bucketName: bucketName,
       versioningEnabled: versioningEnabled,
-      objectLockEnabled: objectLockEnabled
+      objectLockEnabled: objectLockEnabled,
     };
     onCreateBucket(args);
-  }
+  };
 
   // Components
   const CloseButton = () => {
     return (
-      <button className="w-8 p-[5px] text-neutral-500
+      <button
+        className="w-8 p-[5px] text-neutral-500
       hover:bg-neutral-200 rounded-full"
         onClick={() => {
           onClose();
-        }}>
+        }}
+      >
         <XMarkIcon />
       </button>
-    )
-  }
+    );
+  };
 
   const Title = () => {
     return (
@@ -83,19 +89,17 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
         <CloseButton />
       </div>
     );
-  }
+  };
 
   const BucketNameTextField = () => {
     return (
       <div className="flex justify-between mt-16">
-        <div className="lg:w-52 my-auto">
-          Bucket Name*
-        </div>
+        <div className="lg:w-52 my-auto">Bucket Name*</div>
         <TextField
           className="w-2/3 px-4"
           placeholder={"Enter a name for your bucket"}
           value={bucketName}
-          onChange={(e) => setBucketName(e.target.value)}
+          onChange={e => setBucketName(e.target.value)}
           onBlur={() => validateBucketName()}
           error={error}
         />
@@ -137,18 +141,15 @@ export const NewBucketModal = (props: NewBucketModalProps) => {
   const Buttons = () => {
     return (
       <div className="flex justify-end p-4 space-x-4">
-        <Button
-          title="Clear"
-          onClick={clear}
-        />
+        <Button title="Clear" onClick={clear} />
         <Button
           title="Create Bucket"
           disabled={!isBuketNameValid()}
           onClick={createBucket}
         />
       </div>
-    )
-  }
+    );
+  };
 
   const bucketNameTextField = BucketNameTextField();
   return (

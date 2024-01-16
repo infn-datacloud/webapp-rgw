@@ -61,10 +61,14 @@ test("NodePath 2", () => {
   root.addChild(new NodePath("baz", "value 2", 20), "this/is/a/path");
 
   let result = root.getAll();
-  expect(result.map(r => { return r.path })).toStrictEqual([
+  expect(
+    result.map(r => {
+      return r.path;
+    })
+  ).toStrictEqual([
     "this/is/a/path/foo",
     "this/is/a/path/baz",
-    "this/is/another/path/bar"
+    "this/is/another/path/bar",
   ]);
 
   const pThis = root.get("this");
@@ -73,14 +77,18 @@ test("NodePath 2", () => {
 
   result = pA!.getAll();
 
-  expect(result.map(r => { return r.path })).toStrictEqual([
-    "this/is/a/path/foo",
-    "this/is/a/path/baz"
-  ]);
+  expect(
+    result.map(r => {
+      return r.path;
+    })
+  ).toStrictEqual(["this/is/a/path/foo", "this/is/a/path/baz"]);
 
   result = pIs!.get("another")!.getAll();
-  expect(result.map(r => { return r.path }))
-    .toStrictEqual(["this/is/another/path/bar"]);
+  expect(
+    result.map(r => {
+      return r.path;
+    })
+  ).toStrictEqual(["this/is/another/path/bar"]);
 });
 
 test("NodePath 3", () => {
@@ -123,7 +131,7 @@ test("extractPathAndBasename", () => {
   [path, basename] = extractPathAndBasename(objectPath);
   expect(path).toBe("short");
   expect(basename).toBe("path");
-  
+
   objectPath = "foo";
   [path, basename] = extractPathAndBasename(objectPath);
   expect(path).toBe("");

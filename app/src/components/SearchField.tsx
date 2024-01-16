@@ -16,7 +16,7 @@ export const SearchFiled = (props: SearchFieldProps) => {
     if (onChange) {
       onChange(value);
     }
-  }
+  };
 
   const handleQueryChanged = (value: string) => {
     setSearchQuery(value);
@@ -25,7 +25,7 @@ export const SearchFiled = (props: SearchFieldProps) => {
       handleUserStopTyping(value);
       clearInterval(this);
     }, 500);
-  }
+  };
 
   return (
     <div className={className}>
@@ -34,10 +34,10 @@ export const SearchFiled = (props: SearchFieldProps) => {
         <TextField
           value={searchQuery}
           type="search"
-          onChange={(el) => handleQueryChanged(el.target.value)}
+          onChange={el => handleQueryChanged(el.target.value)}
           placeholder="Type to search"
         />
       </div>
     </div>
-  )
-}
+  );
+};

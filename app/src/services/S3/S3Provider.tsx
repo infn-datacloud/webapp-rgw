@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { CreateBucketArgs } from "./types";
-import { STSClient, AssumeRoleWithWebIdentityCommand } from "@aws-sdk/client-sts";
+import {
+  STSClient,
+  AssumeRoleWithWebIdentityCommand,
+} from "@aws-sdk/client-sts";
 import type { AWSConfig } from "./types";
 import {
   Bucket,
@@ -20,17 +23,21 @@ import {
   ListObjectsV2CommandOutput,
   S3ClientConfig,
   DeleteObjectCommand,
+  HeadBucketCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { useNotifications, NotificationType } from "../Notifications";
-import { BucketObjectWithProgress, FileObjectWithProgress } from "../../models/bucket";
+import {
+  BucketObjectWithProgress,
+  FileObjectWithProgress,
+} from "../../models/bucket";
 import { camelToWords } from "../../commons/utils";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { initialAuthState } from "./S3State";
 import { reducer } from "./reducer";
-import { User } from "oidc-client-ts";
 import { S3Context } from "./S3Context";
+import type { User } from "../OAuth";
 
 const ONE_MB = 1024 * 1024;
 const S3_CONFIG_STORAGE_KEY = "s3-config-storage-key";
@@ -52,7 +59,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
 
   const cacheConfiguration = (config: S3ClientConfig) => {
     sessionStorage.setItem(S3_CONFIG_STORAGE_KEY, JSON.stringify(config));
-  }
+  };
 
   const loadCacheConfiguration = useCallback((): S3ClientConfig | undefined => {
     const maybe_config = sessionStorage.getItem(S3_CONFIG_STORAGE_KEY);
@@ -63,7 +70,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
 
   const clearCache = () => {
     sessionStorage.clear();
-  }
+  };
 
   useEffect(() => {
     if (!didInit.current) {
@@ -78,102 +85,147 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   }, [loadCacheConfiguration]);
 
   // Exchange token for AWS Credentials with AssumeRoleWebIdentity
-  const loginWithSTS = useCallback(async (user: User) => {
-    dispatch({ type: "LOGGING_IN" });
-    const access_token = user.access_token;
-    if (!access_token) {
-      console.error("Cannot get AWS credentials: access_token is undefined");
-      return;
-    }
-
-    console.log("Get AWS Credentials from STS");
-    const sts = new STSClient({ ...awsConfig });
-    const command = new AssumeRoleWithWebIdentityCommand({
-      DurationSeconds: awsConfig.roleSessionDurationSeconds,
-      RoleArn: awsConfig.roleArn,
-      RoleSessionName: crypto.randomUUID(),
-      WebIdentityToken: access_token,
-    });
-
-    const response = await sts.send(command);
-
-    try {
-      const { Credentials } = response;
-      if (!Credentials) {
-        throw new Error("Credentials not found");
+  const loginWithSTS = useCallback(
+    async (user: User) => {
+      dispatch({ type: "LOGGING_IN" });
+      const access_token = user.access_token;
+      if (!access_token) {
+        console.error("Cannot get AWS credentials: access_token is undefined");
+        return;
       }
-      const { AccessKeyId, SecretAccessKey, SessionToken } = Credentials;
-      if (AccessKeyId && SecretAccessKey && SessionToken) {
-        const awsCredentials = {
-          accessKeyId: AccessKeyId,
-          secretAccessKey: SecretAccessKey,
-          sessionToken: SessionToken
+
+      console.log("Get AWS Credentials from STS");
+      const sts = new STSClient({ ...awsConfig });
+      const command = new AssumeRoleWithWebIdentityCommand({
+        DurationSeconds: awsConfig.roleSessionDurationSeconds,
+        RoleArn: awsConfig.roleArn,
+        RoleSessionName: crypto.randomUUID(),
+        WebIdentityToken: access_token,
+      });
+
+      const response = await sts.send(command);
+
+      try {
+        const { Credentials } = response;
+        if (!Credentials) {
+          throw new Error("Credentials not found");
         }
-        const { endpoint, region } = awsConfig;
-        const config = {
-          endpoint: endpoint,
-          region: region,
-          credentials: awsCredentials,
-          forcePathStyle: true
-        };
-        const client = new S3Client(config)
-        dispatch({ type: "LOGGED_IN", client });
-        cacheConfiguration(config);
-        console.log("Authenticated via STS");
-      } else {
-        console.warn("Warning: some one or more AWS Credentials member is empty");
+        const { AccessKeyId, SecretAccessKey, SessionToken } = Credentials;
+        if (AccessKeyId && SecretAccessKey && SessionToken) {
+          const awsCredentials = {
+            accessKeyId: AccessKeyId,
+            secretAccessKey: SecretAccessKey,
+            sessionToken: SessionToken,
+          };
+          const { endpoint, region } = awsConfig;
+          const config = {
+            endpoint: endpoint,
+            region: region,
+            credentials: awsCredentials,
+            forcePathStyle: true,
+          };
+          const client = new S3Client(config);
+          dispatch({ type: "LOGGED_IN", client });
+          cacheConfiguration(config);
+          console.log("Authenticated via STS");
+        } else {
+          console.warn(
+            "Warning: some one or more AWS Credentials member is empty"
+          );
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          notify(
+            "Cannot retrieve AWS Credentials from STS",
+            camelToWords(err.name),
+            NotificationType.error
+          );
+        } else {
+          console.error(err);
+        }
+        dispatch({ type: "LOGGED_OUT" });
+        clearCache();
       }
-    } catch (err) {
-      if (err instanceof Error) {
-        notify("Cannot retrieve AWS Credentials from STS",
-          camelToWords(err.name), NotificationType.error);
-      } else {
-        console.error(err);
-      }
-      dispatch({ type: "LOGGED_OUT" });
-      clearCache();
-    }
-  }, [awsConfig, notify]);
+    },
+    [awsConfig, notify]
+  );
 
-  const loginWithCredentials = useCallback(async (credentials: AwsCredentialIdentity) => {
-    dispatch({ type: "LOGGING_IN" });
-    const { endpoint, region } = awsConfig;
-    const config = {
-      endpoint: endpoint,
-      region: region,
-      credentials: credentials,
-      forcePathStyle: true
-    }
-    const newClient = new S3Client(config);
-    try {
-      await newClient.send(new ListBucketsCommand({}));
-      console.log("Logged with plain credentials");
-      cacheConfiguration(config);
-      dispatch({ type: "LOGGED_IN", client: newClient });
-    } catch (err) {
-      dispatch({ type: "LOGGED_OUT" });
-      clearCache();
-      if (err instanceof Error) {
-        notify("Access failed", camelToWords(err.name), NotificationType.error);
+  const loginWithCredentials = useCallback(
+    async (credentials: AwsCredentialIdentity) => {
+      dispatch({ type: "LOGGING_IN" });
+      const { endpoint, region } = awsConfig;
+      const config = {
+        endpoint: endpoint,
+        region: region,
+        credentials: credentials,
+        forcePathStyle: true,
+      };
+      const newClient = new S3Client(config);
+      try {
+        await newClient.send(new ListBucketsCommand({}));
+        console.log("Logged with plain credentials");
+        cacheConfiguration(config);
+        dispatch({ type: "LOGGED_IN", client: newClient });
+      } catch (err) {
+        dispatch({ type: "LOGGED_OUT" });
+        clearCache();
+        if (err instanceof Error) {
+          notify(
+            "Access failed",
+            camelToWords(err.name),
+            NotificationType.error
+          );
+        }
       }
-    }
-  }, [awsConfig, notify]);
+    },
+    [awsConfig, notify]
+  );
 
   const logout = () => {
     clearCache();
     dispatch({ type: "LOGGED_OUT" });
-  }
+  };
 
   const fetchBucketList = async () => {
-    const listBucketCmd = new ListBucketsCommand({});
-    const response = await client.send(listBucketCmd)
-    const { Buckets } = response;
-    if (Buckets) {
-      return Buckets;
-    } else {
-      console.warn("Warning: Expected Bucket[], got undefined");
-      return [];
+    try {
+      const listBucketCmd = new ListBucketsCommand({});
+      const response = await client.send(listBucketCmd);
+      const { Buckets } = response;
+      if (Buckets) {
+        return Buckets;
+      } else {
+        console.warn("Warning: Expected Bucket[], got undefined");
+        return [];
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        notify(
+          "Cannot fetch buckets list",
+          camelToWords(err.name),
+          NotificationType.error
+        );
+      }
     }
+    return [];
+  };
+
+  const headBucket = async (bucket: Bucket) => {
+    const cmd = new HeadBucketCommand({ Bucket: bucket.Name });
+    try {
+      await client.send(cmd);
+      return true;
+    } catch (err) {
+      if (err instanceof Error) {
+        const msg =
+          err.name === "403" ? "Access Denied" : camelToWords(err.name);
+        notify(
+          `Cannot access bucket "${bucket.Name}"`,
+          msg,
+          NotificationType.error
+        );
+      }
+    }
+    return false;
   };
 
   const createBucket = async (args: CreateBucketArgs) => {
@@ -197,7 +249,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   };
 
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
-    let content: _Object[] = []
+    let content: _Object[] = [];
     let completed = false;
     let continuationToken: string | undefined = undefined;
     while (!completed) {
@@ -226,21 +278,30 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       Bucket: bucket,
       Key: key,
       ResponseContentDisposition: `attachment; filename="${key}"`,
-      ResponseContentType: "application/octet-stream"
+      ResponseContentType: "application/octet-stream",
     });
     return getSignedUrl(client, cmdGetObj, { expiresIn: 60 });
   };
 
-  const getObjectRange = (bucket: string, key: string, start: number, end: number) => {
+  const getObjectRange = (
+    bucket: string,
+    key: string,
+    start: number,
+    end: number
+  ) => {
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
-      Range: `bytes=${start}-${end}`
+      Range: `bytes=${start}-${end}`,
     });
     return client.send(command);
   };
 
-  const downloadInChunks = async (bucket: string, object: BucketObjectWithProgress, onChange?: () => void) => {
+  const downloadInChunks = async (
+    bucket: string,
+    object: BucketObjectWithProgress,
+    onChange?: () => void
+  ) => {
     const key = object.object.Key!;
     let blob = new Blob();
     const length = object.object.Size!;
@@ -249,8 +310,12 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
     while (length - range.end !== 1) {
       const { end } = range;
       const nextRange = { start: end + 1, end: end + ONE_MB };
-      const { Body, ContentLength } = await getObjectRange(bucket, key,
-        nextRange.start, nextRange.end);
+      const { Body, ContentLength } = await getObjectRange(
+        bucket,
+        key,
+        nextRange.start,
+        nextRange.end
+      );
 
       if (!(Body && ContentLength)) {
         console.error("Cannot retrieve object");
@@ -259,26 +324,29 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
 
       blob = new Blob([blob, await Body.transformToByteArray()]);
       object.progress = blob.size / length;
-      range.end += ContentLength
+      range.end += ContentLength;
       if (onChange) {
         onChange();
       }
     }
     console.log("Download completed", blob.size, "bytes");
     return blob;
-  }
+  };
 
-  const uploadManaged = async (bucket: string,
-    fileObject: FileObjectWithProgress, onChange?: () => void) => {
+  const uploadManaged = async (
+    bucket: string,
+    fileObject: FileObjectWithProgress,
+    onChange?: () => void
+  ) => {
     const upload = new Upload({
       client: client,
       params: {
         Bucket: bucket,
         Key: fileObject.object.Key,
-        Body: fileObject.file
-      }
+        Body: fileObject.file,
+      },
     });
-    upload.on("httpUploadProgress", (progress) => {
+    upload.on("httpUploadProgress", progress => {
       if (onChange) {
         let { loaded, total } = progress;
         loaded = loaded ?? 0;
@@ -286,41 +354,45 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         fileObject.setProgress(loaded / total);
         onChange();
       }
-    })
+    });
     return upload.done();
-  }
+  };
 
-  const getBucketVersioning = async (bucket: string): Promise<GetBucketVersioningCommandOutput> => {
+  const getBucketVersioning = async (
+    bucket: string
+  ): Promise<GetBucketVersioningCommandOutput> => {
     const getBucketVersioningCommand = new GetBucketVersioningCommand({
-      Bucket: bucket
+      Bucket: bucket,
     });
     return await client.send(getBucketVersioningCommand);
   };
 
   const setBucketVersioning = async (bucket: string, enabled: boolean) => {
     const versioningConfiguration: VersioningConfiguration = {
-      Status: enabled ? "Enabled" : "Disabled"
+      Status: enabled ? "Enabled" : "Disabled",
     };
     const putVersioningCommand = new PutBucketVersioningCommand({
       Bucket: bucket,
-      VersioningConfiguration: versioningConfiguration
+      VersioningConfiguration: versioningConfiguration,
     });
     return await client.send(putVersioningCommand);
-  }
+  };
 
   const getBucketObjectLock = async (bucket: string) => {
     const cmd = new GetObjectLockConfigurationCommand({ Bucket: bucket });
     return await client.send(cmd);
-  }
+  };
 
   const setBucketObjectLock = async (bucket: string, enabled: boolean) => {
-    const configuration = { ObjectLockEnabled: enabled ? "Enabled" : "Disabled" };
+    const configuration = {
+      ObjectLockEnabled: enabled ? "Enabled" : "Disabled",
+    };
     const cmd = new PutObjectLockConfigurationCommand({
       Bucket: bucket,
-      ObjectLockConfiguration: configuration
+      ObjectLockConfiguration: configuration,
     });
     return await client.send(cmd);
-  }
+  };
 
   const downloadObject = downloadInChunks;
   const uploadObject = uploadManaged;
@@ -328,7 +400,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const deleteObject = async (Bucket: string, Key: string) => {
     const cmd = new DeleteObjectCommand({ Bucket, Key });
     return await client.send(cmd);
-  }
+  };
 
   return (
     <S3Context.Provider
@@ -338,6 +410,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         loginWithCredentials,
         logout,
         fetchBucketList,
+        headBucket,
         getPresignedUrl,
         createBucket,
         deleteBucket,
@@ -348,10 +421,10 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         getBucketVersioning,
         setBucketVersioning,
         getBucketObjectLock,
-        setBucketObjectLock
+        setBucketObjectLock,
       }}
     >
       {children}
     </S3Context.Provider>
-  )
+  );
 };

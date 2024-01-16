@@ -1,55 +1,55 @@
-import { ChangeEvent, useCallback, useEffect, useState } from "react"
-import { Button } from "../../components/Button"
-import { TextField } from "../../components/TextField"
-import { useAuth } from "react-oidc-context";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { Button } from "../../components/Button";
+import { TextField } from "../../components/TextField";
+import { useOAuth } from "../../services/OAuth";
 import { useS3 } from "../../services/S3";
 import { Navigate } from "react-router-dom";
-
+import { addKeyHandler } from "../../commons/utils";
 
 export const Login = () => {
-  const oAuth = useAuth();
+  const oAuth = useOAuth();
   const s3 = useS3();
   const [awsAccessKeyId, setAwsAccessKeyId] = useState("");
   const [awsSecretAccessKey, setAwsSecretAccessKey] = useState("");
-  const { signinPopup } = oAuth;
-  const loginEnabled = (awsAccessKeyId.length * awsSecretAccessKey.length) > 0;
+  const { login } = oAuth;
+  const loginEnabled = awsAccessKeyId.length * awsSecretAccessKey.length > 0;
 
-  const handleAwsAccessKeyIdChange =
-    (element: ChangeEvent<HTMLInputElement>) => {
-      setAwsAccessKeyId(element.target.value);
-    }
+  const handleAwsAccessKeyIdChange = (
+    element: ChangeEvent<HTMLInputElement>
+  ) => {
+    setAwsAccessKeyId(element.target.value);
+  };
 
-  const handleAwsSecretAccessKeyChange =
-    (element: ChangeEvent<HTMLInputElement>) => {
-      setAwsSecretAccessKey(element.target.value);
-    }
+  const handleAwsSecretAccessKeyChange = (
+    element: ChangeEvent<HTMLInputElement>
+  ) => {
+    setAwsSecretAccessKey(element.target.value);
+  };
 
   const handleLogin = useCallback(() => {
     s3.loginWithCredentials({
       accessKeyId: awsAccessKeyId,
-      secretAccessKey: awsSecretAccessKey
-    })
-  }, [awsAccessKeyId, awsSecretAccessKey, s3])
+      secretAccessKey: awsSecretAccessKey,
+    });
+  }, [awsAccessKeyId, awsSecretAccessKey, s3]);
 
   useEffect(() => {
-    const keyDownHandler = (event: KeyboardEvent) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        if (loginEnabled) {
-          handleLogin();
-        }
+    const cleanupKeyHandler = addKeyHandler("Enter", function () {
+      if (loginEnabled) {
+        handleLogin();
       }
-    };
-
-    document.addEventListener('keydown', keyDownHandler);
+    });
     return () => {
-      document.removeEventListener('keydown', keyDownHandler);
+      cleanupKeyHandler();
     };
   }, [loginEnabled, handleLogin]);
 
   if (s3.isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
+  const oidcDisabled =
+    oAuth.isLoading || (oAuth.isAuthenticated && !s3.isAuthenticated);
 
   return (
     <div className="bg-slate-100 w-2/3 xl:w-1/2 max-w-3xl m-auto p-8 shadow-lg mt-16 rounded-md">
@@ -75,10 +75,11 @@ export const Login = () => {
         />
         <Button
           className="mx-auto w-full"
-          onClick={signinPopup}
+          onClick={login}
           title="Login with OpenID connect"
+          disabled={oidcDisabled}
         />
       </div>
     </div>
-  )
-}
+  );
+};

@@ -1,4 +1,11 @@
-import { ChartPieIcon, ClockIcon, CubeIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftOnRectangleIcon,
+  ChartPieIcon,
+  ClockIcon,
+  CubeIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { getHumanSize } from "../../commons/utils";
 import { BucketInfo } from "../../models/bucket";
 import { Button } from "../../components/Button";
@@ -7,14 +14,25 @@ export interface BucketSummaryViewProps extends BucketInfo {
   className?: string;
   onSelect: (bucket: string) => void;
   onDelete: (bucket: string) => void;
+  onUnmount: (bucket: string) => void;
 }
 
 export const BucketSummaryView = (props: BucketSummaryViewProps) => {
-  const { name, creation_date, size, objects, className, onSelect, onDelete } = props;
+  const {
+    name,
+    creation_date,
+    size,
+    objects,
+    external,
+    className,
+    onSelect,
+    onDelete,
+    onUnmount,
+  } = props;
   interface SubviewProps {
-    title: string,
-    text: string,
-    icon: JSX.Element
+    title: string;
+    text: string;
+    icon: JSX.Element;
   }
 
   const Subview = ({ title, text, icon }: SubviewProps) => {
@@ -24,8 +42,8 @@ export const BucketSummaryView = (props: BucketSummaryViewProps) => {
         <div className="font-semibold mr-1 my-auto">{title}</div>
         {text}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className={className}>
@@ -33,16 +51,45 @@ export const BucketSummaryView = (props: BucketSummaryViewProps) => {
         <div className="flex justify-between">
           <div>
             <div className="text-xl font-semibold">{name}</div>
-            <Subview title="Created at:" text={creation_date} icon={<ClockIcon />} />
-            <Subview title="Usage:" text={getHumanSize(size) ?? "N/A"} icon={<ChartPieIcon />} />
+            <Subview
+              title="Created at:"
+              text={creation_date}
+              icon={<ClockIcon />}
+            />
+            <Subview
+              title="Usage:"
+              text={getHumanSize(size) ?? "N/A"}
+              icon={<ChartPieIcon />}
+            />
             <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
           </div>
           <div className="flex flex-col space-y-2">
-            <Button className="my-auto pr-4" title="Edit Bucket" onClick={() => onSelect(name)} />
-            <Button className="my-auto pr-4" title="Delete Bucket" onClick={() => onDelete(name)} />
+            {external ? null : (
+              <Button
+                className="my-auto pr-4"
+                icon={<PencilSquareIcon />}
+                title="Edit"
+                onClick={() => onSelect(name)}
+              />
+            )}
+            {external ? (
+              <Button
+                className="my-auto pr-4"
+                icon={<ArrowLeftOnRectangleIcon />}
+                title="Unmount"
+                onClick={() => onUnmount(name)}
+              />
+            ) : (
+              <Button
+                className="my-auto pr-4"
+                icon={<TrashIcon />}
+                title="Delete"
+                onClick={() => onDelete(name)}
+              />
+            )}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 };

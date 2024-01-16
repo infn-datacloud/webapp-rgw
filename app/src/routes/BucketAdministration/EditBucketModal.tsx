@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal } from "../../components/Modal"
+import { Modal } from "../../components/Modal";
 import { Button } from "../../components/Button";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ToggleSwitch, ToggleSwitchProps } from "../../components/ToggleSwitch";
@@ -9,7 +9,7 @@ export interface BucketConfiguration {
   objectLockEnabled: boolean;
 }
 
-interface EditBucketModalProps extends BucketConfiguration{
+interface EditBucketModalProps extends BucketConfiguration {
   bucketName?: string;
   onClose: () => void;
   onUpdateBucket: (bucketName: string, config: BucketConfiguration) => void;
@@ -21,38 +21,44 @@ export const EditBucketModal = (props: EditBucketModalProps) => {
     versioningEnabled,
     objectLockEnabled,
     onClose,
-    onUpdateBucket
+    onUpdateBucket,
   } = props;
 
-  const [versioningWillBeEnabled, setVersioningWillBeEnabled] = useState(versioningEnabled);
-  const [objectLockWillBeEnabled, setObjectLockWillBeEnabled] = useState(objectLockEnabled);
+  const [versioningWillBeEnabled, setVersioningWillBeEnabled] =
+    useState(versioningEnabled);
+  const [objectLockWillBeEnabled, setObjectLockWillBeEnabled] =
+    useState(objectLockEnabled);
 
-  const clear = () => { }
+  const clear = () => {};
 
   const updateBucket = () => {
     const config: BucketConfiguration = {
       versioningEnabled: versioningWillBeEnabled,
-      objectLockEnabled: objectLockWillBeEnabled
-    }
+      objectLockEnabled: objectLockWillBeEnabled,
+    };
     onUpdateBucket(bucketName!, config);
-  }
+  };
 
   const changed = () => {
-    return versioningWillBeEnabled !== versioningEnabled ||
-      objectLockWillBeEnabled !== objectLockEnabled;
-  }
+    return (
+      versioningWillBeEnabled !== versioningEnabled ||
+      objectLockWillBeEnabled !== objectLockEnabled
+    );
+  };
 
   const CloseButton = () => {
     return (
-      <button className="w-8 p-[5px] text-neutral-500
+      <button
+        className="w-8 p-[5px] text-neutral-500
       hover:bg-neutral-200 rounded-full"
         onClick={() => {
           onClose();
-        }}>
+        }}
+      >
         <XMarkIcon />
       </button>
-    )
-  }
+    );
+  };
 
   interface BucketFeatureProps extends ToggleSwitchProps {
     name: string;
@@ -85,7 +91,6 @@ export const EditBucketModal = (props: EditBucketModalProps) => {
     );
   };
 
-
   const Title = () => {
     return (
       <div className="flex place-content-between">
@@ -93,23 +98,20 @@ export const EditBucketModal = (props: EditBucketModalProps) => {
         <CloseButton />
       </div>
     );
-  }
+  };
 
   const Buttons = () => {
     return (
       <div className="flex justify-end p-4 space-x-4">
-        <Button
-          title="Clear"
-          onClick={clear}
-        />
+        <Button title="Clear" onClick={clear} />
         <Button
           title="Edit Bucket"
           disabled={!changed}
           onClick={updateBucket}
         />
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <Modal open={bucketName !== undefined}>
@@ -119,5 +121,5 @@ export const EditBucketModal = (props: EditBucketModalProps) => {
         <Buttons />
       </div>
     </Modal>
-  )
-}
+  );
+};
