@@ -2,6 +2,7 @@
   "name": "Webapp RGW",
   "dockerComposeFile": ["../docker-compose.yaml"],
   "service": "webapp-dev",
+  "shutdownAction": "stopCompose",
   "workspaceFolder": "/workspace",
   "features": {
     "git": "os-provided"
