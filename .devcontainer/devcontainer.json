@@ -1,6 +1,6 @@
 {
   "name": "Webapp RGW",
-  "dockerComposeFile": ["docker-compose.yaml"],
+  "dockerComposeFile": ["../docker-compose.yaml"],
   "service": "webapp-dev",
   "workspaceFolder": "/workspace",
   "features": {
