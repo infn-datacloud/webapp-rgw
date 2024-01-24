@@ -11,12 +11,10 @@ import {
 } from "../../services/Notifications";
 import { BucketConfiguration, EditBucketModal } from "./EditBucketModal";
 import { camelToWords } from "../../commons/utils";
-import { MountBucketModal } from "./MountBucket";
 
 export const BucketAdministration = () => {
-  const { bucketsInfos, updateStore, unmountBucket } = useBucketStore();
+  const { bucketsInfos, updateStore } = useBucketStore();
   const [showNewBucketModal, setShowNewBucketModal] = useState(false);
-  const [showMountBucketModal, setShowMountBucketModal] = useState(false);
   const [versioning, setVersioning] = useState(false);
   const [objectLock, setObjectLock] = useState(false);
   const [selectedBucket, setSelectedBucket] = useState<string | undefined>();
@@ -71,10 +69,6 @@ export const BucketAdministration = () => {
           NotificationType.error
         )
       );
-  };
-
-  const handleUnmountBucket = (bucket: string) => {
-    unmountBucket({ Name: bucket });
   };
 
   const handleSelectBucket = (bucketName: string) => {
@@ -153,7 +147,6 @@ export const BucketAdministration = () => {
               key={el.name}
               onSelect={handleSelectBucket}
               onDelete={handleDeleteBucket}
-              onUnmount={handleUnmountBucket}
               {...el}
             />
           );
@@ -176,14 +169,9 @@ export const BucketAdministration = () => {
         onClose={() => setSelectedBucket(undefined)}
         onUpdateBucket={handleBucketUpdateConfiguration}
       />
-      <MountBucketModal
-        open={showMountBucketModal}
-        onClose={() => setShowMountBucketModal(false)}
-      />
       <Toolbar
         className="mb-4"
         onClickNewBucket={() => setShowNewBucketModal(true)}
-        onClickMountBucket={() => setShowMountBucketModal(true)}
       />
       <BucketInfos />
     </Page>

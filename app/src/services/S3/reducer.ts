@@ -1,10 +1,11 @@
-import { S3Client } from "@aws-sdk/client-s3";
+import { Bucket, S3Client } from "@aws-sdk/client-s3";
 import { S3State } from "./S3State";
 
 type Action =
   | { type: "LOGGING_IN" }
-  | { type: "LOGGED_IN"; client: S3Client }
-  | { type: "LOGGED_OUT" };
+  | { type: "LOGGED_IN"; client: S3Client; externalBuckets: Bucket[] }
+  | { type: "LOGGED_OUT" }
+  | { type: "RESTORE_SESSION" };
 
 export const reducer = (state: S3State, action: Action): S3State => {
   switch (action.type) {
@@ -14,6 +15,7 @@ export const reducer = (state: S3State, action: Action): S3State => {
         client: action.client,
         isAuthenticated: true,
         isLoading: false,
+        externalBuckets: action.externalBuckets,
       };
     case "LOGGED_OUT":
       return {

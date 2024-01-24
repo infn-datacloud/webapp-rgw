@@ -13,42 +13,22 @@ interface BucketStoreProviderBaseProps {
 export interface BucketStoreProviderProps
   extends BucketStoreProviderBaseProps {}
 
-const S3_EXTERNAL_BUCKETS_KEY = "S3_EXTERNAL_BUCKETS_KEY";
-
 export const BucketStoreProvider = (
   props: BucketStoreProviderProps
 ): JSX.Element => {
   const { children } = props;
-  const { isAuthenticated, fetchBucketList, headBucket, listObjects } = useS3();
+  const { isAuthenticated, fetchBucketList, listObjects } = useS3();
   const [state, dispatch] = useReducer(reducer, initialState);
   const componentDidMount = useRef(false);
 
-  const cacheExternalBuckets = (buckets: Bucket[]) => {
-    const t = JSON.stringify(buckets);
-    localStorage.setItem(S3_EXTERNAL_BUCKETS_KEY, t);
-  };
-
-  const loadCachedExternalBuckets = (): Bucket[] => {
-    const maybeExternalBuckets = localStorage.getItem(S3_EXTERNAL_BUCKETS_KEY);
-    if (maybeExternalBuckets) {
-      return JSON.parse(maybeExternalBuckets);
-    }
-    return [];
-  };
-
   /** Compute Bucket Summary Info, counting all objects and summing their size */
-  const computeBucketSummary = async (
-    bucket: Bucket,
-    objects: _Object[],
-    external: boolean
-  ) => {
+  const computeBucketSummary = async (bucket: Bucket, objects: _Object[]) => {
     const info: BucketInfo = {
       name: bucket.Name ?? "N/A",
       creation_date: bucket.CreationDate?.toString() ?? "N/A",
       rw_access: { read: true, write: true },
       objects: 0,
       size: 0,
-      external: external,
     };
     if (objects) {
       objects.forEach(o => {
@@ -63,9 +43,9 @@ export const BucketStoreProvider = (
   const updateStore = useCallback(async () => {
     console.log("Update store");
     const objects = new Map<string, _Object[]>();
-    const ownedBuckets = await fetchBucketList();
-    const externalBuckets = loadCachedExternalBuckets();
-    const buckets = externalBuckets.concat(ownedBuckets);
+    const buckets = await fetchBucketList();
+    buckets.push({ Name: "scratch" });
+
     const listObjectsPromises = buckets.map(bucket => listObjects(bucket));
     const bucketsInfosPromises = listObjectsPromises.map(
       async (promise, index) => {
@@ -73,35 +53,17 @@ export const BucketStoreProvider = (
         const name = bucket.Name!;
         const objectList = await Promise.resolve(promise);
         objects.set(name, objectList);
-        const isExternal = index < externalBuckets.length;
-        return computeBucketSummary(bucket, objectList, isExternal);
+        return computeBucketSummary(bucket, objectList);
       }
     );
-    const bucketsInfos = await Promise.all(bucketsInfosPromises);
-    dispatch({ buckets, objects, bucketsInfos });
+    const promisesResults = await Promise.allSettled(bucketsInfosPromises);
+    const bucketsInfos = (
+      promisesResults.filter(
+        r => r.status === "fulfilled"
+      ) as PromiseFulfilledResult<BucketInfo>[]
+    ).map(r => r.value);
+    dispatch({ objects, bucketsInfos });
   }, [fetchBucketList, listObjects]);
-
-  /** Mount a not owned bucket as external bucket */
-  const mountBucket = async (bucket: Bucket) => {
-    if (!(await headBucket(bucket))) {
-      return false;
-    }
-    const found = state.buckets.find(b => b.Name === bucket.Name);
-    if (!found) {
-      const externalBuckets = loadCachedExternalBuckets();
-      externalBuckets.push(bucket);
-      cacheExternalBuckets(externalBuckets);
-      updateStore();
-    }
-    return true;
-  };
-
-  /** Unmount an external bucket */
-  const unmountBucket = async (bucket: Bucket) => {
-    const externalBuckets = loadCachedExternalBuckets();
-    cacheExternalBuckets(externalBuckets.filter(b => b.Name !== bucket.Name));
-    updateStore();
-  };
 
   useEffect(() => {
     if (isAuthenticated && !componentDidMount.current) {
@@ -120,8 +82,6 @@ export const BucketStoreProvider = (
       value={{
         ...state,
         updateStore,
-        mountBucket,
-        unmountBucket,
         reset,
       }}
     >

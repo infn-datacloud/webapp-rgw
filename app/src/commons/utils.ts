@@ -36,6 +36,26 @@ export const extractPathAndBasename = (s: string) => {
   return [path, basename];
 };
 
+export const dropDuplicates = <T>(arr: T[]): T[] => {
+  return [...new Set(arr)];
+};
+
+export const dropDuplicates2 = <T>(arr: T[]): T[] => {
+  if (arr.length == 0 || arr.length == 1) {
+    return arr;
+  }
+  arr.sort();
+  const result = new Array<T>(arr.length);
+  let j = 0;
+  for (let i = 0; i < arr.length - 1; ++i) {
+    if (arr[i] != arr[i + 1]) {
+      result[j++] = arr[i];
+    }
+  }
+  result[j] = arr[arr.length - 1];
+  return result.filter(el => el !== undefined);
+};
+
 /** Add a custom key handler and provides a cleanup callback function.
  * Please remember to call the cleanup function when you have done with it.
  */
