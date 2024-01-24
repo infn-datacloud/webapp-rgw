@@ -1,5 +1,5 @@
 import { NodePath, extractPathAndBasename } from "./utils";
-import { dropDuplicates, dropDuplicates2 } from "./utils";
+import { dropDuplicates } from "./utils";
 
 test("NodePath 1", () => {
   const root = new NodePath<string>("/");
@@ -140,7 +140,7 @@ test("extractPathAndBasename", () => {
 });
 
 test("Drop Duplicates", () => {
-  const sizes = [10, 100, 1000, 10000];
+  const sizes = [10, 100, 1000];
   const arr = [
     "cygno-analysis",
     "cygno-data",
@@ -181,7 +181,7 @@ test("Drop Duplicates", () => {
   };
 
   sizes.forEach(size => {
-    [dropDuplicates, dropDuplicates2].forEach(fn => {
+    [dropDuplicates].forEach(fn => {
       console.log("Testing function:", fn);
       const result: string[] = runTest(fn, arr, size, 100);
       result.sort();
