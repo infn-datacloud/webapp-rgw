@@ -156,9 +156,18 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         };
         const { groups } = user.profile;
         const client = new S3Client(clientConfiguration);
-        const externalBuckets = groups
-          ? await fetchPublicBuckets(client, "bucket-publisher", groups)
-          : [];
+        let externalBuckets: Bucket[] = [];
+        try {
+          if (groups) {
+            externalBuckets = await fetchPublicBuckets(
+              client,
+              "bucket-policy",
+              groups
+            );
+          }
+        } catch (error) {
+          console.error(error);
+        }
         const toCache: S3Cache = { clientConfiguration, externalBuckets };
         cacheConfiguration(toCache);
         dispatch({ type: "LOGGED_IN", client, externalBuckets });
