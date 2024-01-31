@@ -28,4 +28,4 @@ spec:
           service:
             name: rgw-s3
             port:
-              number: 8080 
+              number: 8000 

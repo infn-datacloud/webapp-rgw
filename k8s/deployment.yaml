@@ -62,7 +62,7 @@ spec:
               memory: 2G
           env:
             - name: IAM_AUTHORITY
-              value: "https:/vm-131-154-98-64.cloud.cnaf.infn.it"
+              value: "https://vm-131-154-98-64.cloud.cnaf.infn.it"
             - name: IAM_SCOPE
               value: "openid email profile offline_access"
             - name: IAM_AUDIENCE
