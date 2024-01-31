@@ -16,8 +16,7 @@ export default defineConfig({
       path: "/ws",
       clientPort: 3000,
     },
-    watch: 
-    {
+    watch: {
       usePolling: true,
     },
   },
