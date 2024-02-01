@@ -56,6 +56,11 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const [state, dispatch] = useReducer(reducer, initialAuthState);
   const didInit = useRef(false);
 
+  const logout = useCallback(() => {
+    clearCache();
+    dispatch({ type: "LOGGED_OUT" });
+  }, []);
+
   const cacheConfiguration = useCallback((config: S3Cache) => {
     sessionStorage.setItem(S3_CONFIG_STORAGE_KEY, JSON.stringify(config));
   }, []);
@@ -63,18 +68,19 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const loadCacheConfiguration = useCallback((): S3Cache | undefined => {
     const maybe_config = sessionStorage.getItem(S3_CONFIG_STORAGE_KEY);
     if (maybe_config) {
-      return JSON.parse(maybe_config);
+      const cache: S3Cache = JSON.parse(maybe_config);
+      if (cache.expirationDate && cache.expirationDate < Date.now()) {
+        return cache;
+      } else {
+        console.log("Session expired.");
+        logout();
+      }
     }
-  }, []);
+  }, [logout]);
 
   const clearCache = () => {
     sessionStorage.clear();
   };
-
-  const logout = useCallback(() => {
-    clearCache();
-    dispatch({ type: "LOGGED_OUT" });
-  }, []);
 
   useEffect(() => {
     if (!didInit.current) {
@@ -156,6 +162,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         };
         const { groups } = user.profile;
         const client = new S3Client(clientConfiguration);
+
         let externalBuckets: Bucket[] = [];
         try {
           if (groups) {
@@ -168,7 +175,13 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         } catch (error) {
           console.error(error);
         }
-        const toCache: S3Cache = { clientConfiguration, externalBuckets };
+        const expirationDate =
+          Date.now() + Number(awsConfig.roleSessionDurationSeconds);
+        const toCache: S3Cache = {
+          clientConfiguration,
+          externalBuckets,
+          expirationDate,
+        };
         cacheConfiguration(toCache);
         dispatch({ type: "LOGGED_IN", client, externalBuckets });
         console.log("Authenticated via STS");
@@ -201,7 +214,11 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       try {
         const client = new S3Client(clientConfiguration);
         await client.send(new ListBucketsCommand({}));
-        cacheConfiguration({ clientConfiguration, externalBuckets: [] });
+        cacheConfiguration({
+          clientConfiguration,
+          externalBuckets: [],
+          expirationDate: undefined,
+        });
         dispatch({ type: "LOGGED_IN", client, externalBuckets: [] });
         console.log("Logged with plain credentials");
       } catch (err) {

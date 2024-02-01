@@ -3,6 +3,7 @@ import { Bucket, S3Client, S3ClientConfig } from "@aws-sdk/client-s3";
 export interface S3Cache {
   clientConfiguration: S3ClientConfig;
   externalBuckets: Bucket[];
+  expirationDate?: number; // nanoseconds
 }
 
 export interface S3State {
