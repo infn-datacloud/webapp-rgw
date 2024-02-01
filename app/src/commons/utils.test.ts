@@ -1,4 +1,5 @@
 import { NodePath, extractPathAndBasename } from "./utils";
+import { dropDuplicates } from "./utils";
 
 test("NodePath 1", () => {
   const root = new NodePath<string>("/");
@@ -136,4 +137,61 @@ test("extractPathAndBasename", () => {
   [path, basename] = extractPathAndBasename(objectPath);
   expect(path).toBe("");
   expect(basename).toBe("foo");
+});
+
+test("Drop Duplicates", () => {
+  const sizes = [10, 100, 1000];
+  const arr = [
+    "cygno-analysis",
+    "cygno-data",
+    "cygno-sim",
+    "lhcb-data",
+    "cygno-analysis",
+    "cygno-data",
+    "cygno-sim",
+    "alice-data",
+  ];
+
+  const runTest = <T>(
+    fn: (arr: T[]) => T[],
+    arr: T[],
+    size: number,
+    iterations: number
+  ) => {
+    let t = [...arr];
+    const u = [...arr];
+    for (let i = 1; i < size; ++i) {
+      t = t.concat(u);
+    }
+    const start = performance.now();
+    let result: T[] = [];
+    for (let i = 0; i < iterations; ++i) {
+      result = fn(t);
+    }
+
+    const end = performance.now();
+    const elapsed = end - start;
+    console.log(
+      `Array length: ${t.length}\n` +
+        `Iterations: ${iterations}\n` +
+        `Runtime: ${elapsed}\n` +
+        `Time per iteration: ${elapsed / iterations}`
+    );
+    return result;
+  };
+
+  sizes.forEach(size => {
+    [dropDuplicates].forEach(fn => {
+      console.log("Testing function:", fn);
+      const result: string[] = runTest(fn, arr, size, 100);
+      result.sort();
+      expect(result).toStrictEqual([
+        "alice-data",
+        "cygno-analysis",
+        "cygno-data",
+        "cygno-sim",
+        "lhcb-data",
+      ]);
+    });
+  });
 });

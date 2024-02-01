@@ -9,7 +9,6 @@ export interface BucketInfo {
   rw_access: RWAccess;
   objects: number;
   size: number;
-  external: boolean;
 }
 
 export interface BucketObject {

@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rgw-s3-ingress
+  namespace: rgw-gui 
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - vm-131-154-98-238.cloud.cnaf.infn.it 
+    secretName: prometheus-ingress
+  rules:
+  - host: "vm-131-154-98-238.cloud.cnaf.infn.it"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix 
+        backend:
+          service:
+            name: rgw-s3 
+            port:
+              number: 80 
+      - path: /api/
+        pathType: Prefix 
+        backend:
+          service:
+            name: rgw-s3
+            port:
+              number: 8000 

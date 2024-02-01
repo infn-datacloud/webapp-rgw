@@ -8,24 +8,24 @@ import {
   Cell,
 } from "../../components/Table";
 import { useSearchParams } from "react-router-dom";
-import { Bucket } from "@aws-sdk/client-s3";
 import { useBucketStore } from "../../services/BucketStore";
 import { BucketBrowser } from "../BucketBrowser";
+import { BucketInfo } from "../../models/bucket";
 
 export const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { buckets } = useBucketStore();
+  const { bucketsInfos } = useBucketStore();
 
   const tableData: TableData = (function () {
     const cols: Column[] = [
       { id: "bucket", name: "Bucket" },
       { id: "creation_date", name: "Creation Date" },
     ];
-    const rows = buckets.map((bucket: Bucket): Row => {
+    const rows = bucketsInfos.map((bucketInfo: BucketInfo): Row => {
       const cols = new Map<ColumnId, Cell>();
-      cols.set("bucket", { value: bucket.Name ?? "N/A" });
+      cols.set("bucket", { value: bucketInfo.name ?? "N/A" });
       cols.set("creation_date", {
-        value: bucket.CreationDate?.toString() ?? "N/A",
+        value: bucketInfo.creation_date,
       });
       return {
         selected: false,
@@ -36,7 +36,7 @@ export const Home = () => {
   })();
 
   const onClick = (index: number) => {
-    const bucketName = buckets[index].Name;
+    const bucketName = bucketsInfos[index].name;
     if (bucketName) {
       setSearchParams(new URLSearchParams({ bucket: bucketName }));
     } else {

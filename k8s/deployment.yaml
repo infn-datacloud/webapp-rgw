@@ -40,7 +40,7 @@ spec:
           terminationMessagePolicy: File
           env:
             - name: S3_ENDPOINT
-              value: "https://vm-131-154-97-121.cloud.cnaf.infn.it"
+              value: "https://vm-131-154-98-144.cloud.cnaf.infn.it"
             - name: S3_REGION
               value: "ceph-objectstore"
             - name: S3_ROLE_ARN
@@ -62,7 +62,7 @@ spec:
               memory: 2G
           env:
             - name: IAM_AUTHORITY
-              value: "https://keycloak-demo.cloud.cnaf.infn.it:8222"
+              value: "https://vm-131-154-98-64.cloud.cnaf.infn.it"
             - name: IAM_SCOPE
               value: "openid email profile offline_access"
             - name: IAM_AUDIENCE

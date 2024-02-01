@@ -21,9 +21,9 @@ import {
   GetObjectLockConfigurationCommand,
   PutObjectLockConfigurationCommand,
   ListObjectsV2CommandOutput,
-  S3ClientConfig,
   DeleteObjectCommand,
   HeadBucketCommand,
+  ObjectLockConfiguration,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -32,9 +32,9 @@ import {
   BucketObjectWithProgress,
   FileObjectWithProgress,
 } from "../../models/bucket";
-import { camelToWords } from "../../commons/utils";
+import { camelToWords, dropDuplicates } from "../../commons/utils";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
-import { initialAuthState } from "./S3State";
+import { S3Cache, initialAuthState } from "./S3State";
 import { reducer } from "./reducer";
 import { S3Context } from "./S3Context";
 import type { User } from "../OAuth";
@@ -54,19 +54,29 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const { children, awsConfig } = props;
   const { notify } = useNotifications();
   const [state, dispatch] = useReducer(reducer, initialAuthState);
-  const { client } = state;
   const didInit = useRef(false);
 
-  const cacheConfiguration = (config: S3ClientConfig) => {
-    sessionStorage.setItem(S3_CONFIG_STORAGE_KEY, JSON.stringify(config));
-  };
+  const logout = useCallback(() => {
+    clearCache();
+    dispatch({ type: "LOGGED_OUT" });
+  }, []);
 
-  const loadCacheConfiguration = useCallback((): S3ClientConfig | undefined => {
+  const cacheConfiguration = useCallback((config: S3Cache) => {
+    sessionStorage.setItem(S3_CONFIG_STORAGE_KEY, JSON.stringify(config));
+  }, []);
+
+  const loadCacheConfiguration = useCallback((): S3Cache | undefined => {
     const maybe_config = sessionStorage.getItem(S3_CONFIG_STORAGE_KEY);
     if (maybe_config) {
-      return JSON.parse(maybe_config);
+      const cache: S3Cache = JSON.parse(maybe_config);
+      if (cache.expirationDate && cache.expirationDate > Date.now()) {
+        return cache;
+      } else {
+        console.log("Session expired.");
+        logout();
+      }
     }
-  }, []);
+  }, [logout]);
 
   const clearCache = () => {
     sessionStorage.clear();
@@ -74,26 +84,49 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
 
   useEffect(() => {
     if (!didInit.current) {
-      const config = loadCacheConfiguration();
-      if (config) {
-        const client = new S3Client(config);
-        dispatch({ type: "LOGGED_IN", client });
+      const cache = loadCacheConfiguration();
+      if (cache) {
+        const newState = {
+          client: new S3Client(cache.clientConfiguration),
+          externalBuckets: cache.externalBuckets,
+        };
+        dispatch({ type: "LOGGED_IN", ...newState });
         console.log("Session loaded");
       }
       didInit.current = true;
     }
   }, [loadCacheConfiguration]);
 
+  const fetchPublicBuckets = useCallback(
+    async (client: S3Client, bucketPublisher: string, groups: string[]) => {
+      const promises = groups.map(async group => {
+        const cmd = new ListObjectsV2Command({
+          Bucket: bucketPublisher,
+          Prefix: group,
+        });
+        return await client.send(cmd);
+      });
+
+      const results = await Promise.all(promises);
+      const contents = results.flatMap(bucket => bucket.Contents ?? []);
+      let names = contents.map(c => c.Key?.split("/")[1]);
+      names = dropDuplicates(names);
+      const buckets: Bucket[] = names.map(name => {
+        return { Name: name };
+      });
+      return buckets;
+    },
+    []
+  );
   // Exchange token for AWS Credentials with AssumeRoleWebIdentity
   const loginWithSTS = useCallback(
     async (user: User) => {
       dispatch({ type: "LOGGING_IN" });
-      const access_token = user.access_token;
+      const { access_token } = user;
       if (!access_token) {
         console.error("Cannot get AWS credentials: access_token is undefined");
         return;
       }
-
       console.log("Get AWS Credentials from STS");
       const sts = new STSClient({ ...awsConfig });
       const command = new AssumeRoleWithWebIdentityCommand({
@@ -102,7 +135,6 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         RoleSessionName: crypto.randomUUID(),
         WebIdentityToken: access_token,
       });
-
       const response = await sts.send(command);
 
       try {
@@ -111,30 +143,51 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
           throw new Error("Credentials not found");
         }
         const { AccessKeyId, SecretAccessKey, SessionToken } = Credentials;
-        if (AccessKeyId && SecretAccessKey && SessionToken) {
-          const awsCredentials = {
-            accessKeyId: AccessKeyId,
-            secretAccessKey: SecretAccessKey,
-            sessionToken: SessionToken,
-          };
-          const { endpoint, region } = awsConfig;
-          const config = {
-            endpoint: endpoint,
-            region: region,
-            credentials: awsCredentials,
-            forcePathStyle: true,
-          };
-          const client = new S3Client(config);
-          dispatch({ type: "LOGGED_IN", client });
-          cacheConfiguration(config);
-          console.log("Authenticated via STS");
-        } else {
+        if (!(AccessKeyId && SecretAccessKey && SessionToken)) {
           console.warn(
             "Warning: some one or more AWS Credentials member is empty"
           );
+          return;
         }
+        const awsCredentials = {
+          accessKeyId: AccessKeyId,
+          secretAccessKey: SecretAccessKey,
+          sessionToken: SessionToken,
+        };
+        const clientConfiguration = {
+          endpoint: awsConfig.endpoint,
+          region: awsConfig.region,
+          credentials: awsCredentials,
+          forcePathStyle: true,
+        };
+        const { groups } = user.profile;
+        const client = new S3Client(clientConfiguration);
+
+        let externalBuckets: Bucket[] = [];
+        try {
+          if (groups) {
+            externalBuckets = await fetchPublicBuckets(
+              client,
+              "bucket-policy",
+              groups
+            );
+          }
+        } catch (error) {
+          console.error(error);
+        }
+        const expirationDate =
+          Date.now() + Number(awsConfig.roleSessionDurationSeconds) * 1000;
+        const toCache: S3Cache = {
+          clientConfiguration,
+          externalBuckets,
+          expirationDate,
+        };
+        cacheConfiguration(toCache);
+        dispatch({ type: "LOGGED_IN", client, externalBuckets });
+        console.log("Authenticated via STS");
       } catch (err) {
         if (err instanceof Error) {
+          logout();
           notify(
             "Cannot retrieve AWS Credentials from STS",
             camelToWords(err.name),
@@ -143,32 +196,33 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         } else {
           console.error(err);
         }
-        dispatch({ type: "LOGGED_OUT" });
-        clearCache();
       }
     },
-    [awsConfig, notify]
+    [awsConfig, notify, cacheConfiguration, logout, fetchPublicBuckets]
   );
 
   const loginWithCredentials = useCallback(
     async (credentials: AwsCredentialIdentity) => {
       dispatch({ type: "LOGGING_IN" });
       const { endpoint, region } = awsConfig;
-      const config = {
+      const clientConfiguration = {
         endpoint: endpoint,
         region: region,
         credentials: credentials,
         forcePathStyle: true,
       };
-      const newClient = new S3Client(config);
       try {
-        await newClient.send(new ListBucketsCommand({}));
+        const client = new S3Client(clientConfiguration);
+        await client.send(new ListBucketsCommand({}));
+        cacheConfiguration({
+          clientConfiguration,
+          externalBuckets: [],
+          expirationDate: undefined,
+        });
+        dispatch({ type: "LOGGED_IN", client, externalBuckets: [] });
         console.log("Logged with plain credentials");
-        cacheConfiguration(config);
-        dispatch({ type: "LOGGED_IN", client: newClient });
       } catch (err) {
-        dispatch({ type: "LOGGED_OUT" });
-        clearCache();
+        logout();
         if (err instanceof Error) {
           notify(
             "Access failed",
@@ -178,30 +232,28 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         }
       }
     },
-    [awsConfig, notify]
+    [awsConfig, cacheConfiguration, notify, logout]
   );
-
-  const logout = () => {
-    clearCache();
-    dispatch({ type: "LOGGED_OUT" });
-  };
 
   const fetchBucketList = async () => {
     try {
+      const { client } = state;
+      let buckets = state.externalBuckets;
       const listBucketCmd = new ListBucketsCommand({});
       const response = await client.send(listBucketCmd);
       const { Buckets } = response;
       if (Buckets) {
-        return Buckets;
+        buckets = buckets.concat(Buckets);
       } else {
         console.warn("Warning: Expected Bucket[], got undefined");
         return [];
       }
+      return buckets;
     } catch (err) {
       if (err instanceof Error) {
         notify(
           "Cannot fetch buckets list",
-          camelToWords(err.name),
+          `${camelToWords(err.name)}: ${camelToWords(err.message)}`,
           NotificationType.error
         );
       }
@@ -210,8 +262,9 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   };
 
   const headBucket = async (bucket: Bucket) => {
-    const cmd = new HeadBucketCommand({ Bucket: bucket.Name });
     try {
+      const { client } = state;
+      const cmd = new HeadBucketCommand({ Bucket: bucket.Name });
       await client.send(cmd);
       return true;
     } catch (err) {
@@ -234,7 +287,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       Bucket: bucketName,
       ObjectLockEnabledForBucket: objectLockEnabled,
     });
-
+    const { client } = state;
     const result = await client.send(createBucketCommand);
 
     if (versioningEnabled) {
@@ -244,11 +297,13 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   };
 
   const deleteBucket = async (bucket: string) => {
+    const { client } = state;
     const cmd = new DeleteBucketCommand({ Bucket: bucket });
     return await client.send(cmd);
   };
 
   const listObjects = async (bucket: Bucket): Promise<_Object[]> => {
+    const { client } = state;
     let content: _Object[] = [];
     let completed = false;
     let continuationToken: string | undefined = undefined;
@@ -274,6 +329,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   };
 
   const getPresignedUrl = async (bucket: string, key: string) => {
+    const { client } = state;
     const cmdGetObj = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
@@ -289,6 +345,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
     start: number,
     end: number
   ) => {
+    const { client } = state;
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
@@ -338,6 +395,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
     fileObject: FileObjectWithProgress,
     onChange?: () => void
   ) => {
+    const { client } = state;
     const upload = new Upload({
       client: client,
       params: {
@@ -361,6 +419,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const getBucketVersioning = async (
     bucket: string
   ): Promise<GetBucketVersioningCommandOutput> => {
+    const { client } = state;
     const getBucketVersioningCommand = new GetBucketVersioningCommand({
       Bucket: bucket,
     });
@@ -368,8 +427,9 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   };
 
   const setBucketVersioning = async (bucket: string, enabled: boolean) => {
+    const { client } = state;
     const versioningConfiguration: VersioningConfiguration = {
-      Status: enabled ? "Enabled" : "Disabled",
+      Status: enabled ? "Enabled" : "Suspended",
     };
     const putVersioningCommand = new PutBucketVersioningCommand({
       Bucket: bucket,
@@ -379,14 +439,18 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   };
 
   const getBucketObjectLock = async (bucket: string) => {
+    const { client } = state;
     const cmd = new GetObjectLockConfigurationCommand({ Bucket: bucket });
     return await client.send(cmd);
   };
 
   const setBucketObjectLock = async (bucket: string, enabled: boolean) => {
-    const configuration = {
-      ObjectLockEnabled: enabled ? "Enabled" : "Disabled",
-    };
+    const configuration: ObjectLockConfiguration = enabled
+      ? {
+          ObjectLockEnabled: "Enabled",
+        }
+      : {};
+    const { client } = state;
     const cmd = new PutObjectLockConfigurationCommand({
       Bucket: bucket,
       ObjectLockConfiguration: configuration,
@@ -398,6 +462,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const uploadObject = uploadManaged;
 
   const deleteObject = async (Bucket: string, Key: string) => {
+    const { client } = state;
     const cmd = new DeleteObjectCommand({ Bucket, Key });
     return await client.send(cmd);
   };
