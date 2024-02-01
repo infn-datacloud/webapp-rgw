@@ -253,7 +253,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
       if (err instanceof Error) {
         notify(
           "Cannot fetch buckets list",
-          camelToWords(err.message),
+          `${camelToWords(err.name)}: ${camelToWords(err.message)}`,
           NotificationType.error
         );
       }
