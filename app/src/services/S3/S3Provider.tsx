@@ -69,7 +69,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
     const maybe_config = sessionStorage.getItem(S3_CONFIG_STORAGE_KEY);
     if (maybe_config) {
       const cache: S3Cache = JSON.parse(maybe_config);
-      if (cache.expirationDate && cache.expirationDate < Date.now()) {
+      if (cache.expirationDate && cache.expirationDate > Date.now()) {
         return cache;
       } else {
         console.log("Session expired.");
@@ -176,7 +176,7 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
           console.error(error);
         }
         const expirationDate =
-          Date.now() + Number(awsConfig.roleSessionDurationSeconds);
+          Date.now() + Number(awsConfig.roleSessionDurationSeconds) * 1000;
         const toCache: S3Cache = {
           clientConfiguration,
           externalBuckets,
