@@ -3,6 +3,8 @@ interface ProgressBarProps {
   title: string;
 }
 
+export type ProgressElement = ProgressBarProps;
+
 export const ProgressBar = (props: ProgressBarProps) => {
   const { title, value } = props;
   const progress = `${Math.round(value * 100)}%`;

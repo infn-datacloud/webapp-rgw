@@ -28,10 +28,7 @@ import {
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { useNotifications, NotificationType } from "../Notifications";
-import {
-  BucketObjectWithProgress,
-  FileObjectWithProgress,
-} from "../../models/bucket";
+import { FileObjectWithProgress } from "../../models/bucket";
 import { camelToWords, dropDuplicates } from "../../commons/utils";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { S3Cache, initialAuthState } from "./S3State";
@@ -356,8 +353,9 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
 
   const downloadInChunks = async (
     bucket: string,
-    object: BucketObjectWithProgress,
-    onChange?: () => void
+    object: FileObjectWithProgress,
+    onChange?: () => void,
+    onComplete?: () => void
   ) => {
     const key = object.object.Key!;
     let blob = new Blob();
@@ -386,6 +384,9 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         onChange();
       }
     }
+    if (onComplete) {
+      onComplete();
+    }
     console.log("Download completed", blob.size, "bytes");
     return blob;
   };
@@ -393,7 +394,8 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
   const uploadManaged = async (
     bucket: string,
     fileObject: FileObjectWithProgress,
-    onChange?: () => void
+    onChange?: () => void,
+    onComplete?: () => void
   ) => {
     const { client } = state;
     const upload = new Upload({
@@ -413,7 +415,11 @@ export const S3Provider = (props: S3ProviderProps): JSX.Element => {
         onChange();
       }
     });
-    return upload.done();
+    await upload.done();
+    console.log(`Object ${fileObject.object.Key} uploaded`);
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   const getBucketVersioning = async (

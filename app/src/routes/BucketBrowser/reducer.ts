@@ -1,14 +1,13 @@
 import { NodePath } from "../../commons/utils";
 import { TableData } from "../../components/Table";
-import { BucketObject, BucketObjectWithProgress } from "../../models/bucket";
+import { BucketObject, FileObjectWithProgress } from "../../models/bucket";
 import { getTableData } from "./services";
 
 export interface State {
   tableData: TableData;
   selectedRows: number;
   currentPath: NodePath<BucketObject>;
-  uploadingObjects: BucketObjectWithProgress[];
-  downloadingObjects: BucketObjectWithProgress[];
+  objectsInProgress: Map<string, FileObjectWithProgress>;
   showModal: boolean;
   showAlert: boolean;
 }
@@ -17,8 +16,7 @@ export const initialState: State = {
   tableData: { rows: [], cols: [] },
   selectedRows: 0,
   currentPath: new NodePath<BucketObject>(""),
-  uploadingObjects: [],
-  downloadingObjects: [],
+  objectsInProgress: new Map(),
   showModal: false,
   showAlert: false,
 };
@@ -31,8 +29,9 @@ type Action =
   | { type: "SHOW_MODAL" }
   | { type: "HIDE_MODAL"; nextPath: NodePath<BucketObject> }
   | { type: "SET_CURRENT_PATH"; nodePath: NodePath<BucketObject> }
-  | { type: "UPLOADING"; uploadingObjects: BucketObjectWithProgress[] }
-  | { type: "DOWNLOADING"; downloadingObjects: BucketObjectWithProgress[] }
+  | { type: "UPLOAD_STARTED"; objects: FileObjectWithProgress[] }
+  | { type: "UPLOAD_PROGRESS_UPDATED"; object: FileObjectWithProgress }
+  | { type: "UPLOAD_COMPLETED"; object: FileObjectWithProgress }
   | { type: "SHOW_TOO_MANY_DOWNLOAD_ALERT" }
   | { type: "HIDE_TOO_MANY_DOWNLOAD_ALERT" };
 
@@ -110,19 +109,22 @@ export const reducer = (state: State, action: Action) => {
         tableData,
       };
     }
-    case "UPLOADING": {
-      const { uploadingObjects } = action;
-      return {
-        ...state,
-        uploadingObjects,
-      };
+    case "UPLOAD_STARTED": {
+      const { objects } = action;
+      objects.forEach(object => {
+        state.objectsInProgress.set(object.object.Key, object);
+      });
+      return { ...state };
     }
-    case "DOWNLOADING": {
-      const { downloadingObjects } = action;
-      return {
-        ...state,
-        downloadingObjects,
-      };
+    case "UPLOAD_PROGRESS_UPDATED": {
+      const { object } = action;
+      state.objectsInProgress.set(object.object.Key, object);
+      return { ...state };
+    }
+    case "UPLOAD_COMPLETED": {
+      const { object } = action;
+      state.objectsInProgress.delete(object.object.Key);
+      return { ...state };
     }
     case "SHOW_TOO_MANY_DOWNLOAD_ALERT":
       return {

@@ -13,10 +13,7 @@ import type {
   PutObjectLockConfigurationCommandOutput,
 } from "@aws-sdk/client-s3";
 import type { AwsCredentialIdentity } from "@aws-sdk/types";
-import type {
-  BucketObjectWithProgress,
-  FileObjectWithProgress,
-} from "../../models/bucket";
+import type { FileObjectWithProgress } from "../../models/bucket";
 import type { User } from "../OAuth";
 
 export interface S3ContextProps extends S3State {
@@ -32,13 +29,15 @@ export interface S3ContextProps extends S3State {
   deleteBucket: (bucket: string) => Promise<DeleteBucketCommandOutput>;
   downloadObject: (
     bucket: string,
-    object: BucketObjectWithProgress,
-    onChange?: () => void
+    object: FileObjectWithProgress,
+    onChange?: () => void,
+    onComplete?: () => void
   ) => Promise<Blob>;
   uploadObject: (
     bucket: string,
     object: FileObjectWithProgress,
-    onChange?: () => void
+    onChange?: () => void,
+    onComplete?: () => void
   ) => void;
   deleteObject: (bucket: string, key: string) => void;
   getBucketVersioning: (
