@@ -7,11 +7,7 @@ import {
   useRef,
   useReducer,
 } from "react";
-import {
-  BucketObject,
-  BucketObjectWithProgress,
-  FileObjectWithProgress,
-} from "../../models/bucket";
+import { BucketObject, FileObjectWithProgress } from "../../models/bucket";
 import { Table } from "../../components/Table";
 import { Button } from "../../components/Button";
 import { BucketInspector } from "../../components/BucketInspector";
@@ -37,8 +33,7 @@ import {
   NotificationType,
   useNotifications,
 } from "../../services/Notifications";
-import { ProgressBar } from "../../components/ProgressBar";
-import { DownloadStatusPopup } from "../../components/DownloadStatusPopup";
+import { ProgressPopup } from "../../components/ProgressPopup";
 import { SearchFiled } from "../../components/SearchField";
 import { ArrowUturnRightIcon } from "@heroicons/react/24/solid";
 import { Modal } from "../../components/Modal";
@@ -74,12 +69,8 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
   const navigate = useNavigate();
   const [state, dispatch] = useReducer(reducer, initialState);
   const bucketStore = useBucketStore();
-
-  const inputRef = useRef<HTMLInputElement>();
   const selectedObjects = useRef<Map<string, BucketObject>>(new Map());
   const tempPath = useRef<string | undefined>(undefined);
-  const toUpload = useRef<FileObjectWithProgress[]>([]);
-  const toDownload = useRef<BucketObjectWithProgress[]>([]);
 
   const {
     tableData,
@@ -87,8 +78,7 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     currentPath,
     showModal,
     showAlert,
-    downloadingObjects,
-    uploadingObjects,
+    objectsInProgress,
   } = state;
 
   const bucketObjects: BucketObject[] = useMemo(() => {
@@ -189,36 +179,6 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     bucketStore.updateStore();
   };
 
-  const uploadFiles = async () => {
-    try {
-      await Promise.all(
-        toUpload.current.map(o =>
-          uploadObject(bucketName, o, handleUploadsUpdates)
-        )
-      );
-      notify("File(s) uploaded", undefined, NotificationType.success);
-      if (inputRef.current) {
-        inputRef.current.files = null;
-        inputRef.current.value = "";
-      }
-      bucketStore.updateStore();
-    } catch (err) {
-      if (err instanceof Error) {
-        notify(
-          "Cannot upload file(s)",
-          camelToWords(err.name),
-          NotificationType.error
-        );
-      }
-      (err: Error) =>
-        notify(
-          "Cannot upload file",
-          camelToWords(err.name),
-          NotificationType.error
-        );
-    }
-  };
-
   const handleModalClose = (newPath: string) => {
     let nextPath = currentPath;
     if (newPath && newPath !== currentPath.basename) {
@@ -243,19 +203,12 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
       return;
     }
     try {
-      toDownload.current = Array.from(selectedObjects.current.values()).map(
-        el => new BucketObjectWithProgress(el)
-      );
-      const keys = toDownload.current.map(el => el.object.Key);
-      const urlPromises = toDownload.current.map(el => {
-        return getPresignedUrl(bucketName, el.object.Key);
-      });
-
-      const results = await Promise.all(urlPromises);
-      const urls = results.map((url, i) => {
+      const toDownload = Array.from(selectedObjects.current.values());
+      const keys = toDownload.map(object => object.Key);
+      const promises = toDownload.map(o => getPresignedUrl(bucketName, o.Key));
+      const urls = (await Promise.all(promises)).map((url, i) => {
         return { key: keys[i], url: url };
       });
-
       const link = document.createElement("a");
       link.onclick = () => {
         urls.map(el => window.open(el.url, "_blank"));
@@ -278,41 +231,54 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
     }
   };
 
-  const handleSelectFilesToUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  // uploads
+  const uploadFiles = async (files: FileObjectWithProgress[]) => {
+    try {
+      files.forEach(file => {
+        const onUpdate = () => handleUploadsUpdates(file);
+        const onComplete = () => handleUploadComplete(file);
+        uploadObject(bucketName, file, onUpdate, onComplete);
+      });
+      dispatch({ type: "UPLOAD_STARTED", objects: files });
+    } catch (e) {
+      const msg = e instanceof Error ? camelToWords(e.name) : "Unknown Error";
+      notify("Cannot upload file(s)", msg, NotificationType.error);
+    }
+  };
+
+  const handleSelectFilesToUpload = async (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
     if (!e.target.files) {
       return;
     }
-
-    inputRef.current = e.target;
     const { files } = e.target;
-    const n_files = files.length;
+    const filesToUpload = new Array(files.length);
+    const root = currentPath.path;
+    for (let i = 0; i < files.length; ++i) {
+      // avoid trailing slash if root is empty or "/"
+      const Key = root.length > 1 ? `${root}/${files[i].name}` : files[i].name;
+      filesToUpload[i] = new FileObjectWithProgress({ Key }, files[i]);
+    }
+    uploadFiles(filesToUpload);
+  };
 
-    toUpload.current = [];
-    for (let i = 0; i < n_files; ++i) {
-      const node = new NodePath<BucketObject>(files[i].name, {
-        Key: files[i].name,
-      });
-      currentPath.addChild(node);
-      toUpload.current.push(
-        new FileObjectWithProgress({ Key: node.path }, files[i])
+  const handleUploadsUpdates = (object: FileObjectWithProgress) => {
+    if (object.progress < 1.0) {
+      dispatch({ type: "UPLOAD_PROGRESS_UPDATED", object });
+    }
+  };
+
+  const handleUploadComplete = (object: FileObjectWithProgress) => {
+    dispatch({ type: "UPLOAD_COMPLETED", object });
+    bucketStore.updateStore();
+    if (state.objectsInProgress.size <= 1) {
+      notify(
+        "Upload Complete",
+        "All files have been successfully uploaded",
+        NotificationType.success
       );
     }
-    uploadFiles();
-  };
-
-  const handleUploadsUpdates = () => {
-    const t = [...toUpload.current];
-    dispatch({ type: "UPLOADING", uploadingObjects: t });
-  };
-
-  const handleCloseDownloadPopup = () => {
-    dispatch({ type: "DOWNLOADING", downloadingObjects: [] });
-    toDownload.current = []; // TODO: not sure about this
-  };
-
-  const handleCloseUploadPopup = () => {
-    dispatch({ type: "UPLOADING", uploadingObjects: [] });
-    toUpload.current = []; // TODO: not sure about this
   };
 
   const goBack = useCallback(() => {
@@ -443,37 +409,15 @@ export const BucketBrowser = ({ bucketName }: PropsType) => {
           </div>
         </div>
       </div>
-      {/* Downloads */}
-      <DownloadStatusPopup
-        show={downloadingObjects.length > 0}
-        onClose={handleCloseDownloadPopup}
-      >
-        {downloadingObjects.map(el => {
-          return (
-            <ProgressBar
-              key={el.object.Key!}
-              title={el.object.Key!}
-              value={el.progress}
-            />
-          );
-        })}
-      </DownloadStatusPopup>
       {/* Uploads */}
-      <DownloadStatusPopup
-        show={uploadingObjects.length > 0}
-        onClose={handleCloseUploadPopup}
-        upload={true}
-      >
-        {uploadingObjects.map(el => {
-          return (
-            <ProgressBar
-              key={el.object.Key!}
-              title={el.object.Key!}
-              value={el.progress}
-            />
-          );
+      <ProgressPopup
+        title="Uploading"
+        show={objectsInProgress.size > 0}
+        progressList={[...objectsInProgress.values()].map(o => {
+          const t = o.object.Key.split("/");
+          return { title: t[t.length - 1], value: o.progress };
         })}
-      </DownloadStatusPopup>
+      />
     </>
   );
 };

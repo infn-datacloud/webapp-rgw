@@ -18,24 +18,18 @@ export interface BucketObject {
   Size?: number;
 }
 
-export class BucketObjectWithProgress {
+export class FileObjectWithProgress {
   object: BucketObject;
   progress: number;
+  file: File;
 
-  constructor(bucket: BucketObject) {
-    this.object = bucket;
+  constructor(object: BucketObject, file: File) {
+    this.object = object;
+    this.file = file;
     this.progress = 0;
   }
 
   setProgress(value: number) {
     this.progress = value;
-  }
-}
-
-export class FileObjectWithProgress extends BucketObjectWithProgress {
-  file: File;
-  constructor(bucket: BucketObject, file: File) {
-    super(bucket);
-    this.file = file;
   }
 }

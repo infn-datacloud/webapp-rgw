@@ -7,7 +7,7 @@ interface InputFileProps {
 }
 
 export const InputFile = ({ onChange, icon }: InputFileProps) => {
-  const openFileSelector = () => {
+  const openFileSelector = async () => {
     const fileSelector = document.getElementById("fileSelector");
     if (fileSelector) {
       fileSelector.click();
