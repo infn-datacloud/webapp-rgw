@@ -5,7 +5,7 @@ import { Button } from "@/components/Button";
 import { TextField } from "@/components/TextField";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import logo from "./logo.png";
+import logo from "@/imgs/infn.png";
 
 // import { useS3 } from "../../services/S3";
 import { addKeyHandler } from "@/commons/utils";
