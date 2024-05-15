@@ -1,5 +1,5 @@
 type Props = {
-  children: string;
+  children: React.ReactNode;
 };
 
 export const Title = ({ children }: Props) => {

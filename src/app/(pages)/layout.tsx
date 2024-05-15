@@ -4,15 +4,13 @@ import "@/app/globals.css";
 import "@/app/index.css";
 
 export const metadata: Metadata = {
-  title: "INDIGO IAM",
-  description: "INDIGO Identity Access Management",
+  title: "INFN Cloud S3 Storage",
+  description: "INFN Cloud S3 Storage",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body>
@@ -23,7 +21,9 @@ export default function RootLayout({
         >
           <Sidebar />
         </aside>
-        <div className="p-4 sm:ml-64">{children}</div>
+        <div className="p-4 sm:ml-64">
+          {children}
+        </div>
       </body>
     </html>
   );
