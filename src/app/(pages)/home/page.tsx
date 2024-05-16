@@ -23,8 +23,9 @@ export default async function Home() {
   const { credentials } = session;
   if (credentials) {
     const s3 = new S3Service(credentials);
-    const response = await s3.getBucketsInfos();
-    bucketsInfos = response.bucketsInfos;
+    bucketsInfos = await s3.getBucketsInfos();
+  } else {
+    throw new Error("Cannot find credentials");
   }
 
   const tableData: TableData = (function () {
