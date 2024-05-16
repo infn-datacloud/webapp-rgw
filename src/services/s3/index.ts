@@ -2,7 +2,22 @@ import {
   AssumeRoleWithWebIdentityCommand,
   STSClient,
 } from "@aws-sdk/client-sts";
-import { AWSConfig } from "./types";
+import { AWSConfig, CreateBucketArgs } from "./types";
+import {
+  Bucket,
+  CreateBucketCommand,
+  ListBucketsCommand,
+  ListObjectsV2Command,
+  ListObjectsV2CommandOutput,
+  PutBucketVersioningCommand,
+  S3Client,
+  S3ClientConfig,
+  VersioningConfiguration,
+  _Object,
+} from "@aws-sdk/client-s3";
+import { camelToWords } from "@/commons/utils";
+import { BucketInfo } from "@/models/bucket";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 const awsConfig: AWSConfig = {
   endpoint: process.env.S3_ENDPOINT!,
@@ -11,14 +26,143 @@ const awsConfig: AWSConfig = {
   roleSessionDurationSeconds: parseInt(process.env.S3_ROLE_DURATION_SECONDS!),
 };
 
-export async function loginWithSTS(access_token: string) {
-  const sts = new STSClient({ ...awsConfig });
-  const command = new AssumeRoleWithWebIdentityCommand({
-    DurationSeconds: awsConfig.roleSessionDurationSeconds,
-    RoleArn: awsConfig.roleArn,
-    RoleSessionName: crypto.randomUUID(),
-    WebIdentityToken: access_token,
-  });
-  const { Credentials } = await sts.send(command);
-  return Credentials;
+export class S3Service {
+  client: S3Client;
+
+  constructor(credentials: AwsCredentialIdentity) {
+    const { endpoint, region } = awsConfig;
+    const clientConfig: S3ClientConfig = {
+      endpoint,
+      credentials,
+      region,
+      forcePathStyle: true,
+    };
+    this.client = new S3Client(clientConfig);
+  }
+
+  static async loginWithSTS(
+    access_token: string
+  ): Promise<AwsCredentialIdentity> {
+    const sts = new STSClient({ ...awsConfig });
+    const command = new AssumeRoleWithWebIdentityCommand({
+      DurationSeconds: awsConfig.roleSessionDurationSeconds,
+      RoleArn: awsConfig.roleArn,
+      RoleSessionName: crypto.randomUUID(),
+      WebIdentityToken: access_token,
+    });
+    try {
+      const response = await sts.send(command);
+      const credentials = response.Credentials!;
+      return {
+        accessKeyId: credentials.AccessKeyId!,
+        secretAccessKey: credentials.SecretAccessKey!,
+        sessionToken: credentials.SessionToken!,
+      };
+    } catch (err) {
+      throw Error("Cannot obtain credentials from STS");
+    }
+  }
+
+  async fetchBucketList() {
+    let buckets: Bucket[] = []; // TODO: get external buckets
+    const listBucketCmd = new ListBucketsCommand({});
+    const response = await this.client.send(listBucketCmd);
+    const { Buckets } = response;
+    if (Buckets) {
+      buckets = buckets.concat(Buckets);
+    } else {
+      console.warn("Warning: Expected Bucket[], got undefined");
+    }
+    return buckets;
+  }
+
+  async listObjects(bucket: Bucket): Promise<_Object[]> {
+    let content: _Object[] = [];
+    let completed = false;
+    let continuationToken: string | undefined = undefined;
+    while (!completed) {
+      const cmd = new ListObjectsV2Command({
+        Bucket: bucket.Name,
+        ContinuationToken: continuationToken,
+      });
+      const response: ListObjectsV2CommandOutput = await this.client.send(cmd);
+      const { Contents, IsTruncated, NextContinuationToken } = response;
+      if (Contents) {
+        content = content.concat(Contents);
+        if (IsTruncated) {
+          continuationToken = NextContinuationToken;
+        } else {
+          completed = true;
+        }
+      } else {
+        return [];
+      }
+    }
+    return content;
+  }
+
+  /** Compute Bucket Summary Info, counting all objects and summing their size */
+  static computeBucketSummary(bucket: Bucket, objects: _Object[]) {
+    const info: BucketInfo = {
+      name: bucket.Name ?? "N/A",
+      creation_date: bucket.CreationDate?.toString() ?? "N/A",
+      rw_access: { read: true, write: true },
+      objects: 0,
+      size: 0,
+    };
+    if (objects) {
+      objects.forEach(o => {
+        ++info.objects;
+        info.size += o.Size ?? 0.0;
+      });
+    }
+    return info;
+  }
+
+  async getBucketsInfos() {
+    const buckets = await this.fetchBucketList();
+    const objects = new Map<string, _Object[]>();
+    buckets.push({ Name: "scratch" });
+    const listObjectsPromises = buckets.map(bucket => this.listObjects(bucket));
+    const bucketsInfosPromises = listObjectsPromises.map(
+      async (promise, index) => {
+        const bucket = buckets[index];
+        const name = bucket.Name!;
+        const objectList = await Promise.resolve(promise);
+        objects.set(name, objectList);
+        return S3Service.computeBucketSummary(bucket, objectList);
+      }
+    );
+    const promisesResults = await Promise.allSettled(bucketsInfosPromises);
+    const bucketsInfos = (
+      promisesResults.filter(
+        r => r.status === "fulfilled"
+      ) as PromiseFulfilledResult<BucketInfo>[]
+    ).map(r => r.value);
+    return { objects, bucketsInfos };
+  }
+
+  async setBucketVersioning(bucket: string, enabled: boolean) {
+    const versioningConfiguration: VersioningConfiguration = {
+      Status: enabled ? "Enabled" : "Suspended",
+    };
+    const putVersioningCommand = new PutBucketVersioningCommand({
+      Bucket: bucket,
+      VersioningConfiguration: versioningConfiguration,
+    });
+    return await this.client.send(putVersioningCommand);
+  }
+
+  createBucket = async (args: CreateBucketArgs) => {
+    const { bucketName, objectLockEnabled, versioningEnabled } = args;
+    const createBucketCommand = new CreateBucketCommand({
+      Bucket: bucketName,
+      ObjectLockEnabledForBucket: objectLockEnabled,
+    });
+    const result = await this.client.send(createBucketCommand);
+    if (versioningEnabled) {
+      this.setBucketVersioning(bucketName, versioningEnabled);
+    }
+    return result;
+  };
 }

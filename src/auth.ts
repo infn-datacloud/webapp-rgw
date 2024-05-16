@@ -3,19 +3,19 @@ import type { DefaultSession, NextAuthConfig } from "next-auth";
 import type { DefaultJWT } from "next-auth/jwt";
 import type { Profile, User, Awaitable, TokenSet } from "@auth/core/types";
 import type { OIDCConfig } from "next-auth/providers";
-import type { Credentials } from "@aws-sdk/client-sts";
-import { loginWithSTS } from "./services/s3";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
+import { S3Service } from "./services/s3";
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
-    credentials?: Credentials;
+    credentials?: AwsCredentialIdentity;
   }
 }
 
 declare module "next-auth" {
   interface Session {
     access_token?: string & DefaultSession["user"];
-    credentials?: Credentials;
+    credentials?: AwsCredentialIdentity;
     error?: string;
   }
 }
@@ -57,7 +57,7 @@ export const authConfig: NextAuthConfig = {
       }
       const { access_token } = account;
       if (access_token) {
-        token.credentials = await loginWithSTS(access_token);
+        token.credentials = await S3Service.loginWithSTS(access_token);
         console.log(token.credentials);
       }
 
