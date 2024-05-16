@@ -76,13 +76,13 @@ export class S3Service {
     return buckets;
   }
 
-  async listObjects(bucket: Bucket): Promise<_Object[]> {
+  async listObjects(bucket: string): Promise<_Object[]> {
     let content: _Object[] = [];
     let completed = false;
     let continuationToken: string | undefined = undefined;
     while (!completed) {
       const cmd = new ListObjectsV2Command({
-        Bucket: bucket.Name,
+        Bucket: bucket,
         ContinuationToken: continuationToken,
       });
       const response: ListObjectsV2CommandOutput = await this.client.send(cmd);
@@ -121,25 +121,20 @@ export class S3Service {
 
   async getBucketsInfos() {
     const buckets = await this.fetchBucketList();
-    const objects = new Map<string, _Object[]>();
     buckets.push({ Name: "scratch" });
-    const listObjectsPromises = buckets.map(bucket => this.listObjects(bucket));
-    const bucketsInfosPromises = listObjectsPromises.map(
-      async (promise, index) => {
-        const bucket = buckets[index];
-        const name = bucket.Name!;
-        const objectList = await Promise.resolve(promise);
-        objects.set(name, objectList);
-        return S3Service.computeBucketSummary(bucket, objectList);
-      }
-    );
-    const promisesResults = await Promise.allSettled(bucketsInfosPromises);
+    const validBuckets = buckets.filter(bucket => !!bucket.Name);
+    const promises = validBuckets.map(async bucket => {
+      const { Name } = bucket;
+      const objects = await this.listObjects(Name!);
+      return S3Service.computeBucketSummary(bucket, objects);
+    });
+    const results = await Promise.allSettled(promises);
     const bucketsInfos = (
-      promisesResults.filter(
+      results.filter(
         r => r.status === "fulfilled"
       ) as PromiseFulfilledResult<BucketInfo>[]
     ).map(r => r.value);
-    return { objects, bucketsInfos };
+    return bucketsInfos;
   }
 
   async setBucketVersioning(bucket: string, enabled: boolean) {
@@ -153,7 +148,7 @@ export class S3Service {
     return await this.client.send(putVersioningCommand);
   }
 
-  createBucket = async (args: CreateBucketArgs) => {
+  async createBucket(args: CreateBucketArgs) {
     const { bucketName, objectLockEnabled, versioningEnabled } = args;
     const createBucketCommand = new CreateBucketCommand({
       Bucket: bucketName,
@@ -164,5 +159,5 @@ export class S3Service {
       this.setBucketVersioning(bucketName, versioningEnabled);
     }
     return result;
-  };
+  }
 }
