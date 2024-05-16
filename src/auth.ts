@@ -58,7 +58,6 @@ export const authConfig: NextAuthConfig = {
       const { access_token } = account;
       if (access_token) {
         token.credentials = await S3Service.loginWithSTS(access_token);
-        console.log(token.credentials);
       }
 
       return token;
