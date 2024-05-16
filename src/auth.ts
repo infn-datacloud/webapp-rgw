@@ -3,16 +3,19 @@ import type { DefaultSession, NextAuthConfig } from "next-auth";
 import type { DefaultJWT } from "next-auth/jwt";
 import type { Profile, User, Awaitable, TokenSet } from "@auth/core/types";
 import type { OIDCConfig } from "next-auth/providers";
+import type { Credentials } from "@aws-sdk/client-sts";
+import { loginWithSTS } from "./services/s3";
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
-    access_token?: string;
+    credentials?: Credentials;
   }
 }
 
 declare module "next-auth" {
   interface Session {
     access_token?: string & DefaultSession["user"];
+    credentials?: Credentials;
     error?: string;
   }
 }
@@ -27,6 +30,7 @@ const IamProvider: OIDCConfig<Profile> = {
   authorization: {
     params: {
       scope: "openid email profile",
+      audience: process.env.IAM_AUDIENCE,
     },
   },
   checks: ["pkce", "state"],
@@ -47,12 +51,28 @@ export const authConfig: NextAuthConfig = {
     signIn: "/login",
   },
   callbacks: {
+    async jwt({ token, account }) {
+      if (!account) {
+        return token;
+      }
+      const { access_token } = account;
+      if (access_token) {
+        token.credentials = await loginWithSTS(access_token);
+        console.log(token.credentials);
+      }
+
+      return token;
+    },
     authorized({ auth }) {
       const isLoggedIn = !!auth?.user;
       return isLoggedIn;
     },
+
     async session({ session, token }) {
-      session.access_token = token.access_token;
+      const { credentials } = token;
+      if (credentials) {
+        session.credentials = token.credentials;
+      }
       return session;
     },
   },
