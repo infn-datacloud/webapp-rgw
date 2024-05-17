@@ -6,6 +6,7 @@ import { AWSConfig, CreateBucketArgs } from "./types";
 import {
   Bucket,
   CreateBucketCommand,
+  DeleteObjectCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
   ListObjectsV2CommandOutput,
@@ -17,6 +18,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { BucketInfo, FileObjectWithProgress } from "@/models/bucket";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
+import { Upload } from "@aws-sdk/lib-storage";
 
 const awsConfig: AWSConfig = {
   endpoint: process.env.S3_ENDPOINT!,
@@ -151,5 +153,41 @@ export class S3Service {
       this.setBucketVersioning(bucketName, versioningEnabled);
     }
     return result;
+  }
+
+  uploadObject(
+    bucket: string,
+    fileObject: FileObjectWithProgress,
+    onChange?: () => void,
+    onComplete?: () => void
+  ) {
+    const upload = new Upload({
+      client: this.client,
+      params: {
+        Bucket: bucket,
+        Key: fileObject.object.Key,
+        Body: fileObject.file,
+      },
+    });
+    upload.on("httpUploadProgress", progress => {
+      if (onChange) {
+        let { loaded, total } = progress;
+        loaded = loaded ?? 0;
+        total = total ?? 1;
+        fileObject.setProgress(loaded / total);
+        onChange();
+      }
+    });
+    upload.done().then(() => {
+      console.log(`Object ${fileObject.object.Key} uploaded`);
+      if (onComplete) {
+        onComplete();
+      }
+    });
+  }
+
+  deleteObject(Bucket: string, Key: string) {
+    const cmd = new DeleteObjectCommand({ Bucket, Key });
+    return this.client.send(cmd);
   }
 }
