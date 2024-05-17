@@ -1,3 +1,4 @@
+import { _Object } from "@aws-sdk/client-s3";
 export interface RWAccess {
   read: boolean;
   write: boolean;
@@ -10,20 +11,12 @@ export interface BucketInfo {
   objects: number;
   size: number;
 }
-
-export interface BucketObject {
-  Key: string;
-  LastModified?: Date;
-  ETag?: string;
-  Size?: number;
-}
-
 export class FileObjectWithProgress {
-  object: BucketObject;
+  object: _Object;
   progress: number;
   file: File;
 
-  constructor(object: BucketObject, file: File) {
+  constructor(object: _Object, file: File) {
     this.object = object;
     this.file = file;
     this.progress = 0;
