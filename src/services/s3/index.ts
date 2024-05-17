@@ -15,8 +15,7 @@ import {
   VersioningConfiguration,
   _Object,
 } from "@aws-sdk/client-s3";
-import { camelToWords } from "@/commons/utils";
-import { BucketInfo } from "@/models/bucket";
+import { BucketInfo, FileObjectWithProgress } from "@/models/bucket";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 const awsConfig: AWSConfig = {
@@ -28,25 +27,18 @@ const awsConfig: AWSConfig = {
 
 export class S3Service {
   client: S3Client;
-
-  constructor(credentials: AwsCredentialIdentity) {
-    const { endpoint, region } = awsConfig;
-    const clientConfig: S3ClientConfig = {
-      endpoint,
-      credentials,
-      region,
-      forcePathStyle: true,
-    };
-    this.client = new S3Client(clientConfig);
+  constructor(config: S3ClientConfig) {
+    this.client = new S3Client(config);
   }
 
   static async loginWithSTS(
     access_token: string
   ): Promise<AwsCredentialIdentity> {
-    const sts = new STSClient({ ...awsConfig });
+    const config = awsConfig;
+    const sts = new STSClient({ ...config });
     const command = new AssumeRoleWithWebIdentityCommand({
-      DurationSeconds: awsConfig.roleSessionDurationSeconds,
-      RoleArn: awsConfig.roleArn,
+      DurationSeconds: config.roleSessionDurationSeconds,
+      RoleArn: config.roleArn,
       RoleSessionName: crypto.randomUUID(),
       WebIdentityToken: access_token,
     });
