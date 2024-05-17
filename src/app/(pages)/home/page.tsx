@@ -1,12 +1,4 @@
 import { Page } from "@/components/Page";
-import {
-  Table,
-  Column,
-  Row,
-  TableData,
-  ColumnId,
-  Cell,
-} from "@/components/Table";
 import { BucketInfo } from "@/models/bucket";
 import { auth } from "@/auth";
 import { S3Service } from "@/services/s3";
@@ -31,24 +23,7 @@ export default async function Home() {
     throw new Error("Cannot find credentials");
   }
 
-  const tableData: TableData = (function () {
-    const cols: Column[] = [
-      { id: "bucket", name: "Bucket" },
-      { id: "creation_date", name: "Creation Date" },
-    ];
-    const rows = bucketsInfos.map((bucketInfo: BucketInfo): Row => {
-      const cols = new Map<ColumnId, Cell>();
-      cols.set("bucket", { value: bucketInfo.name ?? "N/A" });
-      cols.set("creation_date", {
-        value: bucketInfo.creation_date,
-      });
-      return {
-        selected: false,
-        columns: cols,
-      };
-    });
-    return { rows, cols };
-  })();
+  const tableData = makeTableData(bucketsInfos);
 
   return (
     <Page title="Home">
