@@ -142,6 +142,10 @@ export class NodePath<T> {
     return p;
   }
 
+  get isDir(): boolean {
+    return this.children.size > 0;
+  }
+
   print(level = 0) {
     console.log(" ".repeat(level * 2) + this.basename);
     for (const child of this.children.values()) {
