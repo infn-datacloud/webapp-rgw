@@ -62,19 +62,6 @@ export default function BucketBrowser(props: BucketBrowserProps) {
       return;
     }
 
-    // a draft to enable recursive folder selection
-    // if (selectedNode.isDir) {
-    //   selectedNode.children.forEach(child => {
-    //     const key = `${child.isDir ? "path:" : ""}${child.path}`;
-    //     selected ? selectedObjects.add(key) : selectedObjects.delete(key);
-    //   });
-    //   const key = "path:" + selectedNode.path;
-    //   selected ? selectedObjects.add(key) : selectedObjects.delete(key);
-    // } else {
-    //   const key = selectedNode.path;
-    //   selected ? selectedObjectsKeys.add(key) : selectedObjectsKeys.delete(key);
-    // }
-
     if (selectedNode.isDir) {
       return;
     }
