@@ -7,7 +7,6 @@ import {
   TableData,
 } from "@/components/Table/types";
 import { _Object } from "@aws-sdk/client-s3";
-import { FolderIcon } from "@heroicons/react/24/outline";
 import FileIcon from "./FileIcon";
 import IsomorphicDate from "@/components/IsomorphicDate";
 

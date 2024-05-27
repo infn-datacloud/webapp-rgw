@@ -1,5 +1,6 @@
 import {
   DocumentIcon,
+  FolderIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
 
@@ -10,6 +11,8 @@ function Icon(props: { extension: string }) {
     case "jpeg":
     case "jpg":
       return <PhotoIcon />;
+    case "folder":
+      return <FolderIcon />;
     default:
       return <DocumentIcon />;
   }
