@@ -107,6 +107,7 @@ export default function BucketBrowser(props: BucketBrowserProps) {
     <div className="container px-32">
       <BucketInspector
         isOpen={isInspectorOpen}
+        bucket={bucket}
         objects={selectedObjects}
         onClose={handleCloseBucketInspector}
         onDownload={handleDownloadFiles}

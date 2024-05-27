@@ -9,6 +9,7 @@ import {
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import DeleteButton from "./Toolbar/DeleteButton";
 
 type TitleProps = {
   className?: string;
@@ -63,6 +64,7 @@ const ObjectDetail = (object: _Object) => {
 };
 
 interface BucketInspectorProps extends InspectorProps {
+  bucket: string;
   objects: _Object[];
   onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
   onDownload?: () => void;
@@ -70,8 +72,8 @@ interface BucketInspectorProps extends InspectorProps {
 }
 
 export const BucketInspector = (props: BucketInspectorProps) => {
-  const { objects, onClose, onDelete, onDownload } = props;
-
+  const { bucket, isOpen, objects, onClose, onDelete, onDownload } = props;
+  const keysToDelete = objects.map(o => o.Key!);
   let object: _Object;
   let title: string;
 
@@ -97,7 +99,7 @@ export const BucketInspector = (props: BucketInspectorProps) => {
 
   return (
     <div className="top-0 fixed z-10 right-0 w-64 bg-slate-300">
-      <Inspector isOpen={props.isOpen}>
+      <Inspector isOpen={isOpen}>
         <div className="flex p-4 flex-row-reverse">
           <button onClick={onClose}>
             <div
@@ -117,12 +119,7 @@ export const BucketInspector = (props: BucketInspectorProps) => {
             icon={<ArrowDownCircleIcon />}
             onClick={onDownload}
           />
-          <Button
-            className="w-full mt-4"
-            title="Delete"
-            icon={<TrashIcon />}
-            onClick={onDelete}
-          />
+          <DeleteButton bucket={bucket} objectsToDelete={keysToDelete} />
           <hr className="h-px w-full my-8 bg-gray-200 border-0"></hr>
           <ObjectDetail {...object} />
         </div>
