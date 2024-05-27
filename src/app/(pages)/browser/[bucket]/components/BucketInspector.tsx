@@ -3,13 +3,12 @@ import { Button } from "@/components/Button";
 import { Inspector, InspectorProps } from "@/components/Inspector";
 import IsomorphicDate from "@/components/IsomorphicDate";
 import { _Object } from "@aws-sdk/client-s3";
+import DeleteButton from "./Toolbar/DeleteButton";
 import {
   ArrowDownCircleIcon,
   InformationCircleIcon,
-  TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import DeleteButton from "./Toolbar/DeleteButton";
 
 type TitleProps = {
   className?: string;
