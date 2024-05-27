@@ -1,14 +1,10 @@
-import { getHumanSize } from "@/commons/utils";
-import { Button } from "@/components/Button";
 import { Inspector, InspectorProps } from "@/components/Inspector";
 import IsomorphicDate from "@/components/IsomorphicDate";
 import { _Object } from "@aws-sdk/client-s3";
+import { getHumanSize } from "@/commons/utils";
 import DeleteButton from "./Toolbar/DeleteButton";
-import {
-  ArrowDownCircleIcon,
-  InformationCircleIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import DownloadButton from "./DownloadButton";
+import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 type TitleProps = {
   className?: string;
@@ -66,13 +62,11 @@ interface BucketInspectorProps extends InspectorProps {
   bucket: string;
   objects: _Object[];
   onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
-  onDownload?: () => void;
-  onDelete?: () => void;
 }
 
 export const BucketInspector = (props: BucketInspectorProps) => {
-  const { bucket, isOpen, objects, onClose, onDelete, onDownload } = props;
-  const keysToDelete = objects.map(o => o.Key!);
+  const { bucket, isOpen, objects, onClose } = props;
+  const keys = objects.map(o => o.Key!);
   let object: _Object;
   let title: string;
 
@@ -112,13 +106,8 @@ export const BucketInspector = (props: BucketInspectorProps) => {
         <div className="px-4">
           <Title className="w-5/6" title={title} />
           <hr className="mt-4 mb-8"></hr>
-          <Button
-            className="w-full"
-            title="Download"
-            icon={<ArrowDownCircleIcon />}
-            onClick={onDownload}
-          />
-          <DeleteButton bucket={bucket} objectsToDelete={keysToDelete} />
+          <DownloadButton bucket={bucket} objectsToDownloads={keys} />
+          <DeleteButton bucket={bucket} objectsToDelete={keys} />
           <hr className="h-px w-full my-8 bg-gray-200 border-0"></hr>
           <ObjectDetail {...object} />
         </div>

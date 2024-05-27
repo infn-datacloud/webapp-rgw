@@ -7,6 +7,7 @@ import {
   Bucket,
   CreateBucketCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
   ListObjectsV2CommandOutput,
@@ -19,6 +20,7 @@ import {
 import { BucketInfo, FileObjectWithProgress } from "@/models/bucket";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { Upload } from "@aws-sdk/lib-storage";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const awsConfig: AWSConfig = {
   endpoint: process.env.S3_ENDPOINT!,
@@ -189,5 +191,15 @@ export class S3Service {
   deleteObject(Bucket: string, Key: string) {
     const cmd = new DeleteObjectCommand({ Bucket, Key });
     return this.client.send(cmd);
+  }
+
+  async getPresignedUrl(bucket: string, key: string) {
+    const cmdGetObj = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${key}"`,
+      ResponseContentType: "application/octet-stream",
+    });
+    return await getSignedUrl(this.client, cmdGetObj, { expiresIn: 60 });
   }
 }
