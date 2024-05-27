@@ -2,7 +2,7 @@ import { Button } from "@/components/Button";
 import { S3Service } from "@/services/s3";
 import { s3ClientConfig } from "@/services/s3/actions";
 import { _Object } from "@aws-sdk/client-s3";
-import { TrashIcon } from "@heroicons/react/16/solid";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";

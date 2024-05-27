@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { Page } from "@/components/Page";
 import { S3Service } from "@/services/s3";
 import { _Object } from "@aws-sdk/client-s3";
-import BucketBrowser from "./BucketBrowser";
+import BucketBrowser from "./components/BucketBrowser";
 import { s3ClientConfig } from "@/services/s3/actions";
 
 export default async function Browser(props: { params: { bucket: string } }) {

@@ -7,7 +7,7 @@ import {
   TableData,
 } from "@/components/Table/types";
 import { _Object } from "@aws-sdk/client-s3";
-import FileIcon from "./FileIcon";
+import FileIcon from "./components/FileIcon";
 import IsomorphicDate from "@/components/IsomorphicDate";
 
 export function initNodePathTree(bucketObjects: _Object[]): NodePath<_Object> {

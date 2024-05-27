@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BucketInspector } from "./BucketInspector";
 import ObjectsTable from "./ObjectsTable";
-import { initNodePathTree, makeTableData } from "./utils";
+import { initNodePathTree, makeTableData } from "../utils";
 import { _Object } from "@aws-sdk/client-s3";
 import Toolbar from "./Toolbar";
 import { NodePath } from "@/commons/utils";
