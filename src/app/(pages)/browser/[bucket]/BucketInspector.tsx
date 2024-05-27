@@ -96,36 +96,38 @@ export const BucketInspector = (props: BucketInspectorProps) => {
   }
 
   return (
-    <Inspector isOpen={props.isOpen}>
-      <div className="flex p-4 flex-row-reverse">
-        <button onClick={onClose}>
-          <div
-            className="w-5 p-[5px] bg-neutral-300 text-neutral-500
+    <div className="top-0 fixed z-10 right-0 w-64 bg-slate-300">
+      <Inspector isOpen={props.isOpen}>
+        <div className="flex p-4 flex-row-reverse">
+          <button onClick={onClose}>
+            <div
+              className="w-5 p-[5px] bg-neutral-300 text-neutral-500
              hover:bg-neutral-400 rounded-full"
-          >
-            <XMarkIcon />
-          </div>
-        </button>
-      </div>
-      <div className="px-4">
-        <Title className="w-5/6" title={title} />
-        <hr className="mt-4 mb-8"></hr>
-        <Button
-          className="w-full"
-          title="Download"
-          icon={<ArrowDownCircleIcon />}
-          onClick={onDownload}
-        />
-        <Button
-          className="w-full mt-4"
-          title="Delete"
-          icon={<TrashIcon />}
-          onClick={onDelete}
-        />
-        <hr className="h-px w-full my-8 bg-gray-200 border-0"></hr>
-        <ObjectDetail {...object} />
-      </div>
-      {props.children}
-    </Inspector>
+            >
+              <XMarkIcon />
+            </div>
+          </button>
+        </div>
+        <div className="px-4">
+          <Title className="w-5/6" title={title} />
+          <hr className="mt-4 mb-8"></hr>
+          <Button
+            className="w-full"
+            title="Download"
+            icon={<ArrowDownCircleIcon />}
+            onClick={onDownload}
+          />
+          <Button
+            className="w-full mt-4"
+            title="Delete"
+            icon={<TrashIcon />}
+            onClick={onDelete}
+          />
+          <hr className="h-px w-full my-8 bg-gray-200 border-0"></hr>
+          <ObjectDetail {...object} />
+        </div>
+        {props.children}
+      </Inspector>
+    </div>
   );
 };
