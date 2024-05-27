@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { TextField } from "./TextField";
+import { Input } from "./Input";
 import { useRef, useState } from "react";
 
 interface SearchFieldProps {
@@ -31,7 +31,7 @@ export const SearchFiled = (props: SearchFieldProps) => {
     <div className={className}>
       <div className="flex space-x-4">
         <MagnifyingGlassIcon className="w-5" />
-        <TextField
+        <Input
           value={searchQuery}
           type="search"
           onChange={el => handleQueryChanged(el.target.value)}

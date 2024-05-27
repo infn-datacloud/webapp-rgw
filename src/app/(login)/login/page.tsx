@@ -2,12 +2,11 @@
 import Image from "next/image";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Button } from "@/components/Button";
-import { TextField } from "@/components/TextField";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Input from "@/components/Input";
 import logo from "@/imgs/infn.png";
 
-// import { useS3 } from "../../services/S3";
 import { addKeyHandler } from "@/commons/utils";
 
 export default function Login() {
@@ -84,12 +83,12 @@ export default function Login() {
 
       <h1 className="mx-auto text-center text-4xl font-extrabold">Welcome</h1>
       <div className="w-1/3 mx-auto mt-8 flex flex-col space-y-4 ">
-        <TextField
+        <Input
           value={awsAccessKeyId}
           placeholder="Access Key Id"
           onChange={handleAwsAccessKeyIdChange}
         />
-        <TextField
+        <Input
           value={awsSecretAccessKey}
           placeholder="Access Secret Key"
           type="password"
