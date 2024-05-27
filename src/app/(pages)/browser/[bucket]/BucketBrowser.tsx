@@ -1,11 +1,12 @@
 "use client";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BucketInspector } from "./BucketInspector";
 import ObjectsTable from "./ObjectsTable";
-import { TableData } from "@/components/Table";
 import { initNodePathTree, makeTableData } from "./utils";
 import { _Object } from "@aws-sdk/client-s3";
 import Toolbar from "./Toolbar";
+import { NodePath } from "@/commons/utils";
+import PathViewer from "./PathViewer";
 
 export type BucketBrowserProps = {
   bucket: string;
@@ -14,23 +15,109 @@ export type BucketBrowserProps = {
 
 export default function BucketBrowser(props: BucketBrowserProps) {
   const { bucket, bucketObjects } = props;
-  const selectedObjectsMap = useRef<Map<string, _Object>>(new Map());
-  const selectedObjects = Array.from(selectedObjectsMap.current.values());
-  const isInspectorOpen = selectedObjects.length > 0;
-  const root = initNodePathTree(bucketObjects);
-  let tableData: TableData = useMemo(() => {
-    return makeTableData(root);
+  const root = useMemo(() => initNodePathTree(bucketObjects), [bucketObjects]);
+  const lastNodePath = useRef<NodePath<_Object>>();
+  const [currentPath, setCurrentPath] = useState(root);
+  const [selectedObjectsKeys, setSelectedObjectsKeys] = useState(
+    new Set<string>()
+  );
+
+  const selectedObjects = useMemo(
+    () => bucketObjects.filter(o => selectedObjectsKeys.has(o.Key!)),
+    [selectedObjectsKeys, bucketObjects]
+  );
+
+  const tableData = useMemo(
+    () => makeTableData(currentPath, selectedObjectsKeys),
+    [currentPath, selectedObjectsKeys]
+  );
+
+  const isInspectorOpen = useMemo(
+    () => selectedObjects.length > 0,
+    [selectedObjects]
+  );
+
+  lastNodePath.current = currentPath;
+
+  useEffect(() => {
+    if (lastNodePath.current) {
+      const newLast = root.get(lastNodePath.current.path);
+      newLast ? setCurrentPath(newLast) : console.warn("last node not found");
+    } else {
+      setCurrentPath(root);
+      setSelectedObjectsKeys(new Set<string>());
+    }
   }, [root]);
-  const currentPath = "";
 
   const handleCloseBucketInspector = () => {};
   const handleDownloadFiles = () => {};
   const handleDeleteSelectedObject = () => {};
-  const handleSelectedRow = (selected: boolean, index: number) => {};
-  const handleClickedRow = (index: number) => {};
+
+  const handleSelectedRow = (selected: boolean, index: number) => {
+    const row = tableData.rows[index];
+    const fileName = row.columns.get("name")!.value as string;
+    const selectedNode = currentPath.get(fileName);
+    if (!selectedNode) {
+      console.warn("Selected node not found");
+      return;
+    }
+
+    // a draft to enable recursive folder selection
+    // if (selectedNode.isDir) {
+    //   selectedNode.children.forEach(child => {
+    //     const key = `${child.isDir ? "path:" : ""}${child.path}`;
+    //     selected ? selectedObjects.add(key) : selectedObjects.delete(key);
+    //   });
+    //   const key = "path:" + selectedNode.path;
+    //   selected ? selectedObjects.add(key) : selectedObjects.delete(key);
+    // } else {
+    //   const key = selectedNode.path;
+    //   selected ? selectedObjectsKeys.add(key) : selectedObjectsKeys.delete(key);
+    // }
+
+    if (selectedNode.isDir) {
+      return;
+    }
+    const key = selectedNode.path;
+    selected ? selectedObjectsKeys.add(key) : selectedObjectsKeys.delete(key);
+    setSelectedObjectsKeys(new Set(selectedObjectsKeys));
+  };
+
+  const handleClickedRow = (index: number) => {
+    const row = tableData.rows[index];
+    const name = row.columns.get("name")!.value as string;
+    const newPath = currentPath.get(name);
+    if (!newPath) {
+      console.warn(`Path with name '${name}' not found`);
+      return;
+    }
+    if (newPath.isDir) {
+      setCurrentPath(newPath);
+    } else {
+      handleSelectedRow(!row.selected, index);
+    }
+  };
+
+  const handlePathChange = (newPath: string) => {
+    const newNode = new NodePath<_Object>(newPath);
+    root.addChild(newNode);
+    setCurrentPath(newNode);
+  };
+
+  const handleGoBack = () => {
+    const isEmpty = currentPath.children.size === 0;
+    const newPath = currentPath.parent;
+    if (newPath) {
+      if (isEmpty) {
+        newPath.removeChild(currentPath);
+      }
+      console.log(newPath);
+      setCurrentPath(newPath);
+    }
+  };
 
   return (
-    <>
+    <div className="container px-32">
       <BucketInspector
         isOpen={isInspectorOpen}
         objects={selectedObjects}
@@ -40,14 +127,20 @@ export default function BucketBrowser(props: BucketBrowserProps) {
       />
       <Toolbar
         bucket={bucket}
-        currentPath={currentPath}
-        selectedObjects={selectedObjects}
+        currentPath={currentPath.path}
+        objectsToDelete={Array.from(selectedObjectsKeys.keys())}
+        onPathChange={handlePathChange}
+      />
+      <PathViewer
+        bucket={bucket}
+        path={currentPath}
+        onClickBackButton={handleGoBack}
       />
       <ObjectsTable
         data={tableData}
         onSelect={handleSelectedRow}
         onClick={handleClickedRow}
       />
-    </>
+    </div>
   );
 }

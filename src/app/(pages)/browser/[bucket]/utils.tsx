@@ -26,14 +26,10 @@ export function initNodePathTree(bucketObjects: _Object[]): NodePath<_Object> {
   return root;
 }
 
-function computeRow(node: NodePath<_Object>): Row {
+function computeRow(node: NodePath<_Object>, selected: boolean = false): Row {
   const Icon = () => {
-    const isFolder = node.children.size > 0;
-    if (isFolder) {
-      return <FolderIcon />;
-    }
     const elements = node.basename.split(".");
-    const ext = elements[elements.length - 1];
+    const ext = node.isDir ? "folder" : elements[elements.length - 1];
     return <FileIcon extension={ext} />;
   };
   // const lastModified = moment(node.lastModified).calendar() ?? "N/A";
@@ -44,14 +40,16 @@ function computeRow(node: NodePath<_Object>): Row {
     ["last_modified", { value: <IsomorphicDate time={lastModified} /> }],
     ["bucket_size", { value: getHumanSize(node.size) }],
   ]);
-  const selected = false;
   return {
     selected,
     columns,
   };
 }
 
-export const makeTableData = (nodePath: NodePath<_Object>): TableData => {
+export const makeTableData = (
+  nodePath: NodePath<_Object>,
+  selectedObjects: Set<string>
+): TableData => {
   const cols: Column[] = [
     { id: "icon" },
     { id: "name", name: "Name" },
@@ -59,7 +57,11 @@ export const makeTableData = (nodePath: NodePath<_Object>): TableData => {
     { id: "bucket_size", name: "Size" },
   ];
   const children = Array.from(nodePath.children.values());
-  const rows: Row[] = children.map(child => computeRow(child));
+  const rows: Row[] = children.map(child => {
+    const key = child.path; // `${child.isDir ? "path:" : ""}${child.path}`;
+    const selected = selectedObjects.has(key);
+    return computeRow(child, selected);
+  });
 
   return {
     cols,
