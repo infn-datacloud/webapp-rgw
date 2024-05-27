@@ -9,9 +9,9 @@ import { useEffect, useRef } from "react";
 
 export default function DeleteButton(props: {
   bucket: string;
-  selectedObjects: _Object[];
+  objectsToDelete: string[];
 }) {
-  const { bucket, selectedObjects } = props;
+  const { bucket, objectsToDelete } = props;
   const router = useRouter();
   const { status, data } = useSession();
   const s3Ref = useRef<S3Service | null>(null);
@@ -32,7 +32,7 @@ export default function DeleteButton(props: {
     if (!s3) {
       throw new Error("Cannot initialize S3 service");
     }
-    const promises = selectedObjects.map(o => s3.deleteObject(bucket, o.Key!));
+    const promises = objectsToDelete.map(o => s3.deleteObject(bucket, o));
     Promise.all(promises).then(() => console.log("Object(s) deleted"));
     router.refresh();
   };
@@ -42,7 +42,7 @@ export default function DeleteButton(props: {
       title="Delete file(s)"
       icon={<TrashIcon />}
       onClick={deleteObjects}
-      disabled={selectedObjects.length === 0}
+      disabled={objectsToDelete.length === 0}
     />
   );
 }

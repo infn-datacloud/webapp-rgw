@@ -8,9 +8,10 @@ import { _Object } from "@aws-sdk/client-s3";
 export default function Toolbar(props: {
   bucket: string;
   currentPath: string;
-  selectedObjects: _Object[];
+  objectsToDelete: string[];
+  onPathChange?: (newPath: string) => void;
 }) {
-  const { bucket, currentPath, selectedObjects } = props;
+  const { bucket, currentPath, objectsToDelete, onPathChange } = props;
   return (
     <div className="flex mt-8 place-content-between">
       <div className="flex space-x-4">
@@ -19,8 +20,12 @@ export default function Toolbar(props: {
         <RefreshButton />
       </div>
       <div className="flex space-x-4">
-        <NewPathButton />
-        <DeleteButton bucket={bucket} selectedObjects={selectedObjects} />
+        <NewPathButton
+          bucket={bucket}
+          currentPath={currentPath}
+          onPathChange={onPathChange}
+        />
+        <DeleteButton bucket={bucket} objectsToDelete={objectsToDelete} />
       </div>
     </div>
   );
