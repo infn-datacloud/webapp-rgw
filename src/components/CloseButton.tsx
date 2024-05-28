@@ -1,6 +1,6 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-export default function CloseButton(props: { onClose: () => void }) {
+export default function CloseButton(props: Readonly<{ onClose: () => void }>) {
   const { onClose } = props;
   return (
     <button onClick={onClose}>
