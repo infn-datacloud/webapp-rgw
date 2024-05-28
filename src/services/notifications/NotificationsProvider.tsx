@@ -1,3 +1,4 @@
+"use client";
 import { useReducer } from "react";
 import { NotificationType } from "./types";
 import { NotificationsContext } from "./NotificationsContext";

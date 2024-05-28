@@ -7,6 +7,8 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { camelToWords } from "@/commons/utils";
 import { s3ClientConfig } from "@/services/s3/actions";
 import { useRouter } from "next/navigation";
+import { useNotifications } from "@/services/notifications/useNotifications";
+import { NotificationType } from "@/services/notifications/types";
 
 export default function UploadButton(props: {
   bucket: string;
@@ -15,6 +17,7 @@ export default function UploadButton(props: {
   const { bucket, currentPath } = props;
   const { status, data } = useSession();
   const router = useRouter();
+  const { notify } = useNotifications();
   const [objectsInProgress, setObjectsInProgress] = useState(
     new Map<string, FileObjectWithProgress>()
   );
@@ -42,11 +45,11 @@ export default function UploadButton(props: {
     objectsInProgress.delete(object.object.Key!);
     setObjectsInProgress(objectsInProgress);
     if (objectsInProgress.size <= 1) {
-      // notify(
-      //   "Upload Complete",
-      //   "All files have been successfully uploaded",
-      //   NotificationType.success
-      // );
+      notify(
+        "Upload Complete",
+        "All files have been successfully uploaded",
+        NotificationType.success
+      );
       router.refresh();
     }
   };
