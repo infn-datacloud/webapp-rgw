@@ -12,13 +12,13 @@ import { Transition } from "@headlessui/react";
 import "./component.css";
 
 const icons = [
-  <InformationCircleIcon className="text-neutral-800" />,
-  <CheckCircleIcon className="text-green-500" />,
-  <ExclamationTriangleIcon className="text-amber-500" />,
-  <ExclamationCircleIcon className="text-red-500" />,
+  <InformationCircleIcon key="circle-icon" className="text-neutral-800" />,
+  <CheckCircleIcon key="check-icon" className="text-green-500" />,
+  <ExclamationTriangleIcon key="danger-icon" className="text-amber-500" />,
+  <ExclamationCircleIcon key="danger-circle-icon" className="text-red-500" />,
 ];
 
-const createCointainer = () => {
+const createContainer = () => {
   const id = "notification-container";
   let element = document.getElementById(id);
   if (element) {
@@ -32,7 +32,7 @@ const createCointainer = () => {
   return element;
 };
 
-const notificationContainer = createCointainer();
+const notificationContainer = createContainer();
 
 export const Notification = (props: NotificationProps) => {
   const { id, title, subtitle, timeout, type, onDelete } = props;
