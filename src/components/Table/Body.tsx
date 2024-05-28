@@ -72,7 +72,7 @@ export const Body = (props: BodyProps) => {
             {columnIds.map((colId, index) => {
               const cell = row.columns.get(colId);
               if (!cell) {
-                return <td>N/A</td>;
+                return <td key={`${colId}${index}`}>N/A</td>;
               }
               const { value } = cell;
               let title = "";
@@ -84,8 +84,7 @@ export const Body = (props: BodyProps) => {
                   title={title}
                   className={
                     "border-b border-slate-100 p-4 first:pl-8 " +
-                    "last:pr-8 text-left " +
-                    colId
+                    "last:pr-8 text-left " + colId
                   }
                   onClick={_ => onClick?.(absoluteIndex)}
                   key={index}

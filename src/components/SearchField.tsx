@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Input } from "./Input";
+import Input from "./Input";
 import { useRef, useState } from "react";
 
 interface SearchFieldProps {
@@ -34,7 +34,7 @@ export const SearchFiled = (props: SearchFieldProps) => {
         <Input
           value={searchQuery}
           type="search"
-          onChange={el => handleQueryChanged(el.target.value)}
+          onChange={el => handleQueryChanged(el.currentTarget.value)}
           placeholder="Type to search"
         />
       </div>
