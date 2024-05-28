@@ -4,10 +4,22 @@ import { auth } from "@/auth";
 import Image from "next/image";
 import logo from "@/imgs/infn.png";
 import { Links } from "./nav-links";
+import getConfig from "next/config";
+
+const { serverRuntimeConfig = {} } = getConfig() || {};
+
+export const getStaticProps = function () {
+  return {
+    props: {
+      appVersion: serverRuntimeConfig.appVersion || "",
+    },
+  };
+};
 
 export const Sidebar = async () => {
   const session = await auth();
   const username = session?.user?.name;
+  const { props } = getStaticProps();
 
   const handleLogout = async () => {
     "use server";
@@ -44,7 +56,7 @@ export const Sidebar = async () => {
         />
       </div>
       <div className="absolute bottom-2 w-full text-sm text-center">
-        v{process.env.APP_VERSION}
+        v{props.appVersion}
       </div>
     </aside>
   );
