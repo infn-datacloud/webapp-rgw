@@ -26,3 +26,8 @@ export class FileObjectWithProgress {
     this.progress = value;
   }
 }
+
+export type BucketConfiguration = {
+  versioning: boolean;
+  objectLock: boolean;
+};

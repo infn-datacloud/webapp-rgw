@@ -7,11 +7,16 @@ import {
   Bucket,
   CreateBucketCommand,
   DeleteObjectCommand,
+  GetBucketVersioningCommand,
+  GetBucketVersioningCommandOutput,
   GetObjectCommand,
+  GetObjectLockConfigurationCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
   ListObjectsV2CommandOutput,
+  ObjectLockConfiguration,
   PutBucketVersioningCommand,
+  PutObjectLockConfigurationCommand,
   S3Client,
   S3ClientConfig,
   VersioningConfiguration,
@@ -133,6 +138,15 @@ export class S3Service {
     return bucketsInfos;
   }
 
+  async getBucketVersioning(
+    bucket: string
+  ): Promise<GetBucketVersioningCommandOutput> {
+    const getBucketVersioningCommand = new GetBucketVersioningCommand({
+      Bucket: bucket,
+    });
+    return await this.client.send(getBucketVersioningCommand);
+  }
+
   async setBucketVersioning(bucket: string, enabled: boolean) {
     const versioningConfiguration: VersioningConfiguration = {
       Status: enabled ? "Enabled" : "Suspended",
@@ -142,6 +156,25 @@ export class S3Service {
       VersioningConfiguration: versioningConfiguration,
     });
     return await this.client.send(putVersioningCommand);
+  }
+
+  async getBucketObjectLock(bucket: string) {
+    const cmd = new GetObjectLockConfigurationCommand({ Bucket: bucket });
+    return await this.client.send(cmd);
+  }
+
+  async setBucketObjectLock(bucket: string, enabled: boolean) {
+    const configuration: ObjectLockConfiguration = enabled
+      ? {
+          ObjectLockEnabled: "Enabled",
+        }
+      : {};
+
+    const cmd = new PutObjectLockConfigurationCommand({
+      Bucket: bucket,
+      ObjectLockConfiguration: configuration,
+    });
+    return await this.client.send(cmd);
   }
 
   async createBucket(args: CreateBucketArgs) {
