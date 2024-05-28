@@ -81,13 +81,13 @@ export const BucketInspector = (props: BucketInspectorProps) => {
       break;
     default:
       object = {
-        Key: "Multiple values",
-        ETag: "Multiple values",
+        Key: `Multiple values (${objects.length})`,
+        ETag: `Multiple values (${objects.length})`,
         Size: objects.reduce((acc: number, value: _Object) => {
           return (acc += value.Size ?? 0);
         }, 0),
       };
-      title = "Multiple values";
+      title = `Multiple values (${objects.length})`;
   }
 
   return (
