@@ -1,6 +1,6 @@
 import { NotificationProps } from "./types";
 import { useNotifications } from "./useNotifications";
-import { Notification } from "./component";
+import { Notification } from "./Notification";
 
 export const NotificationsContainer = () => {
   const { notifications } = useNotifications();

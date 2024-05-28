@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
 import { Transition } from "@headlessui/react";
-import "./component.css";
+import "./notification.css";
 
 const icons = [
   <InformationCircleIcon key="circle-icon" className="text-neutral-800" />,
