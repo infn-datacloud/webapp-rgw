@@ -2,7 +2,7 @@ stages:
   # - next-version
   - build
   - docker
-  # - release
+  - release
   # - k8s
 
 # fetch-next-version:
@@ -36,18 +36,18 @@ build:
   except:
     - tags
 
-release:
-  stage: release
-  image: node:20
-  # tags: ["fast"]
-  script:
-    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
-    - npx semantic-release
-  only:
-    refs:
-      - main
-      - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+# release:
+#   stage: release
+#   image: node:20
+#   # tags: ["fast"]
+#   script:
+#     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
+#     - npx semantic-release
+#   only:
+#     refs:
+#       - main
+#       - dev
+#       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
 
 tag-latest:
   stage: release
