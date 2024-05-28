@@ -58,6 +58,7 @@ export class S3Service {
         accessKeyId: credentials.AccessKeyId!,
         secretAccessKey: credentials.SecretAccessKey!,
         sessionToken: credentials.SessionToken!,
+        expiration: credentials.Expiration,
       };
     } catch (err) {
       throw Error("Cannot obtain credentials from STS");
