@@ -49,9 +49,9 @@ export default function BucketBrowser(props: BucketBrowserProps) {
     }
   }, [root]);
 
-  const handleCloseBucketInspector = () => {};
-  const handleDownloadFiles = () => {};
-  const handleDeleteSelectedObject = () => {};
+  const handleCloseBucketInspector = () => {
+    setSelectedObjectsKeys(new Set<string>());
+  };
 
   const handleSelectedRow = (selected: boolean, index: number) => {
     const row = tableData.rows[index];
@@ -110,8 +110,6 @@ export default function BucketBrowser(props: BucketBrowserProps) {
         bucket={bucket}
         objects={selectedObjects}
         onClose={handleCloseBucketInspector}
-        onDownload={handleDownloadFiles}
-        onDelete={handleDeleteSelectedObject}
       />
       <Toolbar
         bucket={bucket}
