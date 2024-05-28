@@ -104,7 +104,7 @@ export default function BucketBrowser(props: BucketBrowserProps) {
   };
 
   return (
-    <div className="container px-32">
+    <>
       <BucketInspector
         isOpen={isInspectorOpen}
         bucket={bucket}
@@ -127,6 +127,6 @@ export default function BucketBrowser(props: BucketBrowserProps) {
         onSelect={handleSelectedRow}
         onClick={handleClickedRow}
       />
-    </div>
+    </>
   );
 }
