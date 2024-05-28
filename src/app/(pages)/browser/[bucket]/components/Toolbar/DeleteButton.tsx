@@ -1,4 +1,5 @@
 import { Button } from "@/components/Button";
+import { NotificationType, useNotifications } from "@/services/notifications";
 import { S3Service } from "@/services/s3";
 import { s3ClientConfig } from "@/services/s3/actions";
 import { _Object } from "@aws-sdk/client-s3";
@@ -15,6 +16,7 @@ export default function DeleteButton(props: {
   const router = useRouter();
   const { status, data } = useSession();
   const s3Ref = useRef<S3Service | null>(null);
+  const { notify } = useNotifications();
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -32,9 +34,19 @@ export default function DeleteButton(props: {
     if (!s3) {
       throw new Error("Cannot initialize S3 service");
     }
-    const promises = objectsToDelete.map(o => s3.deleteObject(bucket, o));
-    Promise.all(promises).then(() => console.log("Object(s) deleted"));
-    router.refresh();
+    const del = async () => {
+      const promises = objectsToDelete.map(o => s3.deleteObject(bucket, o));
+      try {
+        await Promise.all(promises);
+        router.refresh();
+        notify("Object(s) successfully deleted", "", NotificationType.success);
+      } catch (err) {
+        err instanceof Error
+          ? notify("Cannot delete object(s)", err.name, NotificationType.error)
+          : console.error(err);
+      }
+    };
+    del();
   };
 
   return (

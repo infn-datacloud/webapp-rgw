@@ -69,8 +69,7 @@ export default function UploadButton(props: {
       setObjectsInProgress(objectsInProgress);
     } catch (e) {
       const msg = e instanceof Error ? camelToWords(e.name) : "Unknown Error";
-      console.error(e);
-      // notify("Cannot upload file(s)", msg, NotificationType.error);
+      notify("Cannot upload file(s)", msg, NotificationType.error);
     }
   };
 

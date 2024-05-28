@@ -68,11 +68,9 @@ export default function EditBucketModal() {
         router.back();
         notify("Bucket successfully edited", "", NotificationType.success);
       } catch (err) {
-        if (err instanceof Error) {
-          notify("Cannot edit bucket", err.name, NotificationType.error);
-        } else {
-          console.error(err);
-        }
+        err instanceof Error
+          ? notify("Cannot edit bucket", err.name, NotificationType.error)
+          : console.error(err);
       }
     };
     submit();
