@@ -70,7 +70,12 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       const { credentials } = token;
       if (credentials) {
-        session.credentials = token.credentials;
+        const { expiration } = credentials;
+        if (expiration && expiration > new Date()) {
+          console.log("Session expired.");
+          signOut();
+        }
+        session.credentials = credentials;
       }
       return session;
     },
