@@ -1,44 +1,26 @@
 stages:
-  - next-version
+  # - next-version
   - build
   - docker
-  - release
+  # - release
   # - k8s
 
-fetch-next-version:
-  stage: next-version
-  image: node:20
-  # tags: ["fast"]
-  script: |
-    npm install @semantic-release/exec @semantic-release/git @semantic-release/gitlab
-    npx semantic-release --generate-notes false --dry-run
-    if [ ! -f version.txt ]; then
-      VERSION=$(git describe --dirty --tags)
-      echo ${VERSION:1} > version.txt
-    fi 
-  artifacts:
-    paths:
-      - version.txt
-  except:
-    - tags
-
-build-frontend:
-  stage: build
-  image: node:20
-  # tags: ["fast"]
-  before_script:
-   - VERSION=$(cat version.txt)
-  script: |
-    cd app
-    npm version ${VERSION}
-    npm ci
-    npm test
-    npm run build
-  artifacts:
-    paths:
-      - app/dist
-  except:
-    - tags
+# fetch-next-version:
+#   stage: next-version
+#   image: node:20
+#   # tags: ["fast"]
+#   script: |
+#     npm install @semantic-release/exec @semantic-release/git @semantic-release/gitlab
+#     npx semantic-release --generate-notes false --dry-run
+#     if [ ! -f version.txt ]; then
+#       VERSION=$(git describe --dirty --tags)
+#       echo ${VERSION:1} > version.txt
+#     fi
+#   artifacts:
+#     paths:
+#       - version.txt
+#   except:
+#     - tags
 
 build:
   stage: docker
@@ -53,7 +35,7 @@ build:
     - docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
   except:
     - tags
-   
+
 release:
   stage: release
   image: node:20
@@ -62,10 +44,10 @@ release:
     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
     - npx semantic-release
   only:
-   refs:
-    - main
-    - dev
-    - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+    refs:
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
 
 tag-latest:
   stage: release
@@ -80,8 +62,8 @@ tag-latest:
     docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:latest"
     docker push "${CI_REGISTRY_IMAGE}:latest"
   only:
-   refs:
-    - main
+    refs:
+      - main
 
 tag-latest-dev:
   stage: release
@@ -96,9 +78,8 @@ tag-latest-dev:
     docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:latest-dev"
     docker push "${CI_REGISTRY_IMAGE}:latest-dev"
   only:
-   refs:
-    - dev
-
+    refs:
+      - dev
 # restart-deployment:
 #   stage: k8s
 #   image: ubuntu:latest
