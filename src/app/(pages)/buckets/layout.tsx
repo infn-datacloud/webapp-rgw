@@ -1,5 +1,6 @@
+"use client";
 import { NotificationsProvider } from "@/services/notifications";
-import { NotificationsContainer } from "@/services/notifications/NotificationContainer";
+import { NotificationsContainer } from "@/services/notifications";
 
 export default function Layout({
   children,

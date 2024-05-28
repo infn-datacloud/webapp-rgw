@@ -1,4 +1,5 @@
 "use client";
+import { useNotifications, NotificationType } from "@/services/notifications";
 import { useEffect, useState, useRef } from "react";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,6 +13,7 @@ export default function EditBucketModal() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const bucket = searchParams.get("bucket");
+  const { notify } = useNotifications();
   const bucketRef = useRef<string>();
 
   const [defaultValues, setDefaultValues] = useState<BucketConfiguration>({
@@ -55,17 +57,22 @@ export default function EditBucketModal() {
 
   const handleSubmit = (formData: FormData) => {
     const submit = async () => {
-      if (bucket) {
-        try {
-          const versioning = formData.get("versioning-switch") === "on";
-          const objectLock = formData.get("objectlock-switch") === "on";
-          await setBucketConfiguration(bucket, { versioning, objectLock });
-          router.back();
-        } catch (err) {
+      if (!bucket) {
+        console.warn("bucket is null");
+        return;
+      }
+      try {
+        const versioning = formData.get("versioning-switch") === "on";
+        const objectLock = formData.get("objectlock-switch") === "on";
+        await setBucketConfiguration(bucket, { versioning, objectLock });
+        router.back();
+        notify("Bucket successfully edited", "", NotificationType.success);
+      } catch (err) {
+        if (err instanceof Error) {
+          notify("Cannot edit bucket", err.name, NotificationType.error);
+        } else {
           console.error(err);
         }
-      } else {
-        console.warn("bucket is null");
       }
     };
     submit();
