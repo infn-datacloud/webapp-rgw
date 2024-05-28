@@ -27,7 +27,7 @@ type DetailProps = {
 const Detail = ({ title, children }: DetailProps) => {
   return (
     <div className="my-4">
-      <div className="text-lg font-semibold">{title}</div>
+      <div className="text-md font-semibold">{title}</div>
       <div className="break-all">{children}</div>
     </div>
   );
@@ -43,12 +43,12 @@ const ObjectDetail = (object: _Object) => {
   return (
     <>
       <div className="flex items-center">
-        <div className="text-lg font-semibold">Object Info</div>
+        <h3 className="text-lg font-semibold">Object Info</h3>
         <div className="ml-4 w-5">
           <InformationCircleIcon />
         </div>
       </div>
-      const Date =<Detail title={"Key"}>{object.Key ?? "N/A"}</Detail>
+      <Detail title={"Key"}>{object.Key ?? "N/A"}</Detail>
       <Detail title={"ETag"}>{object.ETag}</Detail>
       <Detail title={"Last Modified"}>
         <LastModified />
@@ -96,20 +96,26 @@ export const BucketInspector = (props: BucketInspectorProps) => {
         <div className="flex p-4 flex-row-reverse">
           <button onClick={onClose}>
             <div
-              className="w-5 p-[5px] bg-neutral-300 text-neutral-500
+              className="w-6 p-[3px] bg-neutral-300 text-neutral-500
              hover:bg-neutral-400 rounded-full"
             >
               <XMarkIcon />
             </div>
           </button>
         </div>
-        <div className="px-4">
-          <Title className="w-5/6" title={title} />
-          <hr className="mt-4 mb-8"></hr>
-          <DownloadButton bucket={bucket} objectsToDownloads={keys} />
-          <DeleteButton bucket={bucket} objectsToDelete={keys} />
-          <hr className="h-px w-full my-8 bg-gray-200 border-0"></hr>
-          <ObjectDetail {...object} />
+        <div className="px-4 column-1 space-y-3">
+          <section>
+            <Title className="w-5/6" title={title} />
+            <hr className="mt-4"></hr>
+          </section>
+          <section className="space-y-3">
+            <DownloadButton bucket={bucket} objectsToDownloads={keys} />
+            <DeleteButton bucket={bucket} objectsToDelete={keys} />
+            <hr className="h-px w-full mt-4 bg-gray-200 border-0"></hr>
+          </section>
+          <section>
+            <ObjectDetail {...object} />
+          </section>
         </div>
         {props.children}
       </Inspector>
