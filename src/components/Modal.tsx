@@ -1,27 +1,60 @@
-import { ReactNode } from "react";
+"use client";
+import { useSearchParams } from "next/navigation";
+import { ReactNode, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import CloseButton from "./CloseButton";
 
-interface ModalProps {
+export interface ModalProps {
+  title?: string;
   children?: ReactNode;
-  open: boolean;
-  onClose?: () => void;
 }
 
-export const Modal = (props: ModalProps) => {
-  const { open, children } = props;
+export const ModalBody = (props: { children?: ReactNode }) => {
+  const { children } = props;
+  return <div className="infn-modal-body">{children}</div>;
+};
 
-  if (!open) {
-    return <></>;
-  }
-
+export const ModalFooter = (props: { children?: ReactNode }) => {
+  const { children } = props;
   return (
-    <div className="relative inset-0" role="dialog">
-      <div className="fixed inset-0 z-10 overflow-y-auto">
-        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-          <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
-            {children}
-          </div>
-        </div>
-      </div>
+    <div className="infn-modal-footer">
+      <div className="flex justify-end mt-2 space-x-4">{children}</div>
     </div>
   );
 };
+
+export default function Modal(props: ModalProps) {
+  const { title, children } = props;
+  const searchParams = useSearchParams();
+  const [show, setShow] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const modal = searchParams.get("modal");
+    setShow(modal === "true");
+  }, [searchParams]);
+
+  const close = () => {
+    router.back();
+  };
+
+  return (
+    <div
+      className={`infn-modal ${show ? "show" : "hide"}`}
+      onClick={close}
+      aria-hidden="true"
+    >
+      <div
+        className={`infn-modal-content ${show ? "show" : "hide"}`}
+        onClick={e => e.stopPropagation()}
+        aria-hidden="true"
+      >
+        <div className="infn-modal-header">
+          <div className="infn-subtitle">{title}</div>
+          <CloseButton onClose={close} />
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
