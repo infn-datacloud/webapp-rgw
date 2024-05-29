@@ -20,24 +20,17 @@ const icons = [
 ];
 
 const createContainer = () => {
-  if (!document) {
-    return; // silence error when document is not ready yet
-  }
-
   const id = "notification-container";
   let element = document.getElementById(id);
   if (element) {
     return element;
   }
-
   element = document.createElement("div");
   element.setAttribute("id", id);
   element.className = "fixed top-8 right-8";
   document.body.appendChild(element);
   return element;
 };
-
-const notificationContainer = createContainer();
 
 export const Notification = (props: NotificationProps) => {
   const { id, title, subtitle, timeout, type, onDelete } = props;
@@ -88,35 +81,38 @@ export const Notification = (props: NotificationProps) => {
     };
   }, [onDelete, id, isOpen, timeout]);
 
-  return createPortal(
-    <div className={`notification ${isOpen ? "" : "shrink"}`}>
-      <Transition
-        show={isOpen}
-        appear={true}
-        unmount={true}
-        enter="transition-transform duration-200"
-        enterFrom="translate-x-full"
-        enterTo="translate-x-0"
-        leave="transition-transform duration-200"
-        leaveFrom="translate-x-0"
-        leaveTo="translate-x-full"
-      >
-        <div className={"flex w-96"}>
-          <div className="bg-white rounded-lg border-gray-300 border p-3 shadow-lg w-full">
-            <div className="flex items-center w-full">
-              <div className="w-5 mr-4">{icon}</div>
-              <div className="ml-2 mr-6">
-                <span className="font-semibold">{title}</span>
-                <span className="block text-gray-500">{subtitle}</span>
-              </div>
-              <div className="m-auto mr-0">
-                <CloseButton />
+  const NotificationView = () => {
+    return (
+      <div className={`notification ${isOpen ? "" : "shrink"}`}>
+        <Transition
+          show={isOpen}
+          appear={true}
+          unmount={true}
+          enter="transition-transform duration-200"
+          enterFrom="translate-x-full"
+          enterTo="translate-x-0"
+          leave="transition-transform duration-200"
+          leaveFrom="translate-x-0"
+          leaveTo="translate-x-full"
+        >
+          <div className={"flex w-96"}>
+            <div className="bg-white rounded-lg border-gray-300 border p-3 shadow-lg w-full">
+              <div className="flex items-center w-full">
+                <div className="w-5 mr-4">{icon}</div>
+                <div className="ml-2 mr-6">
+                  <span className="font-semibold">{title}</span>
+                  <span className="block text-gray-500">{subtitle}</span>
+                </div>
+                <div className="m-auto mr-0">
+                  <CloseButton />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </Transition>
-    </div>,
-    notificationContainer
-  );
+        </Transition>
+      </div>
+    );
+  };
+
+  return createPortal(<NotificationView />, createContainer());
 };
