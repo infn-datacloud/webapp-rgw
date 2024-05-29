@@ -9,6 +9,7 @@ import {
 import { _Object } from "@aws-sdk/client-s3";
 import FileIcon from "./components/FileIcon";
 import IsomorphicDate from "@/components/IsomorphicDate";
+import { dateToHuman } from "../../home/utils";
 
 export function initNodePathTree(bucketObjects: _Object[]): NodePath<_Object> {
   const root = new NodePath<_Object>("");
@@ -32,12 +33,10 @@ function computeRow(node: NodePath<_Object>, selected: boolean = false): Row {
     const ext = node.isDir ? "folder" : elements[elements.length - 1];
     return <FileIcon extension={ext} />;
   };
-  // const lastModified = moment(node.lastModified).calendar() ?? "N/A";
-  const lastModified = node.lastModified.toUTCString();
   const columns = new Map<ColumnId, Cell>([
     ["icon", { value: <Icon /> }],
     ["name", { value: node.basename }],
-    ["last_modified", { value: <IsomorphicDate time={lastModified} /> }],
+    ["last_modified", { value: dateToHuman(node.lastModified) }],
     ["bucket_size", { value: getHumanSize(node.size) }],
   ]);
   return {

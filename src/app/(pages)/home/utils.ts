@@ -1,6 +1,13 @@
 import { Cell, Column, ColumnId, Row, TableData } from "@/components/Table";
 import { BucketInfo } from "@/models/bucket";
-import moment from "moment";
+
+export function dateToHuman(date: Date) {
+  return new Intl.DateTimeFormat("it-IT", {
+    dateStyle: "medium",
+    timeStyle: "medium",
+    timeZone: "Europe/Rome",
+  }).format(date);
+}
 
 export function makeTableData(infos: BucketInfo[]): TableData {
   const cols: Column[] = [
@@ -11,7 +18,7 @@ export function makeTableData(infos: BucketInfo[]): TableData {
     const cols = new Map<ColumnId, Cell>();
     const { name, creation_date } = bucketInfo;
     cols.set("bucket", { value: name ?? "N/A" });
-    cols.set("creation_date", { value: moment(creation_date).calendar() });
+    cols.set("creation_date", { value: dateToHuman(new Date(creation_date)) });
     return {
       selected: false,
       columns: cols,

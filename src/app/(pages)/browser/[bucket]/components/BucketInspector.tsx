@@ -35,8 +35,9 @@ const Detail = ({ title, children }: DetailProps) => {
 
 const ObjectDetail = (object: _Object) => {
   const LastModified = () => {
-    if (object.LastModified) {
-      return <IsomorphicDate time={object.LastModified.toDateString()} />;
+    const { LastModified } = object;
+    if (LastModified) {
+      return <IsomorphicDate date={LastModified} />;
     }
     return "N/A";
   };
