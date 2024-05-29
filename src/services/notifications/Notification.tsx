@@ -20,6 +20,10 @@ const icons = [
 ];
 
 const createContainer = () => {
+  if (!document) {
+    return; // silence error when document is not ready yet
+  }
+
   const id = "notification-container";
   let element = document.getElementById(id);
   if (element) {
