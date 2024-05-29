@@ -75,9 +75,9 @@ export const authConfig: NextAuthConfig = {
         return session;
       }
       const { expiration } = credentials;
-      if (expiration && expiration < new Date()) {
+      if (expiration && new Date(expiration) < new Date()) {
         console.log("Session expired.");
-        signOut();
+        await signOut({ redirect: true });
       }
       session.credentials = credentials;
       return session;
