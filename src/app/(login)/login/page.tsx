@@ -29,48 +29,17 @@ export default function Login() {
     setAwsSecretAccessKey(element.target.value);
   };
 
-  const handleS3Login = () => {
+  const handleS3Login = () => {};
+
+  const handleIAMLogin = () => {
     signIn("indigo-iam");
   };
 
-  const handleIAMLogin = () => {};
-  //   const handleLogin = useCallback(() => {
-  //     s3.loginWithCredentials({
-  //       accessKeyId: awsAccessKeyId,
-  //       secretAccessKey: awsSecretAccessKey,
-  //     });
-  //   }, [awsAccessKeyId, awsSecretAccessKey, s3]);
-
-  //   useEffect(() => {
-  //     const cleanupKeyHandler = addKeyHandler("Enter", function () {
-  //       if (loginEnabled) {
-  //         handleLogin();
-  //       }
-  //     });
-  //     return () => {
-  //       cleanupKeyHandler();
-  //     };
-  //   }, [loginEnabled, handleLogin]);
-
-  //   if (s3.isAuthenticated) {
-  //     return <Navigate to="/" replace />;
-  //   }
-
-  //   const oidcDisabled =
-  //     oAuth.isLoading || (oAuth.isAuthenticated && !s3.isAuthenticated);
-
   useEffect(() => {
-    try {
-      if (status === "unauthenticated") {
-        signIn("indigo-iam");
-      } else if (status === "authenticated") {
-        router.push("/home");
-      }
-    } catch (err) {
-      console.error(err);
-      signOut();
+    if (status === "authenticated") {
+      router.push("/home");
     }
-  }, [router, status, data]);
+  }, [router, status]);
 
   return (
     <div className="bg-slate-100 w-2/3 xl:w-1/2 max-w-3xl m-auto p-8 shadow-lg mt-16 rounded-md">
