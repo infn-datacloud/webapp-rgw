@@ -1,10 +1,9 @@
-import { ArrowLeftStartOnRectangleIcon } from "@heroicons/react/24/outline";
-import { Button } from "@/components/Button";
 import { auth } from "@/auth";
 import Image from "next/image";
 import logo from "@/imgs/infn.png";
 import { Links } from "./nav-links";
 import getConfig from "next/config";
+import LogoutButton from "./logout-button";
 
 const { serverRuntimeConfig = {} } = getConfig() || {};
 
@@ -20,11 +19,6 @@ export const Sidebar = async () => {
   const session = await auth();
   const username = session?.user?.name;
   const { props } = getStaticProps();
-
-  const handleLogout = async () => {
-    "use server";
-    console.log("Logout");
-  };
 
   return (
     <aside
@@ -48,12 +42,7 @@ export const Sidebar = async () => {
         <Links />
       </div>
       <div className="absolute inset-x-0 mx-4 bottom-20">
-        <Button
-          className="w-full"
-          title="Logout"
-          icon={<ArrowLeftStartOnRectangleIcon />}
-          onClick={handleLogout}
-        />
+        <LogoutButton />
       </div>
       <div className="absolute bottom-2 w-full text-sm text-center">
         v{props.appVersion}
