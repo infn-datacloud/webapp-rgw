@@ -103,6 +103,16 @@ export default function BucketBrowser(props: BucketBrowserProps) {
     }
   };
 
+  const handleQuerySearch = (query: string) => {
+    const makeNewRoot = () => {
+      const objects = bucketObjects.filter(o =>
+        o.Key!.toLowerCase().includes(query)
+      );
+      return initNodePathTree(objects);
+    };
+    setCurrentPath(query ? makeNewRoot() : root);
+  };
+
   return (
     <>
       <BucketInspector
@@ -121,6 +131,7 @@ export default function BucketBrowser(props: BucketBrowserProps) {
         bucket={bucket}
         path={currentPath}
         onClickBackButton={handleGoBack}
+        onQuerySearchChanged={handleQuerySearch}
       />
       <ObjectsTable
         data={tableData}
