@@ -88,7 +88,7 @@ export const NewPathModal = (props: ModalProps) => {
   const pathIsValid = path.length > 0;
 
   return (
-    <Modal title="Choose or create a new path">
+    <Modal title="Choose or create a new path" id="create-path">
       <Form ref={formRef} action={handleSubmit}>
         <ModalBody>
           <CurrentPath path={`${prefix}/${currentPath}`} />

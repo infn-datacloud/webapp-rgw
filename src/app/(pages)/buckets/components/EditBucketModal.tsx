@@ -77,7 +77,7 @@ export default function EditBucketModal() {
   };
 
   return (
-    <Modal title={`Edit Bucket ${bucketRef.current ?? ""}`}>
+    <Modal title={`Edit Bucket ${bucketRef.current ?? ""}`} id="edit-bucket">
       <Form action={handleSubmit}>
         <ModalBody>
           <BucketFeatures />

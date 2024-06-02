@@ -7,6 +7,7 @@ import CloseButton from "./CloseButton";
 export interface ModalProps {
   title?: string;
   children?: ReactNode;
+  id: string;
 }
 
 export const ModalBody = (props: { children?: ReactNode }) => {
@@ -24,15 +25,15 @@ export const ModalFooter = (props: { children?: ReactNode }) => {
 };
 
 export default function Modal(props: ModalProps) {
-  const { title, children } = props;
+  const { title, children, id } = props;
   const searchParams = useSearchParams();
   const [show, setShow] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const modal = searchParams.get("modal");
-    setShow(modal === "true");
-  }, [searchParams]);
+    setShow(modal === id);
+  }, [searchParams, id]);
 
   const close = () => {
     router.back();

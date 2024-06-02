@@ -51,7 +51,7 @@ export const BucketSummaryView = (props: BucketSummaryViewProps) => {
             <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
           </div>
           <div className="flex flex-col space-y-2">
-            <Link href={`/buckets?bucket=${name}&modal=true`}>
+            <Link href={`/buckets?bucket=${name}&modal=edit-bucket`}>
               <Button
                 className="my-auto pr-4"
                 icon={<PencilSquareIcon />}

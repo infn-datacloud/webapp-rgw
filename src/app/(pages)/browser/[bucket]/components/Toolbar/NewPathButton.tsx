@@ -18,7 +18,7 @@ export default function NewPathButton(props: NewPathButton) {
         currentPath={currentPath}
         onPathChange={onPathChange}
       />
-      <Link href={`/browser/${bucket}?modal=true`}>
+      <Link href={`/browser/${bucket}?modal=create-path`}>
         <Button title="New path" icon={<FolderIcon />} />
       </Link>
     </>
