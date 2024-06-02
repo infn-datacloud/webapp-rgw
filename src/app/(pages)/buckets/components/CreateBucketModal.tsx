@@ -79,8 +79,6 @@ export default function CreateBucketModal() {
   };
 
   const handleSubmit = (formData: FormData) => {
-    console.log("submit");
-
     const submit = async () => {
       try {
         await createBucket(formData);

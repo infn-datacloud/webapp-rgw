@@ -98,7 +98,6 @@ export default function BucketBrowser(props: BucketBrowserProps) {
       if (isEmpty) {
         newPath.removeChild(currentPath);
       }
-      console.log(newPath);
       setCurrentPath(newPath);
     }
   };

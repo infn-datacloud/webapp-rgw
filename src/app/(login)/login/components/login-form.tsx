@@ -31,7 +31,6 @@ export default function LoginForm() {
   }, [status, router]);
 
   const handleCredentialsLogin = async (formData: FormData) => {
-    console.log("signing in");
     router.push("/");
     await signIn(
       "credentials",
@@ -41,7 +40,6 @@ export default function LoginForm() {
       },
       { redirect: true }
     );
-    console.log("signed in");
   };
 
   const handleIAMLogin = async () => {
