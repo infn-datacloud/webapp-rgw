@@ -20,10 +20,10 @@ export async function makeS3Client() {
   if (!session) {
     throw Error("Session is not available");
   }
-  const { credentials } = session;
+  const { credentials, groups } = session;
   if (!credentials) {
     throw new Error("Cannot find credentials");
   }
   const s3Config = await s3ClientConfig(credentials);
-  return new S3Service(s3Config);
+  return new S3Service(s3Config, "bucket-policy", groups);
 }

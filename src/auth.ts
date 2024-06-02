@@ -7,10 +7,12 @@ import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { S3Service } from "./services/s3";
 import Credentials from "next-auth/providers/credentials";
 import { s3ClientConfig } from "./services/s3/actions";
+import { decodeJwtPayload } from "./commons/utils";
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     credentials?: AwsCredentialIdentity;
+    groups?: string[];
   }
 }
 
@@ -22,6 +24,7 @@ declare module "@auth/core/types" {
   interface Session {
     access_token?: string & DefaultSession["user"];
     credentials?: AwsCredentialIdentity;
+    groups?: string[];
     error?: string;
   }
 }
@@ -72,7 +75,7 @@ const CredentialsProvider = Credentials({
     try {
       const s3Config = await s3ClientConfig({ accessKeyId, secretAccessKey });
       const s3 = new S3Service(s3Config);
-      await s3.fetchBucketList();
+      await s3.fetchPrivateBuckets();
     } catch (err) {
       if (err instanceof Error && err.name === "AccessDenied") {
         throw new AccessDenied();
@@ -100,7 +103,11 @@ export const authConfig: NextAuthConfig = {
       }
       const { access_token } = account;
       if (access_token) {
+        const groups = decodeJwtPayload(access_token)["groups"] as
+          | string[]
+          | undefined;
         token.credentials = await S3Service.loginWithSTS(access_token);
+        token.groups = groups;
       } else if (user.credentials) {
         token.credentials = user.credentials;
       }
@@ -113,12 +120,13 @@ export const authConfig: NextAuthConfig = {
     },
 
     async session({ session, token }) {
-      const { credentials } = token;
+      const { credentials, groups } = token;
       const expiration = new Date(credentials?.expiration ?? 0);
       if (expiration < new Date()) {
         throw "SessionExpired";
       }
       session.credentials = credentials;
+      session.groups = groups;
       return session;
     },
   },

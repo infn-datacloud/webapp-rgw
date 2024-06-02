@@ -26,6 +26,7 @@ import { BucketInfo, FileObjectWithProgress } from "@/models/bucket";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { dropDuplicates } from "@/commons/utils";
 
 const awsConfig: AWSConfig = {
   endpoint: process.env.S3_ENDPOINT!,
@@ -36,8 +37,17 @@ const awsConfig: AWSConfig = {
 
 export class S3Service {
   client: S3Client;
-  constructor(config: S3ClientConfig) {
+  publisherBucket?: string;
+  groups?: string[];
+
+  constructor(
+    config: S3ClientConfig,
+    publisherBucket?: string,
+    groups?: string[]
+  ) {
     this.client = new S3Client(config);
+    this.publisherBucket = publisherBucket;
+    this.groups = groups;
   }
 
   static async loginWithSTS(
@@ -65,8 +75,35 @@ export class S3Service {
     }
   }
 
-  async fetchBucketList() {
-    let buckets: Bucket[] = []; // TODO: get external buckets
+  async fetchPublicBuckets() {
+    if (!(this.publisherBucket && this.groups)) {
+      console.warn(
+        "Bucket publisher or groups not defined",
+        this.publisherBucket,
+        this.groups
+      );
+      return [];
+    }
+
+    const promises = this.groups.map(async group => {
+      const cmd = new ListObjectsV2Command({
+        Bucket: this.publisherBucket,
+        Prefix: group,
+      });
+      return await this.client.send(cmd);
+    });
+    const results = await Promise.all(promises);
+    const contents = results.flatMap(bucket => bucket.Contents ?? []);
+    let names = contents.map(c => c.Key?.split("/")[1]);
+    names = dropDuplicates(names);
+    const buckets: Bucket[] = names.map(name => {
+      return { Name: name };
+    });
+    return buckets;
+  }
+
+  async fetchPrivateBuckets() {
+    let buckets: Bucket[] = [];
     const listBucketCmd = new ListBucketsCommand({});
     const response = await this.client.send(listBucketCmd);
     const { Buckets } = response;
@@ -76,6 +113,14 @@ export class S3Service {
       console.warn("Warning: Expected Bucket[], got undefined");
     }
     return buckets;
+  }
+
+  async fetchBucketList() {
+    const [privates, publics] = await Promise.all([
+      this.fetchPrivateBuckets(),
+      this.fetchPublicBuckets(),
+    ]);
+    return [...privates, ...publics];
   }
 
   async listObjects(bucket: string): Promise<_Object[]> {
@@ -125,17 +170,22 @@ export class S3Service {
     const buckets = await this.fetchBucketList();
     buckets.push({ Name: "scratch" });
     const validBuckets = buckets.filter(bucket => !!bucket.Name);
+
     const promises = validBuckets.map(async bucket => {
       const { Name } = bucket;
       const objects = await this.listObjects(Name!);
       return S3Service.computeBucketSummary(bucket, objects);
     });
     const results = await Promise.allSettled(promises);
-    const bucketsInfos = (
-      results.filter(
-        r => r.status === "fulfilled"
-      ) as PromiseFulfilledResult<BucketInfo>[]
-    ).map(r => r.value);
+    let bucketsInfos: BucketInfo[] = [];
+    for (const result of results) {
+      result.status === "fulfilled"
+        ? bucketsInfos.push(result.value)
+        : console.warn(
+            `cannot fetch bucket '${result.reason.BucketName}', ` +
+              `reason '${result.reason.Code}'`
+          );
+    }
     return bucketsInfos;
   }
 
