@@ -22,6 +22,10 @@ export const camelToWords = (s: string) => {
   return s.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
 };
 
+export const decodeJwtPayload = (token: string) => {
+  return JSON.parse(atob(token.split(".")[1]));
+};
+
 export const truncateString = (s: string, length: number) => {
   if (s.length <= length) {
     return s;
