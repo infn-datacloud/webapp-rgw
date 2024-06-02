@@ -7,7 +7,6 @@ export default function Layout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log("layout")
   return (
     <NotificationsProvider>
       <NotificationsContainer />

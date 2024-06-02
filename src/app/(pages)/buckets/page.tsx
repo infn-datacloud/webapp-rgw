@@ -1,10 +1,10 @@
-import { auth } from "@/auth";
 import { Page } from "@/components/Page";
 import { BucketInfo } from "@/models/bucket";
-import { S3Service } from "@/services/s3";
-import { s3ClientConfig } from "@/services/s3/actions";
+import { makeS3Client } from "@/services/s3/actions";
 import { BucketSummaryView } from "./components/SummaryView";
 import EditBucketModal from "./components/EditBucketModal";
+import CreateBucketModal from "./components/CreateBucketModal";
+import Toolbar from "./components/Toolbar";
 
 function BucketsInfos(props: { bucketsInfos: BucketInfo[] }) {
   const { bucketsInfos } = props;
@@ -18,25 +18,14 @@ function BucketsInfos(props: { bucketsInfos: BucketInfo[] }) {
 }
 
 export default async function Buckets() {
-  const session = await auth();
-  let bucketsInfos: BucketInfo[] = [];
-
-  if (!session) {
-    throw Error("Session is not available");
-  }
-
-  const { credentials } = session;
-  if (credentials) {
-    const s3Config = await s3ClientConfig(credentials);
-    const s3 = new S3Service(s3Config);
-    bucketsInfos = await s3.getBucketsInfos();
-  } else {
-    throw new Error("Cannot find credentials");
-  }
+  const s3 = await makeS3Client();
+  const bucketsInfos = await s3.getBucketsInfos();
 
   return (
     <Page title="Buckets">
+      <CreateBucketModal />
       <EditBucketModal />
+      <Toolbar />
       <BucketsInfos bucketsInfos={bucketsInfos} />
     </Page>
   );
