@@ -1,10 +1,12 @@
-import NextAuth from "next-auth";
-import type { DefaultSession, NextAuthConfig } from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
+import type { NextAuthConfig } from "next-auth";
 import type { DefaultJWT } from "next-auth/jwt";
 import type { Profile, User, Awaitable, TokenSet } from "@auth/core/types";
 import type { OIDCConfig } from "next-auth/providers";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { S3Service } from "./services/s3";
+import Credentials from "next-auth/providers/credentials";
+import { s3ClientConfig } from "./services/s3/actions";
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
@@ -12,12 +14,20 @@ declare module "next-auth/jwt" {
   }
 }
 
-declare module "next-auth" {
+declare module "@auth/core/types" {
+  interface User {
+    credentials?: AwsCredentialIdentity;
+  }
+
   interface Session {
     access_token?: string & DefaultSession["user"];
     credentials?: AwsCredentialIdentity;
     error?: string;
   }
+}
+
+class AccessDenied extends CredentialsSignin {
+  code = "Invalid credentials";
 }
 
 const IamProvider: OIDCConfig<Profile> = {
@@ -45,23 +55,58 @@ const IamProvider: OIDCConfig<Profile> = {
   },
 };
 
+const CredentialsProvider = Credentials({
+  id: "credentials",
+  credentials: {
+    accessKeyId: { label: "Access Key Id" },
+    secretAccessKey: { label: "Secret Access Key", type: "password" },
+  },
+  async authorize(credentials) {
+    const accessKeyId = credentials.accessKeyId as string | undefined;
+    const secretAccessKey = credentials.secretAccessKey as string | undefined;
+
+    if (!accessKeyId || !secretAccessKey) {
+      throw Error("Credentials not found");
+    }
+
+    try {
+      const s3Config = await s3ClientConfig({ accessKeyId, secretAccessKey });
+      const s3 = new S3Service(s3Config);
+      await s3.fetchBucketList();
+    } catch (err) {
+      if (err instanceof Error && err.name === "AccessDenied") {
+        throw new AccessDenied();
+      }
+      console.error(err);
+      return null;
+    }
+    return {
+      id: accessKeyId,
+      credentials: { accessKeyId, secretAccessKey },
+    };
+  },
+});
+
 export const authConfig: NextAuthConfig = {
-  providers: [IamProvider],
+  providers: [IamProvider, CredentialsProvider],
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       if (!account) {
         return token;
       }
       const { access_token } = account;
       if (access_token) {
         token.credentials = await S3Service.loginWithSTS(access_token);
+      } else if (user.credentials) {
+        token.credentials = user.credentials;
       }
-
       return token;
     },
+
     authorized({ auth }) {
       const isLoggedIn = !!auth?.user;
       return isLoggedIn;
