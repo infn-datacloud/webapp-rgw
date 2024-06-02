@@ -9,6 +9,7 @@ import { s3ClientConfig } from "@/services/s3/actions";
 import { useRouter } from "next/navigation";
 import { useNotifications } from "@/services/notifications/useNotifications";
 import { NotificationType } from "@/services/notifications/types";
+import { ProgressPopup } from "@/components/ProgressPopup";
 
 export default function UploadButton(props: {
   bucket: string;
@@ -43,13 +44,13 @@ export default function UploadButton(props: {
 
   const handleUploadComplete = (object: FileObjectWithProgress) => {
     objectsInProgress.delete(object.object.Key!);
-    setObjectsInProgress(objectsInProgress);
     if (objectsInProgress.size <= 1) {
       notify(
         "Upload Complete",
         "All files have been successfully uploaded",
         NotificationType.success
       );
+      setObjectsInProgress(objectsInProgress);
       router.refresh();
     }
   };
@@ -90,5 +91,17 @@ export default function UploadButton(props: {
     uploadFiles(filesToUpload);
   };
 
-  return <InputFile icon={<ArrowUpOnSquareIcon />} onChange={handleChange} />;
+  return (
+    <>
+      <InputFile icon={<ArrowUpOnSquareIcon />} onChange={handleChange} />
+      <ProgressPopup
+        title="Uploading"
+        show={objectsInProgress.size > 0}
+        progressList={[...objectsInProgress.values()].map(o => {
+          const t = o.object.Key!.split("/");
+          return { title: t[t.length - 1], value: o.progress };
+        })}
+      />
+    </>
+  );
 }
