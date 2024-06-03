@@ -3,13 +3,13 @@ import { FileObjectWithProgress } from "@/models/bucket";
 import { ArrowUpOnSquareIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { S3Service } from "@/services/s3";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useReducer, useRef } from "react";
 import { camelToWords } from "@/commons/utils";
 import { s3ClientConfig } from "@/services/s3/actions";
-import { useRouter } from "next/navigation";
 import { useNotifications } from "@/services/notifications/useNotifications";
 import { NotificationType } from "@/services/notifications/types";
 import { ProgressPopup } from "@/components/ProgressPopup";
+import reducer, { defaultState } from "./reducer";
 
 export default function UploadButton(props: {
   bucket: string;
@@ -17,12 +17,10 @@ export default function UploadButton(props: {
 }) {
   const { bucket, currentPath } = props;
   const { status, data } = useSession();
-  const router = useRouter();
   const { notify } = useNotifications();
-  const [objectsInProgress, setObjectsInProgress] = useState(
-    new Map<string, FileObjectWithProgress>()
-  );
+  const [state, dispatch] = useReducer(reducer, defaultState);
   const s3Ref = useRef<S3Service | null>(null);
+  const notifyRef = useRef(notify);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -35,25 +33,23 @@ export default function UploadButton(props: {
     }
   }, [status, data]);
 
-  const handleUploadsUpdates = (object: FileObjectWithProgress) => {
-    if (object.progress < 1.0) {
-      objectsInProgress.set(object.object.Key!, object);
-      setObjectsInProgress(objectsInProgress);
-    }
+  function handleUploadsUpdates(object: FileObjectWithProgress) {
+    dispatch({ type: "ON_UPDATE", object });
+  }
+
+  const handleUploadComplete = () => {
+    dispatch({ type: "ON_COMPLETE" });
   };
 
-  const handleUploadComplete = (object: FileObjectWithProgress) => {
-    objectsInProgress.delete(object.object.Key!);
-    if (objectsInProgress.size <= 1) {
+  useEffect(() => {
+    if (state.allComplete) {
       notify(
         "Upload Complete",
         "All files have been successfully uploaded",
         NotificationType.success
       );
-      setObjectsInProgress(objectsInProgress);
-      router.refresh();
     }
-  };
+  }, [state.allComplete]);
 
   const uploadFiles = (files: FileObjectWithProgress[]) => {
     const s3 = s3Ref.current;
@@ -61,13 +57,17 @@ export default function UploadButton(props: {
       throw new Error("Cannot initialize S3 service");
     }
     try {
-      files.forEach(file => {
+      const promises = files.map(file => {
+        state.progressStates.set(file.id, file);
         const onUpdate = () => handleUploadsUpdates(file);
-        const onComplete = () => handleUploadComplete(file);
+        const onComplete = () => handleUploadComplete();
         s3.uploadObject(bucket, file, onUpdate, onComplete);
-        objectsInProgress.set(file.object.Key!, file);
       });
-      setObjectsInProgress(objectsInProgress);
+
+      Promise.all(promises).then(() => {
+        console.debug("all settled");
+        dispatch({ type: "START_UPLOADS", objects: files });
+      });
     } catch (e) {
       const msg = e instanceof Error ? camelToWords(e.name) : "Unknown Error";
       notify("Cannot upload file(s)", msg, NotificationType.error);
@@ -96,10 +96,10 @@ export default function UploadButton(props: {
       <InputFile icon={<ArrowUpOnSquareIcon />} onChange={handleChange} />
       <ProgressPopup
         title="Uploading"
-        show={objectsInProgress.size > 0}
-        progressList={[...objectsInProgress.values()].map(o => {
+        show={state.showPopup}
+        progressList={[...state.progressStates.values()].map(o => {
           const t = o.object.Key!.split("/");
-          return { title: t[t.length - 1], value: o.progress };
+          return { title: t[t.length - 1], value: o.progress, id: o.id };
         })}
       />
     </>

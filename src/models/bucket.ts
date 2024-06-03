@@ -12,11 +12,13 @@ export interface BucketInfo {
   size: number;
 }
 export class FileObjectWithProgress {
+  id: string;
   object: _Object;
   progress: number;
   file: File;
 
   constructor(object: _Object, file: File) {
+    this.id = self.crypto.randomUUID();
     this.object = object;
     this.file = file;
     this.progress = 0;

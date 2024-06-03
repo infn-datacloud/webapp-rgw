@@ -27,6 +27,8 @@ export default async function Buckets() {
   } catch (err) {
     if (err instanceof Error && err.name === "AccessDenied") {
       redirect("/logout");
+    } else {
+      throw err;
     }
   }
 

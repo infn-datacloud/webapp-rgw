@@ -1,6 +1,7 @@
 interface ProgressBarProps {
   value: number;
   title: string;
+  id: string;
 }
 
 export type ProgressElement = ProgressBarProps;

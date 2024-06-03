@@ -23,7 +23,14 @@ export const ProgressPopup = (props: ProgressPopupProps) => {
         <p className="font-bold">{title}</p>
       </div>
       {progressList.map(el => {
-        return <ProgressBar key={el.title} title={el.title} value={el.value} />;
+        return (
+          <ProgressBar
+            key={el.id}
+            title={el.title}
+            value={el.value}
+            id={el.id}
+          />
+        );
       })}
     </div>
   );
