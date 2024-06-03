@@ -244,7 +244,7 @@ export class S3Service {
     return result;
   }
 
-  uploadObject(
+  async uploadObject(
     bucket: string,
     fileObject: FileObjectWithProgress,
     onChange?: () => void,
