@@ -94,7 +94,10 @@ export class S3Service {
     });
     const results = await Promise.all(promises);
     const contents = results.flatMap(bucket => bucket.Contents ?? []);
-    let names = contents.map(c => c.Key?.split("/")[1]);
+    let names = contents.map(c => {
+      const keys = c.Key!.split("/");
+      return keys[keys.length - 1];
+    });
     names = dropDuplicates(names);
     const buckets: Bucket[] = names.map(name => {
       return { Name: name };
