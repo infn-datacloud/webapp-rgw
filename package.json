@@ -1,0 +1,46 @@
+{
+  "name": "webapp-rgw",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.490.0",
+    "@aws-sdk/client-sts": "^3.490.0",
+    "@aws-sdk/lib-storage": "^3.490.0",
+    "@aws-sdk/s3-request-presigner": "^3.490.0",
+    "@aws-sdk/types": "^3.489.0",
+    "@headlessui/react": "^1.7.18",
+    "@heroicons/react": "^2.1.1",
+    "next": "14.2.2",
+    "next-auth": "^5.0.0-beta.18",
+    "react": "^18",
+    "react-dom": "^18",
+    "sharp": "^0.33.4"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "NODE_ENV=test jest",
+    "lint": "tsc --project ./tsconfig.json --noEmit && eslint . --ext ts,tsx,js --report-unused-disable-directives --max-warnings 0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.4",
+    "eslint-config-prettier": "^9.1.0",
+    "jest": "^29.7.0",
+    "postcss": "^8",
+    "prettier": "^3.2.4",
+    "tailwindcss": "^3.4.1",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5"
+  }
+}

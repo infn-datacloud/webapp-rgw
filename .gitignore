@@ -13,3 +13,5 @@ app/envs/*
 __pycache__/
 docker-compose.*.yaml
 !docker-compose.yaml
+next-env.d.ts
+.next

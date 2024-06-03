@@ -1,50 +1,28 @@
 stages:
-  - next-version
+  # - next-version
   - build
   - docker
   - release
-  - k8s
+  # - k8s
 
-variables:
-  BACKEND_IMAGE: ${CI_REGISTRY_IMAGE}/backend
-  FRONTEND_IMAGE: ${CI_REGISTRY_IMAGE}/webapp
+# fetch-next-version:
+#   stage: next-version
+#   image: node:20
+#   # tags: ["fast"]
+#   script: |
+#     npm install @semantic-release/exec @semantic-release/git @semantic-release/gitlab
+#     npx semantic-release --generate-notes false --dry-run
+#     if [ ! -f version.txt ]; then
+#       VERSION=$(git describe --dirty --tags)
+#       echo ${VERSION:1} > version.txt
+#     fi
+#   artifacts:
+#     paths:
+#       - version.txt
+#   except:
+#     - tags
 
-fetch-next-version:
-  stage: next-version
-  image: node:20
-  # tags: ["fast"]
-  script: |
-    npm install @semantic-release/exec @semantic-release/git @semantic-release/gitlab
-    npx semantic-release --generate-notes false --dry-run
-    if [ ! -f version.txt ]; then
-      VERSION=$(git describe --dirty --tags)
-      echo ${VERSION:1} > version.txt
-    fi 
-  artifacts:
-    paths:
-      - version.txt
-  except:
-    - tags
-
-build-frontend:
-  stage: build
-  image: node:20
-  # tags: ["fast"]
-  before_script:
-   - VERSION=$(cat version.txt)
-  script: |
-    cd app
-    npm version ${VERSION}
-    npm ci
-    npm test
-    npm run build
-  artifacts:
-    paths:
-      - app/dist
-  except:
-    - tags
-
-build-backend-image:
+build:
   stage: docker
   image: docker:latest
   # tags: ["fast"]
@@ -53,39 +31,23 @@ build-backend-image:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-    - docker build --pull -t "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" backend
-    - docker push "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
+    - docker build . --pull -t "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
+    - docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
   except:
     - tags
 
-build-frontend-image:
-  stage: docker
-  image: docker:latest
-  # tags: ["fast"]
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-  script:
-   - docker build app -f app/Dockerfile --pull -t "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
-   - docker push "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
-  needs:
-    - build-frontend
-  except:
-    - tags
-   
-release:
-  stage: release
-  image: node:20
-  # tags: ["fast"]
-  script:
-    - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
-    - npx semantic-release
-  only:
-   refs:
-    - main
-    - dev
-    - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+# release:
+#   stage: release
+#   image: node:20
+#   # tags: ["fast"]
+#   script:
+#     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
+#     - npx semantic-release
+#   only:
+#     refs:
+#       - main
+#       - dev
+#       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
 
 tag-latest:
   stage: release
@@ -96,15 +58,12 @@ tag-latest:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script: |
-    docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
-    docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${BACKEND_IMAGE}:latest"
-    docker push "${BACKEND_IMAGE}:latest"
-    docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
-    docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${FRONTEND_IMAGE}:latest"
-    docker push "${FRONTEND_IMAGE}:latest"
+    docker pull "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
+    docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:latest"
+    docker push "${CI_REGISTRY_IMAGE}:latest"
   only:
-   refs:
-    - main
+    refs:
+      - main
 
 tag-latest-dev:
   stage: release
@@ -115,29 +74,25 @@ tag-latest-dev:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script: |
-    docker pull "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}"
-    docker tag "${BACKEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${BACKEND_IMAGE}:latest-dev"
-    docker push "${BACKEND_IMAGE}:latest-dev"
-    docker pull "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}"
-    docker tag "${FRONTEND_IMAGE}:${CI_COMMIT_REF_NAME}" "${FRONTEND_IMAGE}:latest-dev"
-    docker push "${FRONTEND_IMAGE}:latest-dev"
-  only:
-   refs:
-    - dev
-
-restart-deployment:
-  stage: k8s
-  image: ubuntu:latest
-  # tags: ["fast"]
-  before_script:
-    - apt update && apt install curl -y
-    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    - chmod +x kubectl
-    - mv ./kubectl /usr/bin/
-  script:
-    - kubectl rollout restart deployment -n rgw-gui rgw-s3 --insecure-skip-tls-verify --kubeconfig .secure_files/kubeconfig.yaml
+    docker pull "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
+    docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:latest-dev"
+    docker push "${CI_REGISTRY_IMAGE}:latest-dev"
   only:
     refs:
-      - main
       - dev
+# restart-deployment:
+#   stage: k8s
+#   image: ubuntu:latest
+#   # tags: ["fast"]
+#   before_script:
+#     - apt update && apt install curl -y
+#     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+#     - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+#     - chmod +x kubectl
+#     - mv ./kubectl /usr/bin/
+#   script:
+#     - kubectl rollout restart deployment -n rgw-gui rgw-s3 --insecure-skip-tls-verify --kubeconfig .secure_files/kubeconfig.yaml
+#   only:
+#     refs:
+#       - main
+#       - dev
