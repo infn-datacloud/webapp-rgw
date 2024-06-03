@@ -8,14 +8,16 @@ import { deleteObjects } from "../../actions";
 export default function DeleteButton(props: {
   bucket: string;
   objectsToDelete: string[];
+  onDeleted?: () => void;
 }) {
-  const { bucket, objectsToDelete } = props;
+  const { bucket, objectsToDelete, onDeleted } = props;
   const router = useRouter();
   const { notify } = useNotifications();
 
   const deleteObjs = () => {
     deleteObjects(bucket, objectsToDelete)
       .then(() => {
+        onDeleted?.();
         router.refresh();
         notify("Object(s) successfully deleted", "", NotificationType.success);
       })

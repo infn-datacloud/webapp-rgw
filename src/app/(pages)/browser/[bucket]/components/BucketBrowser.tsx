@@ -91,6 +91,10 @@ export default function BucketBrowser(props: BucketBrowserProps) {
     setCurrentPath(newNode);
   };
 
+  const handleOnDeleted = () => {
+    setSelectedObjectsKeys(new Set());
+  };
+
   const handleGoBack = () => {
     const isEmpty = currentPath.children.size === 0;
     const newPath = currentPath.parent;
@@ -125,6 +129,7 @@ export default function BucketBrowser(props: BucketBrowserProps) {
         currentPath={currentPath.path}
         objectsToDelete={Array.from(selectedObjectsKeys.keys())}
         onPathChange={handlePathChange}
+        onDeleted={handleOnDeleted}
       />
       <PathViewer
         bucket={bucket}

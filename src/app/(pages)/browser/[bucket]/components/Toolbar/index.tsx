@@ -10,8 +10,10 @@ export default function Toolbar(props: {
   currentPath: string;
   objectsToDelete: string[];
   onPathChange?: (newPath: string) => void;
+  onDeleted?: () => void;
 }) {
-  const { bucket, currentPath, objectsToDelete, onPathChange } = props;
+  const { bucket, currentPath, objectsToDelete, onPathChange, onDeleted } =
+    props;
   return (
     <div className="flex mt-8 place-content-between">
       <div className="flex space-x-4">
@@ -25,7 +27,11 @@ export default function Toolbar(props: {
           currentPath={currentPath}
           onPathChange={onPathChange}
         />
-        <DeleteButton bucket={bucket} objectsToDelete={objectsToDelete} />
+        <DeleteButton
+          bucket={bucket}
+          objectsToDelete={objectsToDelete}
+          onDeleted={onDeleted}
+        />
       </div>
     </div>
   );
