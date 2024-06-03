@@ -122,9 +122,9 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       const { credentials, groups } = token;
       const expiration = new Date(credentials?.expiration ?? 0);
-      if (expiration < new Date()) {
-        throw "SessionExpired";
-      }
+      // if (expiration < new Date()) {
+      //   throw "SessionExpired";
+      // }
       session.credentials = credentials;
       session.groups = groups;
       return session;
