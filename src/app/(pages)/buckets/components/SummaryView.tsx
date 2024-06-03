@@ -9,6 +9,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import DeleteBucketButton from "./DeleteBucketButton";
 
 export interface BucketSummaryViewProps extends BucketInfo {
   className?: string;
@@ -60,12 +61,7 @@ export const BucketSummaryView = (props: BucketSummaryViewProps) => {
                 title="Edit"
               />
             </Link>
-            <Button
-              className="my-auto pr-4"
-              icon={<TrashIcon />}
-              title="Delete"
-              // onClick={() => onDelete(name)}
-            />
+            <DeleteBucketButton bucket={name} />
           </div>
         </div>
       </div>

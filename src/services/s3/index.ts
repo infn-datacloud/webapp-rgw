@@ -6,6 +6,7 @@ import { AWSConfig, CreateBucketArgs } from "./types";
 import {
   Bucket,
   CreateBucketCommand,
+  DeleteBucketCommand,
   DeleteObjectCommand,
   GetBucketVersioningCommand,
   GetBucketVersioningCommandOutput,
@@ -243,6 +244,11 @@ export class S3Service {
     }
     return result;
   }
+
+  async deleteBucket(bucket: string){
+    const cmd = new DeleteBucketCommand({ Bucket: bucket });
+    return await this.client.send(cmd);
+  };
 
   async uploadObject(
     bucket: string,
