@@ -155,7 +155,7 @@ export class S3Service {
   static computeBucketSummary(bucket: Bucket, objects: _Object[]) {
     const info: BucketInfo = {
       name: bucket.Name ?? "N/A",
-      creation_date: bucket.CreationDate?.toString() ?? "N/A",
+      creation_date: bucket.CreationDate?.toString(),
       rw_access: { read: true, write: true },
       objects: 0,
       size: 0,

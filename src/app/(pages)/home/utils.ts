@@ -1,13 +1,6 @@
 import { Cell, Column, ColumnId, Row, TableData } from "@/components/Table";
 import { BucketInfo } from "@/models/bucket";
-
-export function dateToHuman(date: Date) {
-  return new Intl.DateTimeFormat("it-IT", {
-    dateStyle: "medium",
-    timeStyle: "medium",
-    timeZone: "Europe/Rome",
-  }).format(date);
-}
+import { dateToHuman } from "@/commons/utils";
 
 export function makeTableData(infos: BucketInfo[]): TableData {
   const cols: Column[] = [
@@ -18,7 +11,9 @@ export function makeTableData(infos: BucketInfo[]): TableData {
     const cols = new Map<ColumnId, Cell>();
     const { name, creation_date } = bucketInfo;
     cols.set("bucket", { value: name ?? "N/A" });
-    cols.set("creation_date", { value: dateToHuman(new Date(creation_date)) });
+    cols.set("creation_date", {
+      value: creation_date ? dateToHuman(new Date(creation_date)) : "N/A",
+    });
     return {
       selected: false,
       columns: cols,
@@ -26,3 +21,5 @@ export function makeTableData(infos: BucketInfo[]): TableData {
   });
   return { rows, cols };
 }
+export { dateToHuman };
+

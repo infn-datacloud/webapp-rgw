@@ -26,6 +26,14 @@ export const decodeJwtPayload = (token: string) => {
   return JSON.parse(atob(token.split(".")[1]));
 };
 
+export function dateToHuman(date: Date) {
+  return new Intl.DateTimeFormat("it-IT", {
+    dateStyle: "medium",
+    timeStyle: "medium",
+    timeZone: "Europe/Rome",
+  }).format(date);
+}
+
 export const truncateString = (s: string, length: number) => {
   if (s.length <= length) {
     return s;

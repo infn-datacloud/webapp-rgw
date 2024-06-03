@@ -1,4 +1,4 @@
-import { getHumanSize } from "@/commons/utils";
+import { dateToHuman, getHumanSize } from "@/commons/utils";
 import { Button } from "@/components/Button";
 import { BucketInfo } from "@/models/bucket";
 import {
@@ -40,7 +40,9 @@ export const BucketSummaryView = (props: BucketSummaryViewProps) => {
             <div className="text-xl font-semibold">{name}</div>
             <Subview
               title="Created at:"
-              text={creation_date}
+              text={
+                creation_date ? dateToHuman(new Date(creation_date)) : "N/A"
+              }
               icon={<ClockIcon />}
             />
             <Subview

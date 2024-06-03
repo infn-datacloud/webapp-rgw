@@ -8,8 +8,7 @@ import {
 } from "@/components/Table/types";
 import { _Object } from "@aws-sdk/client-s3";
 import FileIcon from "./components/FileIcon";
-import IsomorphicDate from "@/components/IsomorphicDate";
-import { dateToHuman } from "../../home/utils";
+import { dateToHuman } from "@/commons/utils";
 
 export function initNodePathTree(bucketObjects: _Object[]): NodePath<_Object> {
   const root = new NodePath<_Object>("");
