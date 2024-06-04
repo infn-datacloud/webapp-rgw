@@ -123,6 +123,7 @@ export default function BucketBrowser(props: BucketBrowserProps) {
         bucket={bucket}
         objects={selectedObjects}
         onClose={handleCloseBucketInspector}
+        onDelete={handleOnDeleted}
       />
       <Toolbar
         bucket={bucket}

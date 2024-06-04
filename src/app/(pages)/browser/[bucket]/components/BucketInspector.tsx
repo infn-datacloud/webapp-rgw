@@ -63,10 +63,11 @@ interface BucketInspectorProps extends InspectorProps {
   bucket: string;
   objects: _Object[];
   onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
+  onDelete?: () => void;
 }
 
 export const BucketInspector = (props: BucketInspectorProps) => {
-  const { bucket, isOpen, objects, onClose } = props;
+  const { bucket, isOpen, objects, onClose, onDelete } = props;
   const keys = objects.map(o => o.Key!);
   let object: _Object;
   let title: string;
@@ -111,7 +112,11 @@ export const BucketInspector = (props: BucketInspectorProps) => {
           </section>
           <section className="space-y-3">
             <DownloadButton bucket={bucket} objectsToDownloads={keys} />
-            <DeleteButton bucket={bucket} objectsToDelete={keys} />
+            <DeleteButton
+              bucket={bucket}
+              objectsToDelete={keys}
+              onDeleted={onDelete}
+            />
             <hr className="h-px w-full mt-4 bg-gray-200 border-0"></hr>
           </section>
           <section>
