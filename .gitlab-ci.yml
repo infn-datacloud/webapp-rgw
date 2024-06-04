@@ -9,7 +9,7 @@ next-version:
   image: node:20
   script:
     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
-    - npx semantic-release
+    - npx semantic-release --generate-notes false --dry-run
   artifacts:
     paths:
       - version.txt
