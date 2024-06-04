@@ -62,18 +62,14 @@ export class S3Service {
       RoleSessionName: crypto.randomUUID(),
       WebIdentityToken: access_token,
     });
-    try {
-      const response = await sts.send(command);
-      const credentials = response.Credentials!;
-      return {
-        accessKeyId: credentials.AccessKeyId!,
-        secretAccessKey: credentials.SecretAccessKey!,
-        sessionToken: credentials.SessionToken!,
-        expiration: credentials.Expiration,
-      };
-    } catch (err) {
-      throw Error("Cannot obtain credentials from STS");
-    }
+    const response = await sts.send(command);
+    const credentials = response.Credentials!;
+    return {
+      accessKeyId: credentials.AccessKeyId!,
+      secretAccessKey: credentials.SecretAccessKey!,
+      sessionToken: credentials.SessionToken!,
+      expiration: credentials.Expiration,
+    };
   }
 
   async fetchPublicBuckets() {
@@ -245,10 +241,10 @@ export class S3Service {
     return result;
   }
 
-  async deleteBucket(bucket: string){
+  async deleteBucket(bucket: string) {
     const cmd = new DeleteBucketCommand({ Bucket: bucket });
     return await this.client.send(cmd);
-  };
+  }
 
   async uploadObject(
     bucket: string,
