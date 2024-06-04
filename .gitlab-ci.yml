@@ -27,8 +27,8 @@ build:
     - npm version --git-tag-version false $(cat version.txt)
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-    - docker build --pull -t "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}" backend
-    - docker push "${BACKEND_IMAGE}:${CI_COMMIT_REF_SLUG}"
+    - docker build --pull -t "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}" backend
+    - docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}"
   except:
     - tags
 
