@@ -14,6 +14,7 @@ export default async function Browser(props: { params: { bucket: string } }) {
     const s3 = await makeS3Client();
     objectList = await s3.listObjects(bucket);
   } catch (err) {
+    console.error(err);
     if (err instanceof Error && err.name === "AccessDenied") {
       redirect("/logout");
     } else {

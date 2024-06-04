@@ -25,6 +25,7 @@ export default async function Buckets() {
     const s3 = await makeS3Client();
     bucketsInfos = await s3.getBucketsInfos();
   } catch (err) {
+    console.error(err);
     if (err instanceof Error && err.name === "AccessDenied") {
       redirect("/logout");
     } else {

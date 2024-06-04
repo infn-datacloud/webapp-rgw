@@ -12,8 +12,11 @@ export default async function Home() {
     const bucketsInfos = await s3.getBucketsInfos();
     tableData = makeTableData(bucketsInfos);
   } catch (err) {
+    console.error(err);
     if (err instanceof Error && err.name === "AccessDenied") {
       redirect("/logout");
+    } else {
+      throw err;
     }
   }
 
