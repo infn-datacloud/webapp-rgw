@@ -23,15 +23,18 @@ export default function DownloadButton(props: {
         link.click();
         link.parentNode?.removeChild(link);
       })
-      .catch(err =>
-        err instanceof Error
-          ? notify(
-              "Cannot download file(s)",
-              camelToWords(err.name),
-              NotificationType.error
-            )
-          : console.error(err)
-      );
+      .catch(err => {
+        console.error(err);
+        let message = "Unknown Error";
+        if (err instanceof Error) {
+          switch (err.message) {
+            case "AccessDenied":
+              message = "Access Denied";
+            default:
+          }
+        }
+        notify("Cannot download file(s)", message, NotificationType.error);
+      });
   };
 
   return (

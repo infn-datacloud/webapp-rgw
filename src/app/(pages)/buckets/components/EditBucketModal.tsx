@@ -61,16 +61,18 @@ export default function EditBucketModal() {
         console.warn("bucket is null");
         return;
       }
-      try {
-        const versioning = formData.get("versioning-switch") === "on";
-        const objectLock = formData.get("objectlock-switch") === "on";
-        await setBucketConfiguration(bucket, { versioning, objectLock });
-        router.back();
+
+      const versioning = formData.get("versioning-switch") === "on";
+      const objectLock = formData.get("objectlock-switch") === "on";
+      const error = await setBucketConfiguration(bucket, {
+        versioning,
+        objectLock,
+      });
+      if (!error) {
         notify("Bucket successfully edited", "", NotificationType.success);
-      } catch (err) {
-        err instanceof Error
-          ? notify("Cannot edit bucket", err.name, NotificationType.error)
-          : console.error(err);
+        router.back();
+      } else {
+        notify("Cannot edit bucket", error.message, NotificationType.error);
       }
     };
     submit();

@@ -4,7 +4,7 @@ import Form from "@/components/Form";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { deleteBucket } from "../actions";
 import { NotificationType, useNotifications } from "@/services/notifications";
-import { camelToWords } from "@/commons/utils";
+
 
 export default function DeleteBucketButton(props: { bucket: string }) {
   const { bucket } = props;
@@ -12,22 +12,18 @@ export default function DeleteBucketButton(props: { bucket: string }) {
 
   const action = async () => {
     const submit = async () => {
-      await deleteBucket(bucket);
+      const error = await deleteBucket(bucket);
+      if (!error) {
+        notify("Bucket successfully deleted", "", NotificationType.success);
+      } else {
+        notify(
+          "Cannot not delete bucket",
+          error.message,
+          NotificationType.error
+        );
+      }
     };
-    submit()
-      .then(() =>
-        notify("Bucket successfully deleted", "", NotificationType.success)
-      )
-      .catch(error => {
-        console.log(error);
-        if (error instanceof Error) {
-          notify(
-            "Could not delete bucket",
-            camelToWords(error.message),
-            NotificationType.error
-          );
-        }
-      });
+    submit();
   };
 
   return (

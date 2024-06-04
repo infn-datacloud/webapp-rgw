@@ -4,7 +4,6 @@ import { ArrowUpOnSquareIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { S3Service } from "@/services/s3";
 import { ChangeEvent, useEffect, useReducer, useRef } from "react";
-import { camelToWords } from "@/commons/utils";
 import { s3ClientConfig } from "@/services/s3/actions";
 import { useNotifications } from "@/services/notifications/useNotifications";
 import { NotificationType } from "@/services/notifications/types";
@@ -20,7 +19,6 @@ export default function UploadButton(props: {
   const { notify } = useNotifications();
   const [state, dispatch] = useReducer(reducer, defaultState);
   const s3Ref = useRef<S3Service | null>(null);
-  const notifyRef = useRef(notify);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -68,9 +66,17 @@ export default function UploadButton(props: {
         console.debug("all settled");
         dispatch({ type: "START_UPLOADS", objects: files });
       });
-    } catch (e) {
-      const msg = e instanceof Error ? camelToWords(e.name) : "Unknown Error";
-      notify("Cannot upload file(s)", msg, NotificationType.error);
+    } catch (err) {
+      console.error(err);
+      let message = "Unknown Error";
+      if (err instanceof Error) {
+        switch (err.message) {
+          case "AccessDenied":
+            message = "Access Denied";
+          default:
+        }
+      }
+      notify("Cannot upload file(s)", message, NotificationType.error);
     }
   };
 

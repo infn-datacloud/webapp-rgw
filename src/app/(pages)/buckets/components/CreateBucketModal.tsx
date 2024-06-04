@@ -1,6 +1,5 @@
 "use client";
 import { NotificationType, useNotifications } from "@/services/notifications";
-import { useRouter } from "next/navigation";
 import { createBucket } from "../actions";
 import Modal, { ModalBody, ModalFooter } from "@/components/Modal";
 import Form from "@/components/Form";
@@ -8,7 +7,7 @@ import ToggleSwitch from "@/components/ToggleSwitch";
 import Input from "@/components/Input";
 import { useState } from "react";
 import { Button } from "@/components/Button";
-import { camelToWords } from "@/commons/utils";
+import { useRouter } from "next/navigation";
 
 const bucketValidator = new RegExp(
   "(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$"
@@ -59,8 +58,8 @@ function NewBucketNameInput() {
 }
 
 export default function CreateBucketModal() {
-  const router = useRouter();
   const { notify } = useNotifications();
+  const router = useRouter();
 
   const BucketFeatures = () => {
     return (
@@ -78,20 +77,18 @@ export default function CreateBucketModal() {
     );
   };
 
-  const handleSubmit = (formData: FormData) => {
+  const action = (formData: FormData) => {
     const submit = async () => {
-      try {
-        await createBucket(formData);
-        router.push("/buckets");
+      const error = await createBucket(formData);
+      if (!error) {
         notify("Bucket successfully created", "", NotificationType.success);
-      } catch (err) {
-        err instanceof Error
-          ? notify(
-              "Could not create bucket",
-              camelToWords(err.message),
-              NotificationType.error
-            )
-          : console.error(err);
+        router.back();
+      } else {
+        notify(
+          "Cannot not create bucket",
+          error.message,
+          NotificationType.error
+        );
       }
     };
     submit();
@@ -99,7 +96,7 @@ export default function CreateBucketModal() {
 
   return (
     <Modal title="Create new bucket" id={"create-bucket"}>
-      <Form action={handleSubmit}>
+      <Form action={action}>
         <ModalBody>
           <NewBucketNameInput />
           <BucketFeatures />

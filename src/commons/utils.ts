@@ -26,6 +26,23 @@ export const decodeJwtPayload = (token: string) => {
   return JSON.parse(atob(token.split(".")[1]));
 };
 
+export function parseS3Error(err: unknown) {
+  console.error(err);
+  let message = "Unknown Error";
+  if (err instanceof Error) {
+    switch (err.name) {
+      case "AccessDenied":
+        message = "Access Denied";
+        break;
+      case "BucketNotEmpty":
+        message = "Bucket is not empty";
+        break;
+      default:
+    }
+  }
+  return { message };
+}
+
 export function dateToHuman(date: Date) {
   return new Intl.DateTimeFormat("it-IT", {
     dateStyle: "medium",

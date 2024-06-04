@@ -15,17 +15,21 @@ export default function DeleteButton(props: {
   const { notify } = useNotifications();
 
   const deleteObjs = () => {
-    deleteObjects(bucket, objectsToDelete)
-      .then(() => {
+    const _delete = async () => {
+      const error = await deleteObjects(bucket, objectsToDelete);
+      if (!error) {
         onDeleted?.();
-        router.refresh();
         notify("Object(s) successfully deleted", "", NotificationType.success);
-      })
-      .catch(err => {
-        err instanceof Error
-          ? notify("Cannot delete object(s)", err.name, NotificationType.error)
-          : console.error(err);
-      });
+        router.refresh();
+      } else {
+        notify(
+          "Cannot delete object(s)",
+          error.message,
+          NotificationType.error
+        );
+      }
+    };
+    _delete();
   };
 
   return (

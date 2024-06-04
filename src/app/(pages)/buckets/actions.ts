@@ -1,4 +1,5 @@
 "use server";
+import { parseS3Error } from "@/commons/utils";
 import { BucketConfiguration } from "@/models/bucket";
 import { makeS3Client } from "@/services/s3/actions";
 import { revalidatePath } from "next/cache";
@@ -23,10 +24,14 @@ export async function setBucketConfiguration(
 ) {
   const s3 = await makeS3Client();
   const { versioning, objectLock } = config;
-  await Promise.all([
-    s3.setBucketVersioning(bucket, versioning),
-    // s3.setBucketObjectLock(bucket, objectLock),
-  ]);
+  try {
+    await Promise.all([
+      s3.setBucketVersioning(bucket, versioning),
+      // s3.setBucketObjectLock(bucket, objectLock),
+    ]);
+  } catch (err) {
+    return parseS3Error(err);
+  }
 }
 
 export async function createBucket(formData: FormData) {
@@ -38,8 +43,12 @@ export async function createBucket(formData: FormData) {
     throw Error("bucket name is null");
   }
   const s3 = await makeS3Client();
-  await s3.createBucket({ bucketName, objectLockEnabled, versioningEnabled });
-  revalidatePath("/buckets");
+  try {
+    await s3.createBucket({ bucketName, objectLockEnabled, versioningEnabled });
+    // revalidatePath("/buckets");
+  } catch (err) {
+    return parseS3Error(err);
+  }
 }
 
 export async function deleteBucket(bucket: string) {
@@ -48,10 +57,6 @@ export async function deleteBucket(bucket: string) {
     await s3.deleteBucket(bucket);
     revalidatePath("/buckets");
   } catch (err) {
-    if (err instanceof Error) {
-      throw new Error(err.name);
-    } else {
-      console.log(err);
-    }
+    return parseS3Error(err);
   }
 }
