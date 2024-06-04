@@ -9,6 +9,7 @@ import { useNotifications } from "@/services/notifications/useNotifications";
 import { NotificationType } from "@/services/notifications/types";
 import { ProgressPopup } from "@/components/ProgressPopup";
 import reducer, { defaultState } from "./reducer";
+import { useRouter } from "next/navigation";
 
 export default function UploadButton(props: {
   bucket: string;
@@ -17,6 +18,7 @@ export default function UploadButton(props: {
   const { bucket, currentPath } = props;
   const { status, data } = useSession();
   const { notify } = useNotifications();
+  const router = useRouter();
   const [state, dispatch] = useReducer(reducer, defaultState);
   const s3Ref = useRef<S3Service | null>(null);
 
@@ -41,6 +43,7 @@ export default function UploadButton(props: {
 
   useEffect(() => {
     if (state.allComplete) {
+      router.refresh();
       notify(
         "Upload Complete",
         "All files have been successfully uploaded",
