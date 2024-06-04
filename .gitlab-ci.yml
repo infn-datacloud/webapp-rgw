@@ -22,6 +22,7 @@ build:
   services:
     - docker:dind
   before_script:
+    - apk add npm
     - if [ ! -f version.txt ]; then echo $(git describe --dirty --tags) > version.txt; fi
     - npm version --git-tag-version false $(cat version.txt)
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
