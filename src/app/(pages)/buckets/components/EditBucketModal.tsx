@@ -1,5 +1,4 @@
 "use client";
-import { useNotifications, NotificationType } from "@/services/notifications";
 import { useEffect, useState, useRef } from "react";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,12 +7,12 @@ import { BucketConfiguration } from "@/models/bucket";
 import { Button } from "@/components/Button";
 import Modal, { ModalBody, ModalFooter } from "@/components/Modal";
 import Form from "@/components/Form";
+import { toaster } from "@/components/Toaster/toaster";
 
 export default function EditBucketModal() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const bucket = searchParams.get("bucket");
-  const { notify } = useNotifications();
   const bucketRef = useRef<string>();
 
   const [defaultValues, setDefaultValues] = useState<BucketConfiguration>({
@@ -69,10 +68,10 @@ export default function EditBucketModal() {
         objectLock,
       });
       if (!error) {
-        notify("Bucket successfully edited", "", NotificationType.success);
+        toaster.success("Bucket successfully edited");
         router.back();
       } else {
-        notify("Cannot edit bucket", error.message, NotificationType.error);
+        toaster.danger("Cannot edit bucket", error.message);
       }
     };
     submit();

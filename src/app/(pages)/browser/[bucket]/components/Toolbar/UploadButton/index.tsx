@@ -5,11 +5,10 @@ import { useSession } from "next-auth/react";
 import { S3Service } from "@/services/s3";
 import { ChangeEvent, useEffect, useReducer, useRef } from "react";
 import { s3ClientConfig } from "@/services/s3/actions";
-import { useNotifications } from "@/services/notifications/useNotifications";
-import { NotificationType } from "@/services/notifications/types";
 import { ProgressPopup } from "@/components/ProgressPopup";
 import reducer, { defaultState } from "./reducer";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toaster } from "@/components/Toaster/toaster";
 
 export default function UploadButton(props: {
   bucket: string;
@@ -17,7 +16,6 @@ export default function UploadButton(props: {
 }) {
   const { bucket, currentPath } = props;
   const { status, data } = useSession();
-  const { notify } = useNotifications();
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, defaultState);
   const s3Ref = useRef<S3Service | null>(null);
@@ -43,14 +41,10 @@ export default function UploadButton(props: {
 
   useEffect(() => {
     if (state.allComplete) {
+      toaster.success("All files have been successfully uploaded");
       router.refresh();
-      notify(
-        "Upload Complete",
-        "All files have been successfully uploaded",
-        NotificationType.success
-      );
     }
-  }, [state.allComplete]);
+  }, [state.allComplete, router]);
 
   const uploadFiles = (files: FileObjectWithProgress[]) => {
     const s3 = s3Ref.current;
@@ -79,7 +73,7 @@ export default function UploadButton(props: {
           default:
         }
       }
-      notify("Cannot upload file(s)", message, NotificationType.error);
+      toaster.danger("Cannot upload file(s)", message);
     }
   };
 

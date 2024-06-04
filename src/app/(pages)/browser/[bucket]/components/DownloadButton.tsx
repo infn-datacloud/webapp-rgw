@@ -1,15 +1,13 @@
 import { Button } from "@/components/Button";
-import { NotificationType } from "@/services/notifications/types";
-import { useNotifications } from "@/services/notifications/useNotifications";
 import { ArrowDownCircleIcon } from "@heroicons/react/24/outline";
 import { getPresignedUrlsMap } from "../actions";
+import { toaster } from "@/components/Toaster/toaster";
 
 export default function DownloadButton(props: {
   bucket: string;
   objectsToDownloads: string[];
 }) {
   const { bucket, objectsToDownloads: objectsToDownload } = props;
-  const { notify } = useNotifications();
 
   const downloadObjects = () => {
     getPresignedUrlsMap(bucket, objectsToDownload)
@@ -32,7 +30,7 @@ export default function DownloadButton(props: {
             default:
           }
         }
-        notify("Cannot download file(s)", message, NotificationType.error);
+        toaster.danger("Cannot download file(s)", message);
       });
   };
 

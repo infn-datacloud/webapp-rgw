@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import { Sidebar } from "@/components/Sidebar";
 import "@/app/globals.css";
 import "@/app/index.css";
@@ -21,9 +22,8 @@ export default function RootLayout({
         >
           <Sidebar />
         </aside>
-        <div className="p-4 sm:ml-64">
-          {children}
-        </div>
+        <main className="p-4 sm:ml-64">{children}</main>
+        <Toaster position="top-right"/>
       </body>
     </html>
   );

@@ -1,5 +1,4 @@
 "use client";
-import { NotificationType, useNotifications } from "@/services/notifications";
 import { createBucket } from "../actions";
 import Modal, { ModalBody, ModalFooter } from "@/components/Modal";
 import Form from "@/components/Form";
@@ -8,6 +7,7 @@ import Input from "@/components/Input";
 import { useState } from "react";
 import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
+import { toaster } from "@/components/Toaster/toaster";
 
 const bucketValidator = new RegExp(
   "(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$"
@@ -58,7 +58,6 @@ function NewBucketNameInput() {
 }
 
 export default function CreateBucketModal() {
-  const { notify } = useNotifications();
   const router = useRouter();
 
   const BucketFeatures = () => {
@@ -81,14 +80,10 @@ export default function CreateBucketModal() {
     const submit = async () => {
       const error = await createBucket(formData);
       if (!error) {
-        notify("Bucket successfully created", "", NotificationType.success);
+        toaster.success("Bucket successfully created");
         router.back();
       } else {
-        notify(
-          "Cannot not create bucket",
-          error.message,
-          NotificationType.error
-        );
+        toaster.danger("Cannot not create bucket", error.message);
       }
     };
     submit();
