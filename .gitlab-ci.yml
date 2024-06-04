@@ -8,7 +8,7 @@ next-version:
   stage: prerelease
   image: node:20
   script:
-    - npm install @semantic-release/exec
+    - npm install @semantic-release/exec @semantic-release/gitlab
     - npx semantic-release --generate-notes false --dry-run
   artifacts:
     paths:
