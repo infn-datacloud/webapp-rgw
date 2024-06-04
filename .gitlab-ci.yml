@@ -7,7 +7,7 @@ stages:
 next-version:
   stage: prerelease
   image: node:20
-  script: |
+  script:
     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
     - npx semantic-release
   artifacts:
