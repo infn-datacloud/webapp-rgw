@@ -1,4 +1,3 @@
-import { camelToWords } from "@/commons/utils";
 import { Button } from "@/components/Button";
 import { NotificationType } from "@/services/notifications/types";
 import { useNotifications } from "@/services/notifications/useNotifications";
