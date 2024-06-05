@@ -1,25 +1,16 @@
-import { useState, useEffect, ChangeEvent, useRef } from "react";
+import { useState, ChangeEvent } from "react";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/Button";
 import Modal, { ModalBody, ModalFooter } from "@/components/Modal";
-import { addKeyHandler } from "@/commons/utils";
 import Input from "@/components/Input";
 import Form from "@/components/Form";
-import { useRouter } from "next/navigation";
 
 function ClearButton() {
   return <Button title="Clear" icon={<XMarkIcon />} type="reset" />;
 }
 
 function SubmitButton({ canSubmit }: { canSubmit: boolean }) {
-  return (
-    <Button
-      title="Confirm"
-      icon={<CheckIcon />}
-      disabled={!canSubmit}
-      type="submit"
-    />
-  );
+  return <Button title="Confirm" icon={<CheckIcon />} disabled={!canSubmit} />;
 }
 
 function CurrentPath({ path }: { path: string }) {
@@ -51,25 +42,15 @@ type ModalProps = {
   prefix?: string;
   currentPath: string;
   onPathChange?: (newPath: string) => void;
+  show: boolean;
+  onClose: () => void;
 };
 
 export const NewPathModal = (props: ModalProps) => {
-  const { prefix, currentPath, onPathChange } = props;
+  const { prefix, currentPath, onPathChange, show, onClose } = props;
   const [path, setPath] = useState<string>("");
-  const formRef = useRef<HTMLFormElement>(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    const cleanupKeyHandler = addKeyHandler("Enter", () => {
-      formRef.current?.requestSubmit();
-    });
-    return () => {
-      cleanupKeyHandler();
-    };
-  });
 
   const clear = () => {
-    formRef.current?.reset();
     setPath("");
   };
 
@@ -79,7 +60,7 @@ export const NewPathModal = (props: ModalProps) => {
       const path = currentPath ? `${currentPath}/${newPath}` : newPath;
       onPathChange?.(path);
       clear();
-      router.back();
+      onClose();
     } else {
       console.warn("New path is undefined");
     }
@@ -88,8 +69,8 @@ export const NewPathModal = (props: ModalProps) => {
   const pathIsValid = path.length > 0;
 
   return (
-    <Modal title="Choose or create a new path" id="create-path">
-      <Form ref={formRef} action={handleSubmit}>
+    <Modal title="Choose or create a new path" show={show} onClose={onClose}>
+      <Form action={handleSubmit} className="divide-y">
         <ModalBody>
           <CurrentPath path={`${prefix}/${currentPath}`} />
           <NewPathTextField onChange={setPath} />

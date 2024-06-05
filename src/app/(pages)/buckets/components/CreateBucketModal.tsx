@@ -57,9 +57,12 @@ function NewBucketNameInput() {
   );
 }
 
-export default function CreateBucketModal() {
+export default function CreateBucketModal(props: {
+  show: boolean;
+  onClose: () => void;
+}) {
+  const { show, onClose } = props;
   const router = useRouter();
-
   const BucketFeatures = () => {
     return (
       <div className="mt-4 space-y-2">
@@ -81,7 +84,8 @@ export default function CreateBucketModal() {
       const error = await createBucket(formData);
       if (!error) {
         toaster.success("Bucket successfully created");
-        router.back();
+        router.refresh();
+        onClose();
       } else {
         toaster.danger("Cannot not create bucket", error.message);
       }
@@ -90,7 +94,7 @@ export default function CreateBucketModal() {
   };
 
   return (
-    <Modal title="Create new bucket" id={"create-bucket"}>
+    <Modal title="Create new bucket" show={show} onClose={onClose}>
       <Form action={action}>
         <ModalBody>
           <NewBucketNameInput />

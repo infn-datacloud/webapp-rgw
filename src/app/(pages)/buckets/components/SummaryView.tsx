@@ -1,21 +1,17 @@
 import { dateToHuman, getHumanSize } from "@/commons/utils";
-import { Button } from "@/components/Button";
 import { BucketInfo } from "@/models/bucket";
-import {
-  ChartPieIcon,
-  ClockIcon,
-  CubeIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
+import { ChartPieIcon, ClockIcon, CubeIcon } from "@heroicons/react/24/outline";
 import DeleteBucketButton from "./DeleteBucketButton";
+import EditBucketButton from "./EditBucketButton";
+import { getBucketConfiguration } from "../actions";
 
 export interface BucketSummaryViewProps extends BucketInfo {
   className?: string;
 }
 
-export const BucketSummaryView = (props: BucketSummaryViewProps) => {
+export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
   const { name, creation_date, size, objects, className } = props;
+  const bucketConfiguration = await getBucketConfiguration(name);
   interface SubviewProps {
     title: string;
     text: string;
@@ -53,13 +49,10 @@ export const BucketSummaryView = (props: BucketSummaryViewProps) => {
             <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
           </div>
           <div className="flex flex-col space-y-2">
-            <Link href={`/buckets?bucket=${name}&modal=edit-bucket`}>
-              <Button
-                className="my-auto pr-4"
-                icon={<PencilSquareIcon />}
-                title="Edit"
-              />
-            </Link>
+            <EditBucketButton
+              bucket={name}
+              configuration={bucketConfiguration}
+            />
             <DeleteBucketButton bucket={name} />
           </div>
         </div>

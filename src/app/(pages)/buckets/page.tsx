@@ -23,8 +23,8 @@ export default async function Buckets() {
 
   return (
     <Page title="Buckets">
-      <CreateBucketModal />
-      <EditBucketModal />
+      {/* <CreateBucketModal /> */}
+      {/* <EditBucketModal /> */}
       <Toolbar />
       <BucketsInfos bucketsInfos={bucketsInfos} />
     </Page>
