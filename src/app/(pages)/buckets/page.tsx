@@ -2,8 +2,6 @@ import { Page } from "@/components/Page";
 import { BucketInfo } from "@/models/bucket";
 import { makeS3Client } from "@/services/s3/actions";
 import { BucketSummaryView } from "./components/SummaryView";
-import EditBucketModal from "./components/EditBucketModal";
-import CreateBucketModal from "./components/CreateBucketModal";
 import Toolbar from "./components/Toolbar";
 
 function BucketsInfos(props: { bucketsInfos: BucketInfo[] }) {
@@ -23,8 +21,6 @@ export default async function Buckets() {
 
   return (
     <Page title="Buckets">
-      {/* <CreateBucketModal /> */}
-      {/* <EditBucketModal /> */}
       <Toolbar />
       <BucketsInfos bucketsInfos={bucketsInfos} />
     </Page>
