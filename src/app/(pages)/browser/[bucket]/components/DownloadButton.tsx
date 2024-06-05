@@ -1,7 +1,7 @@
 import { Button } from "@/components/Button";
 import { ArrowDownCircleIcon } from "@heroicons/react/24/outline";
 import { getPresignedUrlsMap } from "../actions";
-import { toaster } from "@/components/Toaster/toaster";
+import { toaster } from "@/components/toaster";
 
 export default function DownloadButton(props: {
   bucket: string;

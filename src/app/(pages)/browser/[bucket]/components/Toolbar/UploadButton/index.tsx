@@ -7,8 +7,8 @@ import { ChangeEvent, useEffect, useReducer, useRef } from "react";
 import { s3ClientConfig } from "@/services/s3/actions";
 import { ProgressPopup } from "@/components/ProgressPopup";
 import reducer, { defaultState } from "./reducer";
-import { useRouter, useSearchParams } from "next/navigation";
-import { toaster } from "@/components/Toaster/toaster";
+import { useRouter } from "next/navigation";
+import { toaster } from "@/components/toaster";
 
 export default function UploadButton(props: {
   bucket: string;

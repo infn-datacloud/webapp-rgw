@@ -3,7 +3,7 @@ import { Button } from "@/components/Button";
 import Form from "@/components/Form";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { deleteBucket } from "../actions";
-import { toaster } from "@/components/Toaster/toaster";
+import { toaster } from "@/components/toaster";
 
 export default function DeleteBucketButton(props: { bucket: string }) {
   const { bucket } = props;

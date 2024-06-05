@@ -3,7 +3,7 @@ import { _Object } from "@aws-sdk/client-s3";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { deleteObjects } from "../../actions";
-import { toaster } from "@/components/Toaster/toaster";
+import { toaster } from "@/components/toaster";
 
 export default function DeleteButton(props: {
   bucket: string;

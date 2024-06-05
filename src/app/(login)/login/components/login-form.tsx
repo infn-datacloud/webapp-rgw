@@ -2,7 +2,7 @@
 import { Button } from "@/components/Button";
 import Form from "@/components/Form";
 import Input from "@/components/Input";
-import { toaster } from "@/components/Toaster/toaster";
+import { toaster } from "@/components/toaster";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";

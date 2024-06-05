@@ -7,7 +7,7 @@ import { BucketConfiguration } from "@/models/bucket";
 import { Button } from "@/components/Button";
 import Modal, { ModalBody, ModalFooter } from "@/components/Modal";
 import Form from "@/components/Form";
-import { toaster } from "@/components/Toaster/toaster";
+import { toaster } from "@/components/toaster";
 
 export default function EditBucketModal() {
   const searchParams = useSearchParams();

@@ -7,7 +7,7 @@ import Input from "@/components/Input";
 import { useState } from "react";
 import { Button } from "@/components/Button";
 import { useRouter } from "next/navigation";
-import { toaster } from "@/components/Toaster/toaster";
+import { toaster } from "@/components/toaster";
 
 const bucketValidator = new RegExp(
   "(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$"
