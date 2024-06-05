@@ -7,7 +7,7 @@ import { BucketConfiguration } from "@/models/bucket";
 
 export default function EditBucketButton(props: {
   bucket: string;
-  configuration: BucketConfiguration;
+  configuration?: BucketConfiguration;
 }) {
   const { bucket, configuration } = props;
   const [show, setShow] = useState(false);
@@ -19,7 +19,9 @@ export default function EditBucketButton(props: {
         bucket={bucket}
         show={show}
         onClose={close}
-        configuration={configuration}
+        configuration={
+          configuration ?? { versioning: false, objectLock: false }
+        }
       />
       <Button
         className="my-auto pr-4"

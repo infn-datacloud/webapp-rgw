@@ -1,5 +1,5 @@
 import { dateToHuman, getHumanSize } from "@/commons/utils";
-import { BucketInfo } from "@/models/bucket";
+import { BucketConfiguration, BucketInfo } from "@/models/bucket";
 import { ChartPieIcon, ClockIcon, CubeIcon } from "@heroicons/react/24/outline";
 import DeleteBucketButton from "./DeleteBucketButton";
 import EditBucketButton from "./EditBucketButton";
@@ -11,7 +11,19 @@ export interface BucketSummaryViewProps extends BucketInfo {
 
 export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
   const { name, creation_date, size, objects, className } = props;
-  const bucketConfiguration = await getBucketConfiguration(name);
+  let bucketConfiguration: BucketConfiguration | undefined = undefined;
+  try {
+    bucketConfiguration = await getBucketConfiguration(name);
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(
+        `cannot fetch bucket configuration for bucket '${name}': error ${err.message}`
+      );
+    } else {
+      console.error(err);
+    }
+  }
+
   interface SubviewProps {
     title: string;
     text: string;
