@@ -7,6 +7,7 @@ import { _Object } from "@aws-sdk/client-s3";
 import Toolbar from "./Toolbar";
 import { NodePath } from "@/commons/utils";
 import PathViewer from "./PathViewer";
+import { useRouter } from "next/navigation";
 
 export type BucketBrowserProps = {
   bucket: string;
@@ -18,6 +19,7 @@ export default function BucketBrowser(props: BucketBrowserProps) {
   const root = useMemo(() => initNodePathTree(bucketObjects), [bucketObjects]);
   const lastNodePath = useRef<NodePath<_Object>>();
   const [currentPath, setCurrentPath] = useState(root);
+  const router = useRouter();
   const [selectedObjectsKeys, setSelectedObjectsKeys] = useState(
     new Set<string>()
   );
@@ -42,12 +44,12 @@ export default function BucketBrowser(props: BucketBrowserProps) {
   useEffect(() => {
     if (lastNodePath.current) {
       const newLast = root.get(lastNodePath.current.path);
-      newLast ? setCurrentPath(newLast) : console.warn("last node not found");
+      newLast ? setCurrentPath(newLast) : setCurrentPath(root);
     } else {
       setCurrentPath(root);
       setSelectedObjectsKeys(new Set<string>());
     }
-  }, [root]);
+  }, [root, bucketObjects]);
 
   const handleCloseBucketInspector = () => {
     setSelectedObjectsKeys(new Set<string>());
@@ -92,6 +94,7 @@ export default function BucketBrowser(props: BucketBrowserProps) {
   };
 
   const handleOnDeleted = () => {
+    router.push(`/browser/${bucket}`);
     setSelectedObjectsKeys(new Set());
   };
 

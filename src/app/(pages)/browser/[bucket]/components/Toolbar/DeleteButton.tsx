@@ -1,7 +1,6 @@
 import { Button } from "@/components/Button";
 import { _Object } from "@aws-sdk/client-s3";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
 import { deleteObjects } from "../../actions";
 import { toaster } from "@/components/toaster";
 
@@ -11,7 +10,6 @@ export default function DeleteButton(props: {
   onDeleted?: () => void;
 }) {
   const { bucket, objectsToDelete, onDeleted } = props;
-  const router = useRouter();
 
   const deleteObjs = () => {
     const _delete = async () => {
@@ -19,7 +17,6 @@ export default function DeleteButton(props: {
       if (!error) {
         onDeleted?.();
         toaster.success("Object(s) successfully deleted");
-        router.refresh();
       } else {
         toaster.danger("Cannot delete object(s)", error.message);
       }
