@@ -60,7 +60,6 @@ export default function UploadButton(props: {
       });
 
       Promise.all(promises).then(() => {
-        console.debug("all settled");
         dispatch({ type: "START_UPLOADS", objects: files });
       });
     } catch (err) {
