@@ -24,7 +24,7 @@ export const Sidebar = async () => {
     <aside
       id="default-sidebar"
       className={
-        "fixed top-0 left-0 z-40 w-64 h-screen transition-transform " +
+        "fixed top-0 left-0 z-5 w-64 h-screen transition-transform " +
         "-translate-x-full sm:translate-x-0 bg-gray-100"
       }
       aria-label="Sidebar"

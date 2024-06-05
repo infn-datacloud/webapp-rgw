@@ -73,7 +73,11 @@ export class S3Service {
   }
 
   async fetchPublicBuckets() {
-    if (!(this.publisherBucket && this.groups)) {
+    // make const copies that won't change after the safety guard
+    const publisherBucket = this.publisherBucket;
+    const groups = this.groups;
+
+    if (!publisherBucket || !groups) {
       console.warn(
         "Bucket publisher or groups not defined",
         this.publisherBucket,
@@ -82,15 +86,26 @@ export class S3Service {
       return [];
     }
 
-    const promises = this.groups.map(async group => {
+    const promises = groups.map(async group => {
       const cmd = new ListObjectsV2Command({
         Bucket: this.publisherBucket,
         Prefix: group,
       });
       return await this.client.send(cmd);
     });
-    const results = await Promise.all(promises);
-    const contents = results.flatMap(bucket => bucket.Contents ?? []);
+
+    let success: ListObjectsV2CommandOutput[] = [];
+    const results = await Promise.allSettled(promises);
+    results.forEach((p, i) => {
+      p.status === "fulfilled"
+        ? success.push(p.value)
+        : console.warn(
+            `cannot list objects for group '${groups[i]}', reason: '${p.reason}'`
+          );
+    });
+
+    const contents = success.flatMap(bucket => bucket.Contents ?? []);
+
     let names = contents.map(c => {
       const keys = c.Key!.split("/");
       return keys[keys.length - 1];
@@ -178,14 +193,13 @@ export class S3Service {
     });
     const results = await Promise.allSettled(promises);
     let bucketsInfos: BucketInfo[] = [];
-    for (const result of results) {
-      result.status === "fulfilled"
-        ? bucketsInfos.push(result.value)
+    results.forEach(p => {
+      p.status === "fulfilled"
+        ? bucketsInfos.push(p.value)
         : console.warn(
-            `cannot fetch bucket '${result.reason.BucketName}', ` +
-              `reason '${result.reason.Code}'`
+            `cannot fetch bucket '${p.reason.BucketName}', ` + `reason: '${p.reason}'`
           );
-    }
+    });
     return bucketsInfos;
   }
 

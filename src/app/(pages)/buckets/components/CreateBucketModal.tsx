@@ -1,6 +1,4 @@
 "use client";
-import { NotificationType, useNotifications } from "@/services/notifications";
-import { useRouter } from "next/navigation";
 import { createBucket } from "../actions";
 import Modal, { ModalBody, ModalFooter } from "@/components/Modal";
 import Form from "@/components/Form";
@@ -8,7 +6,8 @@ import ToggleSwitch from "@/components/ToggleSwitch";
 import Input from "@/components/Input";
 import { useState } from "react";
 import { Button } from "@/components/Button";
-import { camelToWords } from "@/commons/utils";
+import { useRouter } from "next/navigation";
+import { toaster } from "@/components/toaster";
 
 const bucketValidator = new RegExp(
   "(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$"
@@ -58,10 +57,12 @@ function NewBucketNameInput() {
   );
 }
 
-export default function CreateBucketModal() {
+export default function CreateBucketModal(props: {
+  show: boolean;
+  onClose: () => void;
+}) {
+  const { show, onClose } = props;
   const router = useRouter();
-  const { notify } = useNotifications();
-
   const BucketFeatures = () => {
     return (
       <div className="mt-4 space-y-2">
@@ -78,28 +79,23 @@ export default function CreateBucketModal() {
     );
   };
 
-  const handleSubmit = (formData: FormData) => {
+  const action = (formData: FormData) => {
     const submit = async () => {
-      try {
-        await createBucket(formData);
-        router.push("/buckets");
-        notify("Bucket successfully created", "", NotificationType.success);
-      } catch (err) {
-        err instanceof Error
-          ? notify(
-              "Could not create bucket",
-              camelToWords(err.message),
-              NotificationType.error
-            )
-          : console.error(err);
+      const error = await createBucket(formData);
+      if (!error) {
+        toaster.success("Bucket successfully created");
+        router.refresh();
+        onClose();
+      } else {
+        toaster.danger("Cannot not create bucket", error.message);
       }
     };
     submit();
   };
 
   return (
-    <Modal title="Create new bucket" id={"create-bucket"}>
-      <Form action={handleSubmit}>
+    <Modal title="Create new bucket" show={show} onClose={onClose}>
+      <Form action={action}>
         <ModalBody>
           <NewBucketNameInput />
           <BucketFeatures />

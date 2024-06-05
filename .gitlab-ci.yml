@@ -1,58 +1,75 @@
 stages:
-  # - next-version
+  - prerelease
   - build
   - docker
   - release
-  # - k8s
 
-# fetch-next-version:
-#   stage: next-version
-#   image: node:20
-#   # tags: ["fast"]
-#   script: |
-#     npm install @semantic-release/exec @semantic-release/git @semantic-release/gitlab
-#     npx semantic-release --generate-notes false --dry-run
-#     if [ ! -f version.txt ]; then
-#       VERSION=$(git describe --dirty --tags)
-#       echo ${VERSION:1} > version.txt
-#     fi
-#   artifacts:
-#     paths:
-#       - version.txt
-#   except:
-#     - tags
+next-version:
+  stage: prerelease
+  image: node:20
+  script:
+    - npm install @semantic-release/exec @semantic-release/gitlab
+    - npx semantic-release --generate-notes false --dry-run
+  artifacts:
+    paths:
+      - version.txt
+  except:
+    - tags
 
 build:
   stage: docker
   image: docker:latest
-  # tags: ["fast"]
   services:
     - docker:dind
   before_script:
+    - apk add npm
+    - if [ ! -f version.txt ]; then echo $(git describe --dirty --tags) > version.txt; fi
+    - npm version --git-tag-version false $(cat version.txt)
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-    - docker build . --pull -t "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
-    - docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
+    - docker build . --pull -t "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}"
+    - docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}"
   except:
     - tags
 
-# release:
-#   stage: release
-#   image: node:20
-#   # tags: ["fast"]
-#   script:
-#     - npm install @semantic-release/gitlab @semantic-release/exec @semantic-release/git
-#     - npx semantic-release
-#   only:
-#     refs:
-#       - main
-#       - dev
-#       - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+release:
+  stage: release
+  image: node:20
+  script:
+    - npm install @semantic-release/exec @semantic-release/gitlab
+    - npx semantic-release
+  artifacts:
+    paths:
+      - version.txt
+  only:
+    refs:
+      - main
+      - dev
+      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+
+tag-version:
+  stage: release
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - if [ ! -f version.txt ]; then echo "Artifact not found. Skipping job."; exit 0; fi
+    - version=$(cat version.txt)
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+  script: |
+    docker pull "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
+    docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:${version}"
+    docker push "${CI_REGISTRY_IMAGE}:${version}"
+  needs:
+    - release
+  only:
+    refs:
+      - main
+      - dev
 
 tag-latest:
   stage: release
   image: docker:latest
-  # tags: ["fast"]
   services:
     - docker:dind
   before_script:
@@ -61,6 +78,8 @@ tag-latest:
     docker pull "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
     docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:latest"
     docker push "${CI_REGISTRY_IMAGE}:latest"
+  needs:
+    - build
   only:
     refs:
       - main
@@ -68,7 +87,6 @@ tag-latest:
 tag-latest-dev:
   stage: release
   image: docker:latest
-  # tags: ["fast"]
   services:
     - docker:dind
   before_script:
@@ -77,22 +95,8 @@ tag-latest-dev:
     docker pull "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
     docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:latest-dev"
     docker push "${CI_REGISTRY_IMAGE}:latest-dev"
+  needs:
+    - build
   only:
     refs:
       - dev
-# restart-deployment:
-#   stage: k8s
-#   image: ubuntu:latest
-#   # tags: ["fast"]
-#   before_script:
-#     - apt update && apt install curl -y
-#     - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
-#     - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-#     - chmod +x kubectl
-#     - mv ./kubectl /usr/bin/
-#   script:
-#     - kubectl rollout restart deployment -n rgw-gui rgw-s3 --insecure-skip-tls-verify --kubeconfig .secure_files/kubeconfig.yaml
-#   only:
-#     refs:
-#       - main
-#       - dev

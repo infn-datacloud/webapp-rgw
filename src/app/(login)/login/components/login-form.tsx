@@ -1,17 +1,15 @@
 "use client";
-
 import { Button } from "@/components/Button";
 import Form from "@/components/Form";
 import Input from "@/components/Input";
-import { NotificationType, useNotifications } from "@/services/notifications";
+import { toaster } from "@/components/toaster";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 export default function LoginForm() {
-  const { notify } = useNotifications();
   const searchParams = useSearchParams();
-  const notifyRef = useRef(notify);
+
   const { status } = useSession();
   const router = useRouter();
 
@@ -19,8 +17,7 @@ export default function LoginForm() {
     const error = searchParams.get("error");
     const code = searchParams.get("code");
     if (error) {
-      notifyRef.current(code ?? "Unknown Error", "", NotificationType.error);
-      router.push("/login")
+      toaster.danger(code ?? "Unknown Error", "");
     }
   }, [router, searchParams]);
 
@@ -31,14 +28,12 @@ export default function LoginForm() {
   }, [status, router]);
 
   const handleCredentialsLogin = async (formData: FormData) => {
-    router.push("/");
     await signIn(
       "credentials",
       {
         accessKeyId: formData.get("accessKeyId"),
         secretAccessKey: formData.get("secretAccessKey"),
       },
-      { redirect: true }
     );
   };
 

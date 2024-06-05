@@ -4,12 +4,11 @@ import { ArrowUpOnSquareIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { S3Service } from "@/services/s3";
 import { ChangeEvent, useEffect, useReducer, useRef } from "react";
-import { camelToWords } from "@/commons/utils";
 import { s3ClientConfig } from "@/services/s3/actions";
-import { useNotifications } from "@/services/notifications/useNotifications";
-import { NotificationType } from "@/services/notifications/types";
 import { ProgressPopup } from "@/components/ProgressPopup";
 import reducer, { defaultState } from "./reducer";
+import { useRouter } from "next/navigation";
+import { toaster } from "@/components/toaster";
 
 export default function UploadButton(props: {
   bucket: string;
@@ -17,10 +16,9 @@ export default function UploadButton(props: {
 }) {
   const { bucket, currentPath } = props;
   const { status, data } = useSession();
-  const { notify } = useNotifications();
+  const router = useRouter();
   const [state, dispatch] = useReducer(reducer, defaultState);
   const s3Ref = useRef<S3Service | null>(null);
-  const notifyRef = useRef(notify);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -43,13 +41,10 @@ export default function UploadButton(props: {
 
   useEffect(() => {
     if (state.allComplete) {
-      notify(
-        "Upload Complete",
-        "All files have been successfully uploaded",
-        NotificationType.success
-      );
+      toaster.success("All files have been successfully uploaded");
+      router.refresh();
     }
-  }, [state.allComplete]);
+  }, [state.allComplete, router]);
 
   const uploadFiles = (files: FileObjectWithProgress[]) => {
     const s3 = s3Ref.current;
@@ -65,12 +60,19 @@ export default function UploadButton(props: {
       });
 
       Promise.all(promises).then(() => {
-        console.debug("all settled");
         dispatch({ type: "START_UPLOADS", objects: files });
       });
-    } catch (e) {
-      const msg = e instanceof Error ? camelToWords(e.name) : "Unknown Error";
-      notify("Cannot upload file(s)", msg, NotificationType.error);
+    } catch (err) {
+      console.error(err);
+      let message = "Unknown Error";
+      if (err instanceof Error) {
+        switch (err.message) {
+          case "AccessDenied":
+            message = "Access Denied";
+          default:
+        }
+      }
+      toaster.danger("Cannot upload file(s)", message);
     }
   };
 

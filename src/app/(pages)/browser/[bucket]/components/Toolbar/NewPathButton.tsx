@@ -1,7 +1,7 @@
 import { Button } from "@/components/Button";
 import { FolderIcon } from "@heroicons/react/24/outline";
 import { NewPathModal } from "./NewPathModal";
-import Link from "next/link";
+import { useState } from "react";
 
 export type NewPathButton = {
   bucket: string;
@@ -11,16 +11,26 @@ export type NewPathButton = {
 
 export default function NewPathButton(props: NewPathButton) {
   const { bucket, currentPath, onPathChange } = props;
+  const [showModal, setShowModal] = useState(false);
+
+  const open = () => setShowModal(true);
+  const close = () => setShowModal(false);
+
   return (
     <>
       <NewPathModal
+        show={showModal}
         prefix={bucket}
         currentPath={currentPath}
         onPathChange={onPathChange}
+        onClose={close}
       />
-      <Link href={`/browser/${bucket}?modal=create-path`}>
-        <Button title="New path" icon={<FolderIcon />} />
-      </Link>
+      <Button
+        title="New path"
+        icon={<FolderIcon />}
+        onClick={open}
+        type="button"
+      />
     </>
   );
 }

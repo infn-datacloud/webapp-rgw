@@ -1,61 +1,90 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import CloseButton from "./CloseButton";
+import { ReactNode } from "react";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 export interface ModalProps {
   title?: string;
   children?: ReactNode;
-  id: string;
+  show: boolean;
+  onClose: () => void;
 }
 
 export const ModalBody = (props: { children?: ReactNode }) => {
   const { children } = props;
-  return <div className="infn-modal-body">{children}</div>;
+  return <div className="p-4">{children}</div>;
 };
 
 export const ModalFooter = (props: { children?: ReactNode }) => {
   const { children } = props;
   return (
-    <div className="infn-modal-footer">
-      <div className="flex justify-end mt-2 space-x-4">{children}</div>
+    <div className="bottom-0 min-h-8 pt-4 flex justify-end space-x-2">
+      {children}
     </div>
   );
 };
 
 export default function Modal(props: ModalProps) {
-  const { title, children, id } = props;
-  const searchParams = useSearchParams();
-  const [show, setShow] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    const modal = searchParams.get("modal");
-    setShow(modal === id);
-  }, [searchParams, id]);
-
-  const close = () => {
-    router.back();
-  };
+  const { title, children, show, onClose } = props;
 
   return (
-    <div
-      className={`infn-modal ${show ? "show" : "hide"}`}
-      onClick={close}
-      aria-hidden="true"
-    >
-      <div
-        className={`infn-modal-content ${show ? "show" : "hide"}`}
-        onClick={e => e.stopPropagation()}
-        aria-hidden="true"
+    <Transition appear show={show}>
+      <Dialog
+        as="div"
+        className="relative z-10 focus:outline-none"
+        onClose={onClose}
       >
-        <div className="infn-modal-header">
-          <div className="infn-subtitle">{title}</div>
-          <CloseButton onClose={close} />
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-32 mt-16 justify-center p-4">
+            {/* Backdrop */}
+            <TransitionChild
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 transform-[scale(95%)]"
+              enterTo="opacity-100 transform-[scale(100%)]"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 transform-[scale(100%)]"
+              leaveTo="opacity-0 transform-[scale(95%)]"
+            >
+              <div
+                className="fixed inset-0 bg-black/30 z-25"
+                aria-hidden="true"
+              />
+            </TransitionChild>
+            {/* Popup */}
+            <TransitionChild
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 transform-[scale(95%)]"
+              enterTo="opacity-100 transform-[scale(100%)]"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 transform-[scale(100%)]"
+              leaveTo="opacity-0 transform-[scale(95%)]"
+            >
+              <DialogPanel className="w-full max-w-lg rounded-xl z-30 bg-white p-4 divide-y">
+                <DialogTitle as="h2" className="font-bold text-xl pb-2">
+                  <div className="flex justify-between">
+                    {title}
+                    <button onClick={onClose}>
+                      <div className="w-6 p-[3px] bg-neutral-300
+                          text-neutral-500 hover:bg-neutral-400 rounded-full"
+                        aria-label="close"
+                      >
+                        <XMarkIcon />
+                      </div>
+                    </button>
+                  </div>
+                </DialogTitle>
+                {children}
+              </DialogPanel>
+            </TransitionChild>
+          </div>
         </div>
-        {children}
-      </div>
-    </div>
+      </Dialog>
+    </Transition>
   );
 }

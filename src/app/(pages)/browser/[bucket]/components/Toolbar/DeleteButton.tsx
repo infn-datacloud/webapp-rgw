@@ -1,9 +1,8 @@
 import { Button } from "@/components/Button";
-import { NotificationType, useNotifications } from "@/services/notifications";
 import { _Object } from "@aws-sdk/client-s3";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
 import { deleteObjects } from "../../actions";
+import { toaster } from "@/components/toaster";
 
 export default function DeleteButton(props: {
   bucket: string;
@@ -11,21 +10,18 @@ export default function DeleteButton(props: {
   onDeleted?: () => void;
 }) {
   const { bucket, objectsToDelete, onDeleted } = props;
-  const router = useRouter();
-  const { notify } = useNotifications();
 
   const deleteObjs = () => {
-    deleteObjects(bucket, objectsToDelete)
-      .then(() => {
+    const _delete = async () => {
+      const error = await deleteObjects(bucket, objectsToDelete);
+      if (!error) {
         onDeleted?.();
-        router.refresh();
-        notify("Object(s) successfully deleted", "", NotificationType.success);
-      })
-      .catch(err => {
-        err instanceof Error
-          ? notify("Cannot delete object(s)", err.name, NotificationType.error)
-          : console.error(err);
-      });
+        toaster.success("Object(s) successfully deleted");
+      } else {
+        toaster.danger("Cannot delete object(s)", error.message);
+      }
+    };
+    _delete();
   };
 
   return (

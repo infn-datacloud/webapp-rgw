@@ -1,16 +1,13 @@
-import { camelToWords } from "@/commons/utils";
 import { Button } from "@/components/Button";
-import { NotificationType } from "@/services/notifications/types";
-import { useNotifications } from "@/services/notifications/useNotifications";
 import { ArrowDownCircleIcon } from "@heroicons/react/24/outline";
 import { getPresignedUrlsMap } from "../actions";
+import { toaster } from "@/components/toaster";
 
 export default function DownloadButton(props: {
   bucket: string;
   objectsToDownloads: string[];
 }) {
   const { bucket, objectsToDownloads: objectsToDownload } = props;
-  const { notify } = useNotifications();
 
   const downloadObjects = () => {
     getPresignedUrlsMap(bucket, objectsToDownload)
@@ -23,15 +20,18 @@ export default function DownloadButton(props: {
         link.click();
         link.parentNode?.removeChild(link);
       })
-      .catch(err =>
-        err instanceof Error
-          ? notify(
-              "Cannot download file(s)",
-              camelToWords(err.name),
-              NotificationType.error
-            )
-          : console.error(err)
-      );
+      .catch(err => {
+        console.error(err);
+        let message = "Unknown Error";
+        if (err instanceof Error) {
+          switch (err.message) {
+            case "AccessDenied":
+              message = "Access Denied";
+            default:
+          }
+        }
+        toaster.danger("Cannot download file(s)", message);
+      });
   };
 
   return (
