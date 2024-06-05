@@ -53,6 +53,7 @@ tag-version:
   services:
     - docker:dind
   before_script:
+    - if [ ! -f version.txt ]; then echo "Artifact not found. Skipping job."; exit 0; fi
     - version=$(cat version.txt)
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script: |
