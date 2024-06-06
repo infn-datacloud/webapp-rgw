@@ -15,15 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <aside
-          id="default-sidebar"
-          className="fixed top-0 left-0 z-5 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0"
-          aria-label="Sidebar"
-        >
-          <Sidebar />
-        </aside>
+        <Sidebar />
         <main className="p-4 sm:ml-64">{children}</main>
-        <Toaster position="top-right"/>
+        <Toaster position="top-right" />
       </body>
     </html>
   );
