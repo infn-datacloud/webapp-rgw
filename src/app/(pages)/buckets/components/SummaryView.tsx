@@ -42,10 +42,10 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
 
   return (
     <div className={className}>
-      <div className="bg-neutral-100 border p-2">
+      <div className="text-primary bg-secondary border rounded p-2">
         <div className="flex justify-between">
           <div>
-            <div className="text-xl font-semibold">{name}</div>
+            <div className="text-xl font-bold">{name}</div>
             <Subview
               title="Created at:"
               text={
@@ -60,7 +60,7 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
             />
             <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
           </div>
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col justify-between p-4">
             <EditBucketButton
               bucket={name}
               configuration={bucketConfiguration}

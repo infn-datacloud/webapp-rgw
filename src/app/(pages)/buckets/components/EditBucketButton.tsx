@@ -24,7 +24,6 @@ export default function EditBucketButton(props: {
         }
       />
       <Button
-        className="my-auto pr-4"
         icon={<PencilSquareIcon />}
         onClick={open}
         title="Edit"
