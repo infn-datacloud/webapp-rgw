@@ -18,7 +18,8 @@ module.exports = {
         current: "currentColor",
         primary: {
           DEFAULT: "#002a48",
-          50: "#002a4880",
+          50: "#f5fbff",
+          100: "#e0f2ff",
           hover: "#20385a",
           light: "#4196b4",
           hover: "#347890",
