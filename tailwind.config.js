@@ -33,18 +33,18 @@ module.exports = {
         hover: "#ed2639",
       },
     },
+    extend: {
+      container: {
+        center: true,
+      },
+      borderRadius: {
+        DEFAULT: "10px",
+        half: "5px",
+      },
+      textColor: {
+        DEFAULT: "#dc2626",
+      },
+    },
+    plugins: [],
   },
-  extend: {
-    container: {
-      center: true,
-    },
-    borderRadius: {
-      DEFAULT: "10px",
-      half: "5px",
-    },
-    textColor: {
-      DEFAULT: "#dc2626",
-    },
-  },
-  plugins: [],
 };
