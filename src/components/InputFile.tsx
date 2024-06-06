@@ -23,7 +23,12 @@ export const InputFile = ({ onChange, icon }: InputFileProps) => {
         id="fileSelector"
         multiple={true}
       />
-      <Button title="Upload File" icon={icon} onClick={openFileSelector} />
+      <Button
+        title="Upload File"
+        icon={icon}
+        color="primary-outline"
+        onClick={openFileSelector}
+      />
     </div>
   );
 };
