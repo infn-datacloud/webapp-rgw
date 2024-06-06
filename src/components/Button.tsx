@@ -25,29 +25,41 @@ function toColorClasses(colorType: ButtonColor) {
       className = "bg-primary hover:bg-primary-hover text-secondary";
       break;
     case "primary-outline":
-      className =
-        "bg-secondary border border-color-primary text-primary " +
-        "hover:bg-primary-hover";
+      className = "border bg-secondary text-primary " +
+        "hover:bg-primary-hover hover:text-secondary";
       break;
     case "secondary":
-      className = "bg-secondary hover:bg-secondary-hover text-primary";
+      className = "bg-secondary text-primary hover:bg-secondary-hover "
+        + "hover:text-secondary";
       break;
     case "secondary-outline":
-      className = "bg-primary border border-color-secondary text-secondary";
+      className = "border text-secondary bg-primary hover:bg-secondary " +
+      "hover:text-primary";
+      break;
+    case "success":
+      className = "bg-success hover:bg-success-hover text-secondary";
+      break;
+    case "success-outline":
+      className =
+        "border bg-secondary text-success hover:bg-success " +
+        "hover:text-success";
       break;
     case "warning":
       className = "bg-warning hover:bg-warning-hover text-primary";
+      break;
     case "warning-outline":
       className =
-        "bg-secondary border border-color-warning text-warning " +
-        "hover:bg-warning-hover";
+        "bg-secondary border  text-warning " +
+        "hover:bg-warning hover:text-secondary";
+      break;
     case "danger":
       className = "bg-danger text-secondary hover:bg-danger-hover";
       break;
     case "danger-outline":
       className =
-        "bg-secondary border border-color-danger text-danger" +
-        "hover:bg-danger-hover";
+        "bg-secondary border text-danger " +
+        "hover:bg-danger hover:text-secondary ";
+      break;
     default:
   }
   return className;
