@@ -11,12 +11,13 @@ export default function SidebarLink(props: SidebarLinkProps) {
   const { title, href } = props;
   const pathname = usePathname();
 
-  let className =
-    "h-10 mb-2 flex hover:bg-white text-secondary rounded items-center";
+  let className = "p-2 h-10 flex text-secondary rounded-full items-center ";
 
-  // if (pathname == href) {
-  //   className += "rounded-lg bg-gray-200";
-  // }
+  if (pathname == href) {
+    className += "bg-primary-light";
+  } else {
+    className += "hover:bg-primary-hover";
+  }
 
   return (
     <li key={href}>
