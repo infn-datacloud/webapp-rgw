@@ -9,7 +9,7 @@ export default auth(req => {
 
   const sessionNotFound = !session && req.nextUrl.pathname !== "/login";
   if (sessionNotFound) {
-    console.log("Session not found");
+    console.log("session not found");
     const newUrl = new URL("/login", req.nextUrl.origin);
     return Response.redirect(newUrl);
   }
