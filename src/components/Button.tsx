@@ -22,34 +22,41 @@ function toColorClasses(colorType: ButtonColor) {
   let className = "primary";
   switch (colorType) {
     case "primary":
-      className = "bg-primary hover:bg-primary-hover text-secondary";
+      className =
+        "bg-primary hover:bg-primary-hover text-secondary " +
+        "border border-primary";
       break;
     case "primary-outline":
-      className = "border bg-secondary text-primary " +
+      className =
+        "border bg-secondary text-primary border-primary " +
         "hover:bg-primary-hover hover:text-secondary";
       break;
     case "secondary":
-      className = "bg-secondary text-primary hover:bg-secondary-hover "
-        + "hover:text-secondary";
+      className =
+        "bg-secondary text-primary hover:bg-secondary-hover " +
+        "hover:text-secondary border border-secondary";
       break;
     case "secondary-outline":
-      className = "border text-secondary bg-primary hover:bg-secondary " +
-      "hover:text-primary";
+      className =
+        "border text-secondary bg-primary border-secondary " +
+        "hover:bg-secondary hover:text-primary";
       break;
     case "success":
-      className = "bg-success hover:bg-success-hover text-secondary";
+      className =
+        "bg-success hover:bg-success-hover text-secondary " +
+        "border border-success";
       break;
     case "success-outline":
       className =
-        "border bg-secondary text-success hover:bg-success " +
-        "hover:text-success";
+        "border bg-secondary text-success border-success " +
+        "hover:bg-success hover:text-success";
       break;
     case "warning":
       className = "bg-warning hover:bg-warning-hover text-primary";
       break;
     case "warning-outline":
       className =
-        "bg-secondary border  text-warning " +
+        "border bg-secondary text-warning border-warning" +
         "hover:bg-warning hover:text-secondary";
       break;
     case "danger":
@@ -57,7 +64,7 @@ function toColorClasses(colorType: ButtonColor) {
       break;
     case "danger-outline":
       className =
-        "bg-secondary border text-danger " +
+        "border bg-secondary text-danger border-danger " +
         "hover:bg-danger hover:text-secondary ";
       break;
     default:
