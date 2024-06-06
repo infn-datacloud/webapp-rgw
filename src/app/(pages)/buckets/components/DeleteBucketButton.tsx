@@ -23,10 +23,11 @@ export default function DeleteBucketButton(props: { bucket: string }) {
   return (
     <Form action={action}>
       <Button
-        className="my-auto pr-4"
+        className="pr-4"
         icon={<TrashIcon />}
         title="Delete"
         type="submit"
+        color="danger"
       />
     </Form>
   );

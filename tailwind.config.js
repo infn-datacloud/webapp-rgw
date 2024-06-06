@@ -15,12 +15,12 @@ module.exports = {
       secondary: {
         DEFAULT: "#fefefe",
         50: "#fefefe80",
-        hover: "#fefefedd",
+        hover: "#e2e2e2",
       },
       success: {
         DEFAULT: "#3da657",
         50: "#35de2380",
-        hover: "#3da657",
+        hover: "#3da65760",
       },
       warning: {
         DEFAULT: "#ffc107",
