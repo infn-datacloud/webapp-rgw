@@ -6,13 +6,13 @@ export default function Input(props: InputProps) {
   const { className, error, ...others } = props;
 
   const inputClassName =
-    `placeholder:${error ? "text-red-400" : "text-slate-400"} ` +
-    `block bg-white w-full border ${
-      error ? "border-red-400" : "border-slate-400"
+    `placeholder:${error ? "text-danger" : "text-primary-light"} ` +
+    `block bg-secondary w-full border ${
+      error ? "border-danger" : "border-primary"
     } ` +
-    `rounded-md py-2 pl-4 pr-3 shadow-sm focus:outline-none ` +
-    `focus:${error ? "border-red-400" : "border-sky-500"}` +
-    `focus:${error ? "ring-red-400" : "ring-sky-500"}` +
+    `rounded-full py-2 pl-4 pr-3 shadow-sm focus:outline-none ` +
+    `focus:${error ? "border-danger" : "border-primary"}` +
+    `focus:${error ? "ring-red-danger" : "ring-primary"}` +
     `focus: ring-1 smbre: text - sm`;
 
   return (

@@ -12,16 +12,15 @@ export default function SidebarLink(props: SidebarLinkProps) {
   const pathname = usePathname();
 
   let className =
-    "h-10 mb-2 flex hover:text-white hover:bg-infn items-center " +
-    "hover:rounded-lg ph-4 ";
+    "h-10 mb-2 flex hover:bg-white text-secondary rounded items-center";
 
-  if (pathname == href) {
-    className += "rounded-lg bg-gray-200";
-  }
+  // if (pathname == href) {
+  //   className += "rounded-lg bg-gray-200";
+  // }
 
   return (
-    <li className={className} key={href}>
-      <Link className="p-4" href={href}>
+    <li key={href}>
+      <Link className={className} href={href}>
         {title}
       </Link>
     </li>
