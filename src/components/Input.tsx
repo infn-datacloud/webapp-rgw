@@ -10,7 +10,7 @@ export default function Input(props: InputProps) {
     `block bg-secondary w-full border ${
       error ? "border-danger" : "border-primary"
     } ` +
-    `rounded-full py-2 pl-4 pr-3 shadow-sm focus:outline-none ` +
+    `rounded-full py-1 pl-4 pr-3 shadow-sm focus:outline-none ` +
     `focus:${error ? "border-danger" : "border-primary"}` +
     `focus:${error ? "ring-red-danger" : "ring-primary"}` +
     `focus: ring-1 smbre: text - sm`;
