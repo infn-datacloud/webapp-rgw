@@ -7,5 +7,12 @@ export default function HomeButton() {
   const handleClick = () => {
     router.push("/home");
   };
-  return <Button title="Home" icon={<HomeIcon />} onClick={handleClick} />;
+  return (
+    <Button
+      title="Home"
+      icon={<HomeIcon />}
+      color="primary-outline"
+      onClick={handleClick}
+    />
+  );
 }

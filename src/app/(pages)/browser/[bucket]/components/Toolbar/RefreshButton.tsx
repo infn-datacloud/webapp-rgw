@@ -10,6 +10,7 @@ export default function RefreshButton() {
       title="Refresh"
       icon={<ArrowUturnRightIcon />}
       onClick={handleClick}
+      color="primary-outline"
     />
   );
 }
