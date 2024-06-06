@@ -43,7 +43,7 @@ function NewBucketNameInput() {
 
   return (
     <div className="flex justify-between mt-16">
-      <div className="lg:w-52 my-auto">Bucket Name*</div>
+      <div className="lg:w-52 font-bold my-auto">Bucket Name*</div>
       <Input
         name="new-bucket"
         className="w-2/3 px-4"
@@ -101,7 +101,7 @@ export default function CreateBucketModal(props: {
           <BucketFeatures />
         </ModalBody>
         <ModalFooter>
-          <Button title="Clear" type="reset" />
+          <Button title="Clear" type="reset" color="danger-outline" />
           <Button title="Create Bucket" type="submit" />
         </ModalFooter>
       </Form>
