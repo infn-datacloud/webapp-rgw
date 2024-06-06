@@ -1,11 +1,31 @@
 import { auth } from "@/auth";
 import Image from "next/image";
-import logo from "@/imgs/infn.png";
+import logo from "@/imgs/infn-cloud.png";
 import { Links } from "./nav-links";
 import getConfig from "next/config";
 import LogoutButton from "./logout-button";
+import { UserIcon } from "@heroicons/react/24/solid";
 
 const { serverRuntimeConfig = {} } = getConfig() || {};
+
+function UserView(props: { username?: string | null }) {
+  const { username } = props;
+  return (
+    <div className="flex justify-between px-4 py-8">
+      {username ? (
+        <div className="flex">
+          <div className="w-10 p-1 text-primary bg-secondary rounded-full">
+            {<UserIcon />}
+          </div>
+          <h4 className="text-center ml-2 my-auto text-secondary">
+            {username}
+          </h4>
+        </div>
+      ) : null}
+      <LogoutButton />
+    </div>
+  );
+}
 
 export const getStaticProps = function () {
   return {
@@ -24,30 +44,24 @@ export const Sidebar = async () => {
     <aside
       id="default-sidebar"
       className={
-        "fixed top-0 left-0 z-5 w-64 h-screen transition-transform " +
+        "fixed top-0 left-0 z-5 w-80 h-screen transition-transform " +
         "-translate-x-full sm:translate-x-0 bg-primary"
       }
       aria-label="Sidebar"
     >
-      <Image
-        src={logo}
-        className="mx-auto p-4"
-        alt="INFN Cloud"
-        priority={true}
-      />
+      <div className="flex px-4 py-8">
+        <Image src={logo} alt="INFN Cloud" priority={true} width={100} />
+        <h2 className="text-secondary mr-4 mt-auto">Object Storage</h2>
+      </div>
       <div>
-        {username ? (
-          <div className="p-4 mx-auto text-secondary text-xl font-semibold">
-            {username}
-          </div>
-        ) : null}
         <Links />
       </div>
-      <div className="absolute inset-x-0 bottom-20">
-        <LogoutButton />
-      </div>
-      <div className="absolute bottom-2 w-full text-primary text-sm text-center">
-        v{props.appVersion}
+      <div className="absolute inset-x-0 bottom-0">
+        <hr className="w-11/12 mx-auto" />
+        <UserView username={username} />
+        <div className="w-full bg-primary-light text-secondary text-sm text-center">
+          v{props.appVersion}
+        </div>
       </div>
     </aside>
   );

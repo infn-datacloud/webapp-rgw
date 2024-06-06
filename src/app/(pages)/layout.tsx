@@ -5,8 +5,8 @@ import "@/app/globals.css";
 import "@/app/index.css";
 
 export const metadata: Metadata = {
-  title: "INFN Cloud S3 Storage",
-  description: "INFN Cloud S3 Storage",
+  title: "INFN Cloud Object Storage",
+  description: "INFN Cloud Object Storage",
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Sidebar />
-        <main className="p-4 sm:ml-64">{children}</main>
+        <main className="p-4 sm:ml-80">{children}</main>
         <Toaster position="top-right" />
       </body>
     </html>

@@ -1,6 +1,5 @@
 "use client";
 import { ArrowLeftStartOnRectangleIcon } from "@heroicons/react/24/outline";
-import { Button } from "@/components/Button";
 import { signOut } from "next-auth/react";
 
 export default function LogoutButton() {
@@ -9,13 +8,12 @@ export default function LogoutButton() {
   };
 
   return (
-    <Button
-      className="mx-auto w-3/4"
-      title="Logout"
-      icon={<ArrowLeftStartOnRectangleIcon />}
+    <button
+      className="w-8 h-8 my-auto text-secondary rounded-full hover:bg-secondary-hover"
       type="submit"
-      color="secondary"
       onClick={logout}
-    />
+    >
+      <ArrowLeftStartOnRectangleIcon />
+    </button>
   );
 }
