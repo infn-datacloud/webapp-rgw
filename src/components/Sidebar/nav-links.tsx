@@ -3,7 +3,7 @@ import SidebarLink from "./sidebar-link";
 export function Links() {
   return (
     <nav className="p-4">
-      <ul>
+      <ul className="space-y-1">
         <SidebarLink title="Home" href="/home" />
         <SidebarLink title="Buckets" href="/buckets" />
       </ul>
