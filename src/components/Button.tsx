@@ -69,7 +69,7 @@ export const Button = (props: ButtonProps) => {
   const { className, icon, title, color, ...other } = props;
   const colorClasses = toColorClasses(color ?? "primary");
 
-  const buttonClasses = `w-full rounded-full p-2 ${colorClasses}`;
+  const buttonClasses = `w-full rounded-full py-2 px-3 ${colorClasses}`;
   // TODO: `${other.disabled ? "text-neutral-200" : "hover:bg-neutral-200"}`;
 
   return (
