@@ -9,12 +9,13 @@ export default function LogoutButton() {
   };
 
   return (
-      <Button
-        className="w-full"
-        title="Logout"
-        icon={<ArrowLeftStartOnRectangleIcon />}
-        type="submit"
-        onClick={logout}
-      />
+    <Button
+      className="mx-auto w-3/4"
+      title="Logout"
+      icon={<ArrowLeftStartOnRectangleIcon />}
+      type="submit"
+      color="secondary"
+      onClick={logout}
+    />
   );
 }

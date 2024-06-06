@@ -43,7 +43,7 @@ export const Sidebar = async () => {
         ) : null}
         <Links />
       </div>
-      <div className="absolute inset-x-0 mx-4 bottom-20">
+      <div className="absolute inset-x-0 bottom-20">
         <LogoutButton />
       </div>
       <div className="absolute bottom-2 w-full text-primary text-sm text-center">
