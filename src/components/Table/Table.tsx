@@ -27,7 +27,7 @@ export const Table = (props: TableParams) => {
   }
 
   return (
-    <div className="w-full bg-slate-100 shadow-lg rounded-xl">
+    <div className="w-full bg-gray-100 shadow-lg rounded-xl">
       <table className={"table-auto w-full text-sm mt-8 mb-6"}>
         <Header selectable={selectable} columns={cols} />
         <Body
