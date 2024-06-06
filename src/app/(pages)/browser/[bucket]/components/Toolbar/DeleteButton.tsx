@@ -30,6 +30,7 @@ export default function DeleteButton(props: {
       icon={<TrashIcon />}
       onClick={deleteObjs}
       disabled={objectsToDelete.length === 0}
+      color="danger-outline"
     />
   );
 }
