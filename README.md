@@ -11,10 +11,6 @@ The OAuth2 support is provided by the [Auth.js](https://authjs.dev) framework,
 while all S3 operations are implemented using the official
 [AWS SDK for javascript](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/).
 
-## Indigo IAM Configuration
-
-Before deploying the webapp, a new client must be registered on Indigo IAM.
-
 
 ## IAM Client Configuration
 
@@ -36,6 +32,7 @@ It is possible to configure more than one redirect URI.
 
 For development:
 ```shell
+http://localhost:8080/auth/callback/indigo-iam  # and/or
 http://localhost:8080/auth/callback/indigo-iam
 ```
 
@@ -82,7 +79,7 @@ found at [envs/example.env](envs/example.env).
 
 The application needs a secret to encrypt/decrypt session cookies.
 
-> **N.B.**: This is a *real* and must kept secure.
+> **N.B.**: This is a *real* secret and must be kept secure.
 
 You can generate an `AUTH_SECRET` with the following command:
 
@@ -91,7 +88,7 @@ openssl rand -base64 32
 ```
 
 
-#### Multi replica
+#### Multi-replicas
 
 If you are are going to the deploy in high availability, thus in manifold
 replicas, use the same `AUTH_SECRET` for each replica. In this way, sessions
