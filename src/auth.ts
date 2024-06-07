@@ -42,7 +42,7 @@ const IamProvider: OIDCConfig<Profile> = {
   clientSecret: process.env.IAM_CLIENT_SECRET,
   authorization: {
     params: {
-      scope: "openid email profile",
+      scope: process.env.IAM_SCOPE,
       audience: process.env.IAM_AUDIENCE,
     },
   },
