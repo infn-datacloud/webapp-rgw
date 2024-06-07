@@ -28,13 +28,10 @@ export default function LoginForm() {
   }, [status, router]);
 
   const handleCredentialsLogin = async (formData: FormData) => {
-    await signIn(
-      "credentials",
-      {
-        accessKeyId: formData.get("accessKeyId"),
-        secretAccessKey: formData.get("secretAccessKey"),
-      },
-    );
+    await signIn("credentials", {
+      accessKeyId: formData.get("accessKeyId"),
+      secretAccessKey: formData.get("secretAccessKey"),
+    });
   };
 
   const handleIAMLogin = async () => {
@@ -51,7 +48,11 @@ export default function LoginForm() {
           type="password"
           required
         />
-        <Button className="w-full" title="Login" type="submit" />
+        <Button
+          className="w-full"
+          title="Login with credentials"
+          type="submit"
+        />
       </Form>
       <Form action={handleIAMLogin}>
         <Button
