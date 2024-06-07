@@ -50,7 +50,7 @@ export default function LoginForm() {
         />
         <Button
           className="w-full"
-          title="Login with credentials"
+          title="Login with local credentials"
           type="submit"
         />
       </Form>
