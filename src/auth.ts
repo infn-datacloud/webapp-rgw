@@ -83,9 +83,15 @@ const CredentialsProvider = Credentials({
       console.error(err);
       return null;
     }
+
+    const expires_in = process.env.S3_ROLE_DURATION_SECONDS
+      ? parseInt(process.env.S3_ROLE_DURATION_SECONDS)
+      : 600;
+    const expiration = new Date(Date.now() + expires_in * 1000);
+
     return {
       id: accessKeyId,
-      credentials: { accessKeyId, secretAccessKey },
+      credentials: { accessKeyId, secretAccessKey, expiration },
     };
   },
 });
