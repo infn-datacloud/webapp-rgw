@@ -21,14 +21,9 @@ export async function makeS3Client() {
   if (!session) {
     throw Error("Session is not available");
   }
-  const { credentials, expires, groups } = session;
+  const { credentials, groups } = session;
   if (!credentials) {
     throw new Error("Cannot find credentials");
-  }
-
-  if (new Date(expires) < new Date()) {
-    console.log("session expired");
-    redirect("/logout");
   }
 
   const s3Config = await s3ClientConfig(credentials);
