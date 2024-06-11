@@ -82,9 +82,9 @@ export const Button = (props: ButtonProps) => {
   return (
     <div className={className}>
       <button className={buttonClasses} {...other}>
-        <div className="flex justify-center w-full">
-          {icon ? <div className="w-5 mr-2 my-auto">{icon}</div> : null}
-          <small>{title}</small>
+        <div className="flex w-full justify-center">
+          {icon ? <div className="my-auto mr-2 w-5">{icon}</div> : null}
+          {title}
         </div>
       </button>
     </div>
