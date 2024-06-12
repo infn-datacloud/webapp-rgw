@@ -43,7 +43,7 @@ export const Sidebar = async () => {
 
   return (
     <>
-      <header className="z-5 fixed lg:w-80 left-0 top-0 h-16 w-full bg-primary">
+      <header className="z-5 fixed left-0 top-0 h-16 w-full bg-primary lg:w-80">
         <div className="flex h-full justify-between px-4">
           <div className="flex py-2">
             <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
@@ -55,7 +55,7 @@ export const Sidebar = async () => {
       <aside
         id="left-sidebar"
         className={
-          "z-5 fixed left-0 top-16 h-screen w-80 -translate-x-full bg-primary transition-transform lg:translate-x-0"
+          "z-5 fixed bottom-0 left-0 top-16 w-80 -translate-x-full bg-primary transition-transform lg:translate-x-0"
         }
         aria-label="Sidebar"
       >
