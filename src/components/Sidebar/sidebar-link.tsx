@@ -19,9 +19,14 @@ export default function SidebarLink(props: Readonly<SidebarLinkProps>) {
     className += "hover:bg-primary-hover";
   }
 
+  const hideSidebar = () => {
+    const dismissButton = document.getElementById("sidebar-dismiss-btn");
+    dismissButton?.click();
+  };
+
   return (
     <li key={href}>
-      <Link className={className} href={href}>
+      <Link className={className} href={href} onClick={hideSidebar}>
         {title}
       </Link>
     </li>

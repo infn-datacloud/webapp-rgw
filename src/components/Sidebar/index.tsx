@@ -6,6 +6,7 @@ import getConfig from "next/config";
 import LogoutButton from "./logout-button";
 import { UserIcon } from "@heroicons/react/24/solid";
 import BurgerButton from "./burger-button";
+import DismissButton from "./dismiss-button";
 
 const { serverRuntimeConfig = {} } = getConfig() || {};
 
@@ -43,7 +44,11 @@ export const Sidebar = async () => {
 
   return (
     <>
-      <header className="z-5 fixed left-0 top-0 h-16 w-screen bg-primary lg:w-80">
+      <DismissButton
+        id="sidebar-dismiss-btn"
+        className="fixed inset-0 z-10 hidden transition-transform"
+      />
+      <header className="fixed left-0 top-0 z-30 h-16 w-screen bg-primary lg:w-80">
         <div className="flex h-full justify-between px-4">
           <div className="flex py-2">
             <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
@@ -55,7 +60,7 @@ export const Sidebar = async () => {
       <aside
         id="left-sidebar"
         className={
-          "z-5 fixed bottom-0 left-0 top-16 w-80 -translate-x-full bg-primary transition-transform lg:translate-x-0"
+          "fixed bottom-0 left-0 top-16 z-30 w-80 -translate-x-full bg-primary transition-transform lg:translate-x-0"
         }
         aria-label="Sidebar"
       >

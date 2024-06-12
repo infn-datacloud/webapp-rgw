@@ -20,6 +20,9 @@
   .text-balance {
     text-wrap: balance;
   }
+  .show-sidebar {
+    @apply translate-x-0;
+  }
 }
 
 @layer base {
