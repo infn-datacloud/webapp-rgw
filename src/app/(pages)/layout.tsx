@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Sidebar />
-        <main className="p-4 sm:ml-80">{children}</main>
+        <main className="p-4 lg:ml-80 mt-16 lg:mt-0">{children}</main>
         <Toaster position="top-right" />
       </body>
     </html>

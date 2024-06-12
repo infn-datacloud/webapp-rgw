@@ -7,14 +7,14 @@ type SidebarLinkProps = {
   href: string;
 };
 
-export default function SidebarLink(props: SidebarLinkProps) {
+export default function SidebarLink(props: Readonly<SidebarLinkProps>) {
   const { title, href } = props;
   const pathname = usePathname();
 
-  let className = "p-2 h-10 flex text-secondary rounded-full items-center ";
+  let className = "p-4 h-10 flex text-secondary rounded-full items-center ";
 
-  if (pathname == href) {
-    className += "bg-primary-light";
+  if (pathname == href || pathname === "/browser") {
+    className += "bg-primary-light bg-blend-multiply";
   } else {
     className += "hover:bg-primary-hover";
   }
