@@ -60,7 +60,7 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
             />
             <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
           </div>
-          <div className="mx-auto flex max-w-24 space-x-2 p-4 sm:mr-0 sm:flex-col sm:space-x-0 sm:space-y-4">
+          <div className="ml-auto mr-0 flex space-x-2 p-4 sm:flex-col sm:space-x-0 sm:space-y-4">
             <EditBucketButton
               bucket={name}
               configuration={bucketConfiguration}
