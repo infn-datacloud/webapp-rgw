@@ -5,7 +5,7 @@ import { Suspense } from "react";
 
 export default function Login() {
   return (
-    <div className="m-auto mt-16 w-2/3 min-w-48 max-w-3xl rounded-lg bg-secondary p-8 md:w-1/2">
+    <div className="m-auto mt-16 w-11/12 max-w-2xl rounded-lg bg-secondary p-8 sm:w-1/2">
       <h1 className="mx-auto text-center text-primary">
         INFN Cloud Object Storage
       </h1>
@@ -17,7 +17,7 @@ export default function Login() {
         priority={true}
       />
       <h2 className="mx-auto text-center text-primary">Welcome</h2>
-      <div className="mx-auto mt-8 flex flex-col space-y-2 min-w-full md:w-1/2 sm:min-w-0">
+      <div className="mx-auto mt-8 flex flex-col space-y-2 max-w-48">
         <Suspense>
           <LoginForm />
         </Suspense>
