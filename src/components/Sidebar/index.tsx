@@ -45,8 +45,8 @@ export const Sidebar = async () => {
     <>
       <header className="z-5 fixed lg:w-80 left-0 top-0 h-16 w-full bg-primary">
         <div className="flex h-full justify-between px-4">
-          <div className="flex">
-            <Image src={logo} alt="INFN Cloud" priority={true} width={100} />
+          <div className="flex py-2">
+            <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
             <h2 className="mr-4 mt-auto text-secondary">Object Storage</h2>
           </div>
           <BurgerButton />
