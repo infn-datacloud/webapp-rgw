@@ -9,7 +9,7 @@ export const Page = (props: Props) => {
     <>
       <h1 className="text-primary">{title}</h1>
       <hr className="h-px w-full mt-2 mb-8 bg-gray-200 border-0" />
-      <div className="container px-16">{children}</div>
+      <div className="container lg:px-16">{children}</div>
     </>
   );
 };
