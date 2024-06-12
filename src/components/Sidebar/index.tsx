@@ -43,7 +43,7 @@ export const Sidebar = async () => {
 
   return (
     <>
-      <header className="z-5 fixed left-0 top-0 h-16 w-full bg-primary lg:w-80">
+      <header className="z-5 fixed left-0 top-0 h-16 w-screen bg-primary lg:w-80">
         <div className="flex h-full justify-between px-4">
           <div className="flex py-2">
             <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
