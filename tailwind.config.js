@@ -20,8 +20,11 @@ module.exports = {
           DEFAULT: "#002a48",
           50: "#f5fbff",
           100: "#e0f2ff",
+          200: "#485c79",
           hover: "#20385a",
-          light: "#4196b4",
+        },
+        light: {
+          DEFAULT: "#4196b4",
           hover: "#347890",
         },
         secondary: {
