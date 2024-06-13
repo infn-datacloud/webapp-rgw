@@ -10,10 +10,12 @@ import reducer, { defaultState } from "./reducer";
 import { useRouter } from "next/navigation";
 import { toaster } from "@/components/toaster";
 
-export default function UploadButton(props: {
-  bucket: string;
-  currentPath: string;
-}) {
+export default function UploadButton(
+  props: Readonly<{
+    bucket: string;
+    currentPath: string;
+  }>
+) {
   const { bucket, currentPath } = props;
   const { status, data } = useSession();
   const router = useRouter();
