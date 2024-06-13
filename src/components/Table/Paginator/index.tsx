@@ -1,9 +1,3 @@
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronDoubleLeftIcon,
-  ChevronDoubleRightIcon,
-} from "@heroicons/react/24/outline";
 import PaginatorButton from "./page-button";
 
 export interface PaginatorProps {
