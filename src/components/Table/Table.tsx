@@ -27,18 +27,20 @@ export const Table = (props: TableParams) => {
   }
 
   return (
-    <div className="w-full rounded-xl bg-gray-100 shadow-lg">
-      <table className={"mb-6 mt-8 w-full table-auto text-sm"}>
-        <Header selectable={selectable} columns={cols} />
-        <Body
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-          data={data}
-          selectable={selectable}
-          onSelect={onSelect}
-          onClick={onClick}
-        />
-      </table>
+    <div className="relative w-full overflow-auto rounded-xl bg-gray-100 shadow-lg">
+      <div className="my-8 overflow-hidden shadow-sm">
+        <table className={"w-full table-auto text-sm"}>
+          <Header selectable={selectable} columns={cols} />
+          <Body
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            data={data}
+            selectable={selectable}
+            onSelect={onSelect}
+            onClick={onClick}
+          />
+        </table>
+      </div>
       <Paginator
         currentPage={currentPage}
         numberOfPages={numberOfPages}

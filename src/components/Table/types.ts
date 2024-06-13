@@ -1,5 +1,6 @@
 export interface Cell {
   value: string | React.ReactElement;
+  className?: string;
 }
 
 export interface Column {

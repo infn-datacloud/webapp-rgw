@@ -5,10 +5,6 @@ export interface HeaderProps {
   columns: Column[];
 }
 
-const thClassName =
-  "border-b font-medium p-4 first:pl-8 last:pr-8 pt-0" +
-  "pb-3 text-left text-slate-800";
-
 export const Header = (props: HeaderProps) => {
   const { selectable, columns } = props;
   return (
@@ -16,7 +12,10 @@ export const Header = (props: HeaderProps) => {
       <tr>
         {selectable ? <th></th> : null}
         {columns.map(column => (
-          <th className={thClassName} key={column.id}>
+          <th
+            className="border-b pb-3 pt-0 text-left font-medium text-slate-800 first:pl-8 last:pr-8"
+            key={column.id}
+          >
             {column.name}
           </th>
         ))}

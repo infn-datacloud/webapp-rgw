@@ -1,4 +1,3 @@
-import { truncateString } from "@/commons/utils";
 import { Row, TableData } from "./types";
 
 interface SelectableCellProps {
@@ -29,14 +28,15 @@ type TableDataCellProps = {
   children?: React.ReactNode;
   title?: string;
   onClick?: () => void;
+  className?: string;
 };
 
 function TableDataCell(props: Readonly<TableDataCellProps>) {
-  const { children, title, onClick } = props;
+  const { children, title, onClick, className } = props;
   return (
     <td
       title={title}
-      className="text-ellipsis border-b border-slate-100 p-4 text-left first:pl-8 last:pr-8"
+      className={"border-b border-slate-100 p-4 text-left " + className}
       onClick={onClick}
     >
       {children}
@@ -58,12 +58,14 @@ function TableRow(props: Readonly<TableRowProps>) {
   const cells = columnsIds.map(colId => {
     const cell = row.columns.get(colId);
     const value = cell?.value ?? "N/A";
-    let title = "";
-    if (typeof value === "string") {
-      title = truncateString(value, 32);
-    }
+    const title = typeof value === "string" ? value : "";
     return (
-      <TableDataCell title={title} key={colId} onClick={onClick}>
+      <TableDataCell
+        title={title}
+        key={colId}
+        onClick={onClick}
+        className={cell?.className}
+      >
         {value}
       </TableDataCell>
     );
@@ -71,7 +73,7 @@ function TableRow(props: Readonly<TableRowProps>) {
 
   return (
     <tr
-      className="mx-0 text-slate-500 hover:cursor-pointer hover:bg-slate-200 hover:text-slate-800"
+      className="mx-0 cursor-pointer text-primary hover:bg-slate-200 hover:text-primary-hover"
       key={row.id}
     >
       {selectable ? (
@@ -112,7 +114,7 @@ export const Body = (props: BodyProps) => {
   const columnIds = cols.map(col => col.id);
 
   return (
-    <tbody className="mx-0 bg-white">
+    <tbody className="bg-white">
       {visibleRows.map((row, rowIndex) => {
         const absoluteIndex = rowIndex + currentPage * itemsPerPage;
         return (

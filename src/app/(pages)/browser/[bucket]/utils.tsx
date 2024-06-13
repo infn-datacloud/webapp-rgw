@@ -27,7 +27,7 @@ function computeRow(node: NodePath<_Object>, selected: boolean = false): Row {
   };
   const columns = new Map<string, Cell>([
     ["icon", { value: <Icon /> }],
-    ["name", { value: node.basename }],
+    ["name", { value: node.basename, className: "break-all" }],
     ["last_modified", { value: dateToHuman(node.lastModified) }],
     ["bucket_size", { value: getHumanSize(node.size) }],
   ]);
