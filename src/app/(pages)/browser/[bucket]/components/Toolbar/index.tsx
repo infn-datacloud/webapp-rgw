@@ -3,7 +3,6 @@ import UploadButton from "./UploadButton";
 import RefreshButton from "./RefreshButton";
 import NewPathButton from "./NewPathButton";
 import DeleteButton from "./DeleteButton";
-import { _Object } from "@aws-sdk/client-s3";
 
 export default function Toolbar(
   props: Readonly<{
