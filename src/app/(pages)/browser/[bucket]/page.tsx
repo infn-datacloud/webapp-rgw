@@ -4,7 +4,9 @@ import { Page } from "@/components/Page";
 import { _Object } from "@aws-sdk/client-s3";
 import { redirect } from "next/navigation";
 
-export default async function Browser(props: { params: { bucket: string } }) {
+export default async function Browser(
+  props: Readonly<{ params: { bucket: string } }>
+) {
   const { params } = props;
   const { bucket } = params;
 
