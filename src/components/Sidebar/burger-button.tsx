@@ -16,7 +16,10 @@ export default function BurgerButton() {
   }
 
   return (
-    <button className="my-auto lg:hidden" onClick={toggleSidebar}>
+    <button
+      className="my-auto rounded-md p-1 transition hover:bg-primary-hover active:bg-primary-200 lg:hidden"
+      onClick={toggleSidebar}
+    >
       <Bars3Icon className="w-8 text-secondary" />
     </button>
   );
