@@ -1,30 +1,89 @@
-import { truncateString } from "../../commons/utils";
-import { TableData } from "./types";
+import { truncateString } from "@/commons/utils";
+import { Row, TableData } from "./types";
 
 interface SelectableCellProps {
-  index: number;
   selected: boolean;
-  onSelect?: (selected: boolean, index: number) => void;
+  onSelect?: (selected: boolean) => void;
 }
 
 const SelectableCell = (props: SelectableCellProps) => {
-  const { index, selected, onSelect } = props;
+  const { selected, onSelect } = props;
   return (
     <td
       className="pl-4"
       onClick={_ => {
-        onSelect?.(!selected, index);
+        onSelect?.(!selected);
       }}
     >
       <input
         type="checkbox"
         checked={selected}
-        onChange={el => onSelect?.(el.target.checked, index)}
+        onChange={el => onSelect?.(el.target.checked)}
         id="table-checkbox"
       />
     </td>
   );
 };
+
+type TableDataCellProps = {
+  children?: React.ReactNode;
+  title?: string;
+  onClick?: () => void;
+};
+
+function TableDataCell(props: Readonly<TableDataCellProps>) {
+  const { children, title, onClick } = props;
+  return (
+    <td
+      title={title}
+      className="text-ellipsis border-b border-slate-100 p-4 text-left first:pl-8 last:pr-8"
+      onClick={onClick}
+    >
+      {children}
+    </td>
+  );
+}
+
+type TableRowProps = {
+  row: Row;
+  columnsIds: string[];
+  selectable?: boolean;
+  onClick?: () => void;
+  onSelect?: (selected: boolean) => void;
+};
+
+function TableRow(props: Readonly<TableRowProps>) {
+  const { row, columnsIds, selectable, onClick, onSelect } = props;
+
+  const cells = columnsIds.map(colId => {
+    const cell = row.columns.get(colId);
+    const value = cell?.value ?? "N/A";
+    let title = "";
+    if (typeof value === "string") {
+      title = truncateString(value, 32);
+    }
+    return (
+      <TableDataCell title={title} key={colId} onClick={onClick}>
+        {value}
+      </TableDataCell>
+    );
+  });
+
+  return (
+    <tr
+      className="mx-0 text-slate-500 hover:cursor-pointer hover:bg-slate-200 hover:text-slate-800"
+      key={row.id}
+    >
+      {selectable ? (
+        <SelectableCell
+          selected={row.selected}
+          onSelect={selected => onSelect?.(selected)}
+        />
+      ) : null}
+      {cells}
+    </tr>
+  );
+}
 
 export interface BodyProps {
   currentPage: number;
@@ -53,47 +112,20 @@ export const Body = (props: BodyProps) => {
   const columnIds = cols.map(col => col.id);
 
   return (
-    <tbody className="bg-white">
+    <tbody className="mx-0 bg-white">
       {visibleRows.map((row, rowIndex) => {
         const absoluteIndex = rowIndex + currentPage * itemsPerPage;
         return (
-          <tr
-            className="hover:bg-slate-200 text-slate-500
-             hover:text-slate-800 hover:cursor-pointer"
+          <TableRow
+            row={row}
+            columnsIds={columnIds}
             key={row.id}
-          >
-            {selectable ? (
-              <SelectableCell
-                index={absoluteIndex}
-                selected={row.selected}
-                onSelect={onSelect}
-              />
-            ) : null}
-            {columnIds.map((colId, index) => {
-              const cell = row.columns.get(colId);
-              if (!cell) {
-                return <td key={`${colId}${index}`}>N/A</td>;
-              }
-              const { value } = cell;
-              let title = "";
-              if (typeof value === "string") {
-                title = truncateString(value, 32);
-              }
-              return (
-                <td
-                  title={title}
-                  className={
-                    "border-b border-slate-100 p-4 first:pl-8 " +
-                    "last:pr-8 text-left " + colId
-                  }
-                  onClick={_ => onClick?.(absoluteIndex)}
-                  key={colId}
-                >
-                  {value}
-                </td>
-              );
-            })}
-          </tr>
+            selectable={selectable}
+            onClick={() => onClick?.(absoluteIndex)}
+            onSelect={(selected: boolean) =>
+              onSelect?.(selected, absoluteIndex)
+            }
+          />
         );
       })}
     </tbody>
