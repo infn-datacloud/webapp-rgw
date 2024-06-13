@@ -27,8 +27,8 @@ export const Table = (props: TableParams) => {
   }
 
   return (
-    <div className="w-full bg-gray-100 shadow-lg rounded-xl">
-      <table className={"table-auto w-full text-sm mt-8 mb-6"}>
+    <div className="w-full rounded-xl bg-gray-100 shadow-lg">
+      <table className={"mb-6 mt-8 w-full table-auto text-sm"}>
         <Header selectable={selectable} columns={cols} />
         <Body
           currentPage={currentPage}
