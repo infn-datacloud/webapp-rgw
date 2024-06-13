@@ -24,7 +24,7 @@ export default function UploadButton(
 
   useEffect(() => {
     if (status === "authenticated") {
-      if (!data || !data.credentials) {
+      if (!data?.credentials) {
         throw new Error("Session not found");
       }
       s3ClientConfig(data.credentials).then(config => {
