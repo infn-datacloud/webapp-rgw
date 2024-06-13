@@ -84,7 +84,7 @@ export const Button = (props: ButtonProps) => {
       <button className={buttonClasses} {...other}>
         <div className="flex w-full justify-center">
           {icon ? <div className="my-auto mr-2 w-5">{icon}</div> : null}
-          <small>{title}</small>
+          <small className="whitespace-nowrap">{title}</small>
         </div>
       </button>
     </div>
