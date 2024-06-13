@@ -99,6 +99,9 @@ export default function BucketBrowser(props: Readonly<BucketBrowserProps>) {
   };
 
   const handleGoBack = () => {
+    if (!currentPath.parent) {
+      router.push("/home");
+    }
     const isEmpty = currentPath.children.size === 0;
     const newPath = currentPath.parent;
     if (newPath) {
