@@ -1,10 +1,10 @@
 import { Page } from "@/components/Page";
 import { makeS3Client } from "@/services/s3/actions";
 import { makeTableData } from "./utils";
-import BucketsTable from "./buckets-table";
+import BucketsTable from "./components/buckets-table";
 import { auth } from "@/auth";
 
-export default async function Home() {
+export default async function Browser() {
   const session = await auth();
   if (session) {
     console.log(session.expires);
@@ -15,7 +15,7 @@ export default async function Home() {
   const tableData = makeTableData(bucketsInfos);
 
   return (
-    <Page title="Home">
+    <Page title="Browser">
       <div className="flex place-content-center">
         <BucketsTable data={tableData} />
       </div>

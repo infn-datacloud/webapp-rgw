@@ -4,7 +4,7 @@ export function Links() {
   return (
     <nav className="p-4">
       <ul className="space-y-1">
-        <SidebarLink title="Home" href="/home" />
+        <SidebarLink title="Browser" href="/browser" />
         <SidebarLink title="Buckets" href="/buckets" />
       </ul>
     </nav>

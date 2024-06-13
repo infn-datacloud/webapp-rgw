@@ -11,9 +11,10 @@ export default function SidebarLink(props: Readonly<SidebarLinkProps>) {
   const { title, href } = props;
   const pathname = usePathname();
 
-  let className = "p-4 h-10 flex text-secondary rounded-lg items-center transition-colors duration-300 ease-in-out ";
-
-  if (pathname == href || pathname === "/browser") {
+  let className =
+    "p-4 h-10 flex text-secondary rounded-lg items-center transition-colors duration-300 ease-in-out ";
+  const rootPath = pathname.split("/").splice(0, 2).join("/");
+  if (rootPath == href) {
     className += "bg-primary-200 bg-blend-multiply";
   } else {
     className += "hover:bg-primary-hover";

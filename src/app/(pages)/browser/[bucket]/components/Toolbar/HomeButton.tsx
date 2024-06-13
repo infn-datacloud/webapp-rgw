@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 export default function HomeButton() {
   const router = useRouter();
   const handleClick = () => {
-    router.push("/home");
+    router.push("/");
   };
   return (
     <Button
