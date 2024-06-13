@@ -9,8 +9,6 @@ export interface PaginatorProps {
 }
 
 export const Paginator = (props: PaginatorProps) => {
-  const textStyle = "leading-tight text-gray-500 hover:text-gray-700";
-
   const {
     currentPage,
     numberOfPages,
@@ -20,9 +18,7 @@ export const Paginator = (props: PaginatorProps) => {
   } = props;
 
   return (
-    <div
-      className={`${textStyle} flex w-full items-center justify-between -space-x-px px-4 pb-2 text-sm`}
-    >
+    <div className="flex w-full items-center justify-between -space-x-px px-4 pb-2 text-sm leading-tight text-gray-500 hover:text-gray-700">
       <div className="flex items-center space-x-2">
         <div>
           Page {currentPage + 1} of {numberOfPages}
