@@ -68,7 +68,7 @@ export const Sidebar = async () => {
         <div className="absolute inset-x-0 bottom-0">
           <hr className="mx-auto w-11/12" />
           <UserView username={username} />
-          <div className="w-full bg-primary-light text-center text-sm text-secondary">
+          <div className="w-full bg-primary-200 text-center text-sm py-1 text-secondary">
             v{props.appVersion}
           </div>
         </div>
