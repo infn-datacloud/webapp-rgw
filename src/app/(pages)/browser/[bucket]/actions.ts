@@ -16,7 +16,7 @@ export async function deleteObjects(bucket: string, keys: string[]) {
   const s3 = await makeS3Client();
   const promises = keys.map(o => s3.deleteObject(bucket, o));
   try {
-    Promise.all(promises);
+    await Promise.all(promises);
   } catch (err) {
     return parseS3Error(err);
   }
