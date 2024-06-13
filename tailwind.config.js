@@ -22,6 +22,7 @@ module.exports = {
           100: "#e0f2ff",
           200: "#485c79",
           hover: "#20385a",
+          dark: "#00223a",
         },
         light: {
           DEFAULT: "#4196b4",

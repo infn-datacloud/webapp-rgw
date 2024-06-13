@@ -1,5 +1,5 @@
-import { NodePath, extractPathAndBasename } from "./utils";
-import { dropDuplicates } from "./utils";
+import { NodePath, extractPathAndBasename } from ".";
+import { dropDuplicates } from ".";
 
 test("NodePath 1", () => {
   const root = new NodePath<string>("/");

@@ -16,7 +16,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Sidebar />
-        <main className="p-4 lg:ml-80 mt-16 lg:mt-0">{children}</main>
+        <main className="absolute inset-0 mt-16 p-4 lg:ml-80 lg:mt-0 dark:bg-gray-800">
+          {children}
+        </main>
         <Toaster position="top-right" />
       </body>
     </html>

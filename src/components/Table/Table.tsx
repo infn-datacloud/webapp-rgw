@@ -27,7 +27,7 @@ export const Table = (props: TableParams) => {
   }
 
   return (
-    <div className="relative w-full overflow-auto rounded-xl bg-gray-100 shadow-lg">
+    <div className="relative w-full overflow-auto rounded-xl bg-gray-100 shadow-lg dark:bg-slate-700">
       <div className="my-8 overflow-hidden shadow-sm">
         <table className={"w-full table-auto text-sm"}>
           <Header selectable={selectable} columns={cols} />

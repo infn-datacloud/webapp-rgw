@@ -15,7 +15,7 @@ type PaginatorButtonProps = {
 export default function PaginatorButton(props: PaginatorButtonProps) {
   const { onClick, type } = props;
   let className =
-    "ml-0 flex h-6 w-6 border border-gray-300 bg-white hover:bg-gray-100";
+    "ml-0 flex h-6 w-6 border border-gray-300 bg-white hover:bg-gray-100 dark:bg-slate-800 dark:text-secondary";
   let icon!: React.ReactNode;
   let title!: string;
 

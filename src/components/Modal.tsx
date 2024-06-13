@@ -24,7 +24,7 @@ export const ModalBody = (props: { children?: ReactNode }) => {
 export const ModalFooter = (props: { children?: ReactNode }) => {
   const { children } = props;
   return (
-    <div className="bottom-0 min-h-8 pt-4 flex justify-end space-x-2">
+    <div className="bottom-0 flex min-h-8 justify-end space-x-2 pt-4">
       {children}
     </div>
   );
@@ -37,11 +37,11 @@ export default function Modal(props: ModalProps) {
     <Transition appear show={show}>
       <Dialog
         as="div"
-        className="relative z-10 focus:outline-none"
+        className="relative z-40 focus:outline-none"
         onClose={onClose}
       >
-        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-32 mt-16 justify-center p-4">
+        <div className="fixed inset-0 z-40 w-screen overflow-y-auto">
+          <div className="mt-16 flex min-h-32 justify-center p-4">
             {/* Backdrop */}
             <TransitionChild
               enter="ease-out duration-300"
@@ -52,7 +52,7 @@ export default function Modal(props: ModalProps) {
               leaveTo="opacity-0 transform-[scale(95%)]"
             >
               <div
-                className="fixed inset-0 bg-black/30 z-25"
+                className="z-25 fixed inset-0 bg-black/30"
                 aria-hidden="true"
               />
             </TransitionChild>
@@ -65,13 +65,13 @@ export default function Modal(props: ModalProps) {
               leaveFrom="opacity-100 transform-[scale(100%)]"
               leaveTo="opacity-0 transform-[scale(95%)]"
             >
-              <DialogPanel className="text-primary w-full max-w-lg rounded z-30 bg-secondary p-4 divide-y">
-                <DialogTitle as="h2" className="font-bold text-xl pb-2">
+              <DialogPanel className="z-50 w-full max-w-lg divide-y rounded bg-secondary p-4 text-primary dark:bg-slate-800 dark:text-secondary">
+                <DialogTitle as="h2" className="pb-2 text-xl font-bold">
                   <div className="flex justify-between">
                     {title}
                     <button onClick={onClose}>
-                      <div className="w-6 p-[3px] bg-neutral-300
-                          text-neutral-500 hover:bg-neutral-400 rounded-full"
+                      <div
+                        className="w-6 rounded-full bg-neutral-300 p-[3px] text-neutral-500 hover:bg-neutral-400"
                         aria-label="close"
                       >
                         <XMarkIcon />

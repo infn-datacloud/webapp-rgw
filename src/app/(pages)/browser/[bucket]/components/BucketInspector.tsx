@@ -6,19 +6,6 @@ import DeleteButton from "./Toolbar/DeleteButton";
 import DownloadButton from "./DownloadButton";
 import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-type TitleProps = {
-  className?: string;
-  title?: string;
-};
-
-const Title = ({ className, title }: TitleProps) => {
-  return (
-    <div className={className}>
-      <div className="break-words text-lg font-semibold">{title}</div>
-    </div>
-  );
-};
-
 type DetailProps = {
   title: string;
   children?: React.ReactElement | string;
@@ -101,21 +88,22 @@ export const BucketInspector = (props: BucketInspectorProps) => {
           </div>
         </button>
       </div>
-      <div className="column-1 space-y-3 px-4">
-        <section>
-          <Title className="w-5/6" title={title} />
-          <hr className="mt-4"></hr>
+      <div className="flex flex-col divide-y px-4">
+        {/* Title */}
+        <section className="py-4">
+          <div className="break-words text-lg font-semibold">{title}</div>
         </section>
-        <section className="space-y-3">
+        {/* Buttons */}
+        <section className="space-y-4 py-4">
           <DownloadButton bucket={bucket} objectsToDownloads={keys} />
           <DeleteButton
             bucket={bucket}
             objectsToDelete={keys}
             onDeleted={onDelete}
           />
-          <hr className="mt-4 h-px w-full border-0 bg-gray-200"></hr>
+          {/* Details */}
         </section>
-        <section>
+        <section className="py-4">
           <ObjectDetail {...object} />
         </section>
       </div>

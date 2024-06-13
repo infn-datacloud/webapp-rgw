@@ -48,7 +48,7 @@ export const Sidebar = async () => {
         id="sidebar-dismiss-btn"
         className="fixed inset-0 z-10 hidden transition-transform"
       />
-      <header className="fixed left-0 top-0 z-30 h-16 w-screen bg-primary lg:w-80">
+      <header className="dark:bg-primary-dark fixed left-0 top-0 z-30 h-16 w-screen bg-primary lg:w-80">
         <div className="flex h-full justify-between px-4">
           <div className="flex py-2">
             <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
@@ -60,7 +60,7 @@ export const Sidebar = async () => {
       <aside
         id="left-sidebar"
         className={
-          "fixed bottom-0 left-0 top-16 z-30 w-80 -translate-x-full bg-primary transition-transform lg:translate-x-0"
+          "dark:bg-primary-dark fixed bottom-0 left-0 top-16 z-30 w-80 -translate-x-full bg-primary transition-transform lg:translate-x-0"
         }
         aria-label="Sidebar"
       >
@@ -68,7 +68,7 @@ export const Sidebar = async () => {
         <div className="absolute inset-x-0 bottom-0">
           <hr className="mx-auto w-11/12" />
           <UserView username={username} />
-          <div className="w-full bg-primary-200 text-center text-sm py-1 text-secondary">
+          <div className="w-full bg-primary-200 py-1 text-center text-sm text-secondary">
             v{props.appVersion}
           </div>
         </div>

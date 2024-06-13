@@ -1,5 +1,5 @@
 import resolveConfig from "tailwindcss/resolveConfig";
-import _tailwindConfig from "../../tailwind.config.js";
+import _tailwindConfig from "../../../tailwind.config.js";
 import { RWAccess } from "@/models/bucket";
 
 export const tailwindConfig = resolveConfig(_tailwindConfig);

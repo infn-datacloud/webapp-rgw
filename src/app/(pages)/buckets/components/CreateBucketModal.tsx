@@ -15,9 +15,9 @@ const bucketValidator = new RegExp(
 const InvalidBucketError = () => {
   return (
     <>
-      <p className="text-xs font-bold mt-1">Bucket name is not valid.</p>
+      <p className="mt-1 text-xs font-bold">Bucket name is not valid.</p>
       <p className="text-xs">Bucket name must:</p>
-      <ul className="list-disc text-xs ml-3">
+      <ul className="ml-3 list-disc text-xs">
         <li>be between 3(min) and 63(max) characters long.</li>
         <li>
           consist only of lowercase letters, numbers, dots(.), and hyphens(-).
@@ -42,16 +42,17 @@ function NewBucketNameInput() {
   };
 
   return (
-    <div className="flex justify-between mt-16">
-      <div className="lg:w-52 font-bold my-auto">Bucket Name*</div>
-      <Input
-        name="new-bucket"
-        className="w-2/3 px-4"
-        placeholder={"Enter a name for your bucket"}
-        value={newBucket}
-        onChange={e => setNewBucket(e.currentTarget.value)}
-        onBlur={() => validateBucketName()}
-      />
+    <div className="mt-16 flex justify-between">
+      <div className="my-auto font-bold lg:w-52">Bucket Name*</div>
+      <div className="w-full">
+        <Input
+          name="new-bucket"
+          placeholder={"Enter a name for your bucket"}
+          value={newBucket}
+          onChange={e => setNewBucket(e.currentTarget.value)}
+          onBlur={() => validateBucketName()}
+        />
+      </div>
       {/* {error ? <InvalidBucketError /> : null} */}
     </div>
   );

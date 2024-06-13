@@ -42,7 +42,7 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
 
   return (
     <div className={className}>
-      <div className="rounded border bg-secondary p-2 text-primary">
+      <div className="dark:bg-primary-dark rounded border bg-secondary p-2 text-primary dark:text-secondary">
         <div className="grid grid-cols-1 sm:grid-cols-2">
           <div>
             <div className="text-xl font-bold">{name}</div>

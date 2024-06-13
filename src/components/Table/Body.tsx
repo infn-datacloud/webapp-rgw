@@ -36,7 +36,10 @@ function TableDataCell(props: Readonly<TableDataCellProps>) {
   return (
     <td
       title={title}
-      className={"border-b border-slate-100 p-4 text-left " + className}
+      className={
+        "border-b border-slate-100 p-4 text-left dark:border-slate-600 " +
+        className
+      }
       onClick={onClick}
     >
       {children}
@@ -73,7 +76,7 @@ function TableRow(props: Readonly<TableRowProps>) {
 
   return (
     <tr
-      className="mx-0 cursor-pointer text-primary hover:bg-slate-200 hover:text-primary-hover"
+      className="mx-0 cursor-pointer text-primary hover:bg-slate-200 hover:text-primary-hover dark:text-secondary dark:hover:bg-primary-hover dark:hover:text-secondary"
       key={row.id}
     >
       {selectable ? (
@@ -114,7 +117,7 @@ export const Body = (props: BodyProps) => {
   const columnIds = cols.map(col => col.id);
 
   return (
-    <tbody className="bg-white">
+    <tbody className="bg-white dark:bg-slate-800">
       {visibleRows.map((row, rowIndex) => {
         const absoluteIndex = rowIndex + currentPage * itemsPerPage;
         return (

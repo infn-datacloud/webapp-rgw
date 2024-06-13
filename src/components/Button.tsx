@@ -23,13 +23,11 @@ function toColorClasses(colorType: ButtonColor) {
   switch (colorType) {
     case "primary":
       className =
-        "bg-primary hover:bg-primary-hover text-secondary " +
-        "border border-primary";
+        "bg-primary hover:bg-primary-hover text-secondary border border-primary dark:border-secondary";
       break;
     case "primary-outline":
       className =
-        "border bg-secondary text-primary border-primary " +
-        "hover:bg-primary-hover hover:text-secondary";
+        "border bg-secondary dark:border-secondary text-primary border-primary hover:bg-primary-hover hover:text-secondary dark:bg-primary-dark dark:text-secondary dark:";
       break;
     case "secondary":
       className =
@@ -65,7 +63,7 @@ function toColorClasses(colorType: ButtonColor) {
     case "danger-outline":
       className =
         "border bg-secondary text-danger border-danger " +
-        "hover:bg-danger hover:text-secondary ";
+        "hover:bg-danger hover:text-secondary dark:bg-primary-dark";
       break;
     default:
   }
