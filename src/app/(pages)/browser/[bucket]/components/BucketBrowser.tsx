@@ -14,7 +14,7 @@ export type BucketBrowserProps = {
   bucketObjects: _Object[];
 };
 
-export default function BucketBrowser(props: BucketBrowserProps) {
+export default function BucketBrowser(props: Readonly<BucketBrowserProps>) {
   const { bucket, bucketObjects } = props;
   const root = useMemo(() => initNodePathTree(bucketObjects), [bucketObjects]);
   const lastNodePath = useRef<NodePath<_Object>>();
