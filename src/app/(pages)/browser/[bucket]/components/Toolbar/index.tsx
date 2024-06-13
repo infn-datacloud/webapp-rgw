@@ -16,13 +16,13 @@ export default function Toolbar(
   const { bucket, currentPath, objectsToDelete, onPathChange, onDeleted } =
     props;
   return (
-    <div className="mt-8 flex place-content-between">
-      <div className="flex space-x-4">
+    <div className="mt-8 grid grid-cols-1 sm:grid-cols-2">
+      <div className="flex space-x-2 py-1">
         <HomeButton />
         <UploadButton bucket={bucket} currentPath={currentPath} />
         <RefreshButton />
       </div>
-      <div className="flex space-x-4">
+      <div className="flex space-x-2 py-1 sm:ml-auto sm:mr-0">
         <NewPathButton
           bucket={bucket}
           currentPath={currentPath}
