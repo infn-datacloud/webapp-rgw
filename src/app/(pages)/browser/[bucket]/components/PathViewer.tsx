@@ -13,13 +13,16 @@ interface PathViewerProps {
 export default function PathViewer(props: Readonly<PathViewerProps>) {
   const { bucket, path, onClickBackButton, onQuerySearchChanged } = props;
   return (
-    <div className="flex w-full justify-between py-4">
+    <div className="grid grid-cols-1 py-2 sm:grid-cols-2">
       <div className="flex space-x-2">
         <PathBackButton onClick={onClickBackButton} />
         <div className="my-auto font-bold">Current path:</div>
         <div className="my-auto">{bucket + "/" + path.path}</div>
       </div>
-      <SearchFiled onChange={onQuerySearchChanged} />
+      <SearchFiled
+        className="sm:ml-auto sm:mr-0"
+        onChange={onQuerySearchChanged}
+      />
     </div>
   );
 }
