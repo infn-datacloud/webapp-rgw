@@ -8,7 +8,6 @@ import {
 type PaginatorButtonType = "first" | "previous" | "next" | "last";
 
 type PaginatorButtonProps = {
-  children?: React.ReactNode;
   onClick: () => void;
   type: PaginatorButtonType;
 };
