@@ -9,11 +9,11 @@ export default function LogoutButton() {
 
   return (
     <button
-      className="w-8 h-8 my-auto text-secondary rounded-full hover:bg-secondary-hover"
+      className="my-auto rounded-full p-2 text-secondary transition hover:bg-primary-hover active:bg-primary-200"
       type="submit"
       onClick={logout}
     >
-      <ArrowLeftStartOnRectangleIcon />
+      <ArrowLeftStartOnRectangleIcon className="w-5" />
     </button>
   );
 }
