@@ -1,17 +1,16 @@
-export type ColumnId = string;
-
 export interface Cell {
   value: string | React.ReactElement;
 }
 
 export interface Column {
-  id: ColumnId;
+  id: string;
   name?: string;
 }
 
 export interface Row {
+  id: string;
   selected: boolean;
-  columns: Map<ColumnId, Cell>;
+  columns: Map<string, Cell>;
 }
 
 export interface TableData {

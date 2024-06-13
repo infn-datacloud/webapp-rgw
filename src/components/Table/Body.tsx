@@ -60,7 +60,7 @@ export const Body = (props: BodyProps) => {
           <tr
             className="hover:bg-slate-200 text-slate-500
              hover:text-slate-800 hover:cursor-pointer"
-            key={rowIndex}
+            key={row.id}
           >
             {selectable ? (
               <SelectableCell
@@ -87,7 +87,7 @@ export const Body = (props: BodyProps) => {
                     "last:pr-8 text-left " + colId
                   }
                   onClick={_ => onClick?.(absoluteIndex)}
-                  key={index}
+                  key={colId}
                 >
                   {value}
                 </td>

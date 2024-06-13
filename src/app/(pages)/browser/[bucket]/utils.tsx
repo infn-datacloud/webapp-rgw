@@ -1,11 +1,5 @@
 import { NodePath, getHumanSize, dateToHuman } from "@/commons/utils";
-import {
-  Cell,
-  Column,
-  ColumnId,
-  Row,
-  TableData,
-} from "@/components/Table/types";
+import { Cell, Column, Row, TableData } from "@/components/Table/types";
 import { _Object } from "@aws-sdk/client-s3";
 import FileIcon from "./components/FileIcon";
 
@@ -31,13 +25,14 @@ function computeRow(node: NodePath<_Object>, selected: boolean = false): Row {
     const ext = node.isDir ? "folder" : elements[elements.length - 1];
     return <FileIcon extension={ext} />;
   };
-  const columns = new Map<ColumnId, Cell>([
+  const columns = new Map<string, Cell>([
     ["icon", { value: <Icon /> }],
     ["name", { value: node.basename }],
     ["last_modified", { value: dateToHuman(node.lastModified) }],
     ["bucket_size", { value: getHumanSize(node.size) }],
   ]);
   return {
+    id: node.basename,
     selected,
     columns,
   };

@@ -1,4 +1,4 @@
-import { Cell, Column, ColumnId, Row, TableData } from "@/components/Table";
+import { Cell, Column, Row, TableData } from "@/components/Table";
 import { BucketInfo } from "@/models/bucket";
 import { dateToHuman } from "@/commons/utils";
 
@@ -8,18 +8,17 @@ export function makeTableData(infos: BucketInfo[]): TableData {
     { id: "creation_date", name: "Creation Date" },
   ];
   const rows = infos.map((bucketInfo: BucketInfo): Row => {
-    const cols = new Map<ColumnId, Cell>();
+    const cols = new Map<string, Cell>();
     const { name, creation_date } = bucketInfo;
     cols.set("bucket", { value: name ?? "N/A" });
     cols.set("creation_date", {
       value: creation_date ? dateToHuman(new Date(creation_date)) : "N/A",
     });
     return {
+      id: bucketInfo.name,
       selected: false,
       columns: cols,
     };
   });
   return { rows, cols };
 }
-export { dateToHuman };
-
