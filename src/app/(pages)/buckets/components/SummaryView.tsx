@@ -5,6 +5,22 @@ import DeleteBucketButton from "./DeleteBucketButton";
 import EditBucketButton from "./EditBucketButton";
 import { getBucketConfiguration } from "../actions";
 
+interface SubviewProps {
+  title: string;
+  text: string;
+  icon: JSX.Element;
+}
+
+const Subview = ({ title, text, icon }: SubviewProps) => {
+  return (
+    <div className="mt-2 flex content-center">
+      <div className="my-auto mr-2 w-5">{icon}</div>
+      <div className="my-auto mr-1 font-semibold">{title}</div>
+      {text}
+    </div>
+  );
+};
+
 export interface BucketSummaryViewProps extends BucketInfo {
   className?: string;
 }
@@ -23,22 +39,6 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
       console.error(err);
     }
   }
-
-  interface SubviewProps {
-    title: string;
-    text: string;
-    icon: JSX.Element;
-  }
-
-  const Subview = ({ title, text, icon }: SubviewProps) => {
-    return (
-      <div className="mt-2 flex content-center">
-        <div className="my-auto mr-2 w-5">{icon}</div>
-        <div className="my-auto mr-1 font-semibold">{title}</div>
-        {text}
-      </div>
-    );
-  };
 
   return (
     <div className={className}>
