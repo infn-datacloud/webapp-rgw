@@ -18,7 +18,7 @@ export const Paginator = (props: PaginatorProps) => {
   } = props;
 
   return (
-    <div className="flex w-full items-center justify-between -space-x-px px-4 pb-2 text-sm leading-tight text-gray-500 hover:text-gray-700">
+    <div className="flex w-full items-center justify-between -space-x-px px-4 pb-2 text-sm leading-tight text-primary hover:text-gray-700">
       <div className="flex items-center space-x-2">
         <div>
           Page {currentPage + 1} of {numberOfPages}
@@ -26,7 +26,7 @@ export const Paginator = (props: PaginatorProps) => {
         <div>Show</div>
         <select
           value={itemsPerPage}
-          className="block rounded-lg border border-gray-300 bg-gray-50 p-1 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+          className="block rounded-lg border border-gray-300 bg-gray-50 p-1 text-sm focus:border-blue-500 focus:ring-blue-500"
           onChange={e => onChangeItemsPerPage(parseInt(e.currentTarget.value))}
         >
           <option value="10">10</option>
