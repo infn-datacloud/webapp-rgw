@@ -1,4 +1,4 @@
-import { NodePath, getHumanSize } from "@/commons/utils";
+import { NodePath, getHumanSize, dateToHuman } from "@/commons/utils";
 import {
   Cell,
   Column,
@@ -8,7 +8,6 @@ import {
 } from "@/components/Table/types";
 import { _Object } from "@aws-sdk/client-s3";
 import FileIcon from "./components/FileIcon";
-import { dateToHuman } from "@/commons/utils";
 
 export function initNodePathTree(bucketObjects: _Object[]): NodePath<_Object> {
   const root = new NodePath<_Object>("");
@@ -56,7 +55,7 @@ export const makeTableData = (
   ];
   const children = Array.from(nodePath.children.values());
   const rows: Row[] = children.map(child => {
-    const key = child.path; // `${child.isDir ? "path:" : ""}${child.path}`;
+    const key = child.path;
     const selected = selectedObjects.has(key);
     return computeRow(child, selected);
   });
