@@ -15,8 +15,8 @@ function SubmitButton({ canSubmit }: { canSubmit: boolean }) {
 
 function CurrentPath({ path }: { path: string }) {
   return (
-    <div className="flex">
-      <h2 className="font-semibold mr-2">Current Path: </h2>
+    <div className="flex mt-2">
+      <p className="font-semibold mr-2">Current Path: </p>
       {path}
     </div>
   );
@@ -27,7 +27,7 @@ function NewPathTextField({ onChange }: { onChange: (value: string) => void }) {
     onChange(event.target.value);
   };
   return (
-    <div className="mt-8 flex space-x-8 content-center">
+    <div className="mt-6 flex space-x-8 content-center">
       <div className="lg:w-52 my-auto">New Folder Path</div>
       <Input
         name="new-path"
