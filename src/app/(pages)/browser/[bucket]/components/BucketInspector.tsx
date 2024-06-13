@@ -14,7 +14,7 @@ type TitleProps = {
 const Title = ({ className, title }: TitleProps) => {
   return (
     <div className={className}>
-      <div className="text-lg font-semibold break-words">{title}</div>
+      <div className="break-words text-lg font-semibold">{title}</div>
     </div>
   );
 };
@@ -93,38 +93,33 @@ export const BucketInspector = (props: BucketInspectorProps) => {
   }
 
   return (
-    <div className="top-0 fixed z-10 right-0 w-64 bg-slate-300">
-      <Inspector isOpen={isOpen}>
-        <div className="flex p-4 flex-row-reverse">
-          <button onClick={onClose}>
-            <div
-              className="w-6 p-[3px] bg-neutral-300 text-neutral-500
-             hover:bg-neutral-400 rounded-full"
-            >
-              <XMarkIcon />
-            </div>
-          </button>
-        </div>
-        <div className="px-4 column-1 space-y-3">
-          <section>
-            <Title className="w-5/6" title={title} />
-            <hr className="mt-4"></hr>
-          </section>
-          <section className="space-y-3">
-            <DownloadButton bucket={bucket} objectsToDownloads={keys} />
-            <DeleteButton
-              bucket={bucket}
-              objectsToDelete={keys}
-              onDeleted={onDelete}
-            />
-            <hr className="h-px w-full mt-4 bg-gray-200 border-0"></hr>
-          </section>
-          <section>
-            <ObjectDetail {...object} />
-          </section>
-        </div>
-        {props.children}
-      </Inspector>
-    </div>
+    <Inspector isOpen={isOpen}>
+      <div className="flex flex-row-reverse p-4">
+        <button onClick={onClose}>
+          <div className="w-6 rounded-full bg-neutral-300 p-[3px] text-neutral-500 hover:bg-neutral-400">
+            <XMarkIcon />
+          </div>
+        </button>
+      </div>
+      <div className="column-1 space-y-3 px-4">
+        <section>
+          <Title className="w-5/6" title={title} />
+          <hr className="mt-4"></hr>
+        </section>
+        <section className="space-y-3">
+          <DownloadButton bucket={bucket} objectsToDownloads={keys} />
+          <DeleteButton
+            bucket={bucket}
+            objectsToDelete={keys}
+            onDeleted={onDelete}
+          />
+          <hr className="mt-4 h-px w-full border-0 bg-gray-200"></hr>
+        </section>
+        <section>
+          <ObjectDetail {...object} />
+        </section>
+      </div>
+      {props.children}
+    </Inspector>
   );
 };
