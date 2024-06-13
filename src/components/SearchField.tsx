@@ -30,7 +30,7 @@ export const SearchFiled = (props: SearchFieldProps) => {
   return (
     <div className={className}>
       <div className="flex space-x-4">
-        <MagnifyingGlassIcon className="w-5" />
+        <MagnifyingGlassIcon className="w-5 text-primary" />
         <Input
           value={searchQuery}
           type="search"
