@@ -31,7 +31,7 @@ const PathBackButton = (props: { onClick: () => void; isRoot: boolean }) => {
   const { onClick, isRoot } = props;
   return (
     <button
-      className={`my-auto h-8 w-8 rounded-full p-[5px] text-neutral-500 transition-transform hover:bg-neutral-200 ${isRoot ? "rotate-0" : "-rotate-90"}`}
+      className={`my-auto h-8 w-8 rounded-full p-[5px] text-primary transition-transform hover:bg-neutral-200 ${isRoot ? "rotate-0" : "-rotate-90"}`}
       onClick={onClick}
       type="button"
     >
