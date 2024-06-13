@@ -8,5 +8,5 @@ export default function IsomorphicDate(props: Readonly<{ date: Date }>) {
   const { date } = props;
   const [polymorphicDate, setPolymorphicDate] = useState("");
   useEffect(() => setPolymorphicDate(dateToHuman(date)), [date]);
-  return { polymorphicDate };
+  return <>{polymorphicDate}</>;
 }
