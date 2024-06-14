@@ -17,8 +17,9 @@ export const ProgressPopup = (props: ProgressPopupProps) => {
     return;
   }
 
+
   return (
-    <div className="z-50 fixed bottom-4 right-4 w-72 bg-white p-4 shadow-lg rounded">
+    <div className="fixed bottom-4 right-4 z-50 w-72 rounded bg-white p-4 text-primary shadow-lg dark:bg-slate-800 dark:text-secondary">
       <div className="flex justify-between">
         <p className="font-bold">{title}</p>
       </div>

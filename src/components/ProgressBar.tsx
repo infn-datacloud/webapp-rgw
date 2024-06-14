@@ -12,9 +12,9 @@ export const ProgressBar = (props: ProgressBarProps) => {
   return (
     <>
       <div className="mb-1 text-base font-medium">{title}</div>
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+      <div className="mb-4 h-2.5 w-full rounded-full bg-gray-200 dark:bg-slate-700">
         <div
-          className="bg-infn h-2.5 rounded-full"
+          className="h-2.5 rounded-full bg-primary-200"
           style={{ width: progress }}
         ></div>
       </div>

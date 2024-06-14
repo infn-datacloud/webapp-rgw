@@ -8,7 +8,7 @@ interface InputFileProps {
 
 export const InputFile = ({ onChange, icon }: InputFileProps) => {
   const openFileSelector = async () => {
-    const fileSelector = document.getElementById("fileSelector");
+    const fileSelector = document.getElementById("file-selector");
     if (fileSelector) {
       fileSelector.click();
     }
@@ -20,7 +20,7 @@ export const InputFile = ({ onChange, icon }: InputFileProps) => {
         onChange={onChange}
         className="hidden"
         type="file"
-        id="fileSelector"
+        id="file-selector"
         multiple={true}
       />
       <Button
