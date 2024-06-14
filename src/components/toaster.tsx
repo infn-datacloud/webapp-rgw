@@ -19,33 +19,29 @@ const CustomToast = (props: {
     switch (type) {
       case "info":
         return (
-          <InformationCircleIcon
-            key="circle-icon"
-            className="text-neutral-800"
-          />
+          <InformationCircleIcon key="circle-icon" className="text-primary" />
         );
       case "success":
-        return <CheckCircleIcon key="check-icon" className="text-green-500" />;
+        return <CheckCircleIcon key="check-icon" className="text-success" />;
       case "warning":
         return (
-          <ExclamationTriangleIcon
-            key="danger-icon"
-            className="text-amber-500"
-          />
+          <ExclamationTriangleIcon key="danger-icon" className="text-warning" />
         );
       case "danger":
-        return <ExclamationCircleIcon
-          key="danger-circle-icon"
-          className="text-red-500"
-        />;
+        return (
+          <ExclamationCircleIcon
+            key="danger-circle-icon"
+            className="text-danger"
+          />
+        );
     }
   };
 
   return (
     <div className={"flex w-96"}>
-      <div className="bg-white rounded-lg border-gray-300 border p-3 shadow-lg w-full">
-        <div className="flex items-center w-full">
-          <div className="w-5 mr-4">
+      <div className="text:primary w-full rounded-lg border border-gray-300 bg-white p-3 shadow-lg dark:border-gray-800 dark:bg-slate-800 dark:text-secondary">
+        <div className="flex w-full items-center">
+          <div className="mr-4 w-5">
             <Icon />
           </div>
           <div className="ml-2 mr-6">
@@ -54,7 +50,7 @@ const CustomToast = (props: {
           </div>
           <div className="m-auto mr-0">
             <button
-              className="w-8 p-[5px] text-neutral-500 hover:bg-neutral-200 rounded-full"
+              className="w-8 rounded-full p-[5px] text-neutral-500 hover:bg-secondary dark:hover:bg-primary-hover"
               onClick={dismiss}
             >
               <XCircleIcon />
