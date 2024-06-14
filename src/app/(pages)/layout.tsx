@@ -15,9 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Sidebar />
-        <main className="absolute inset-0 mt-16 p-4 lg:ml-80 lg:mt-0 dark:bg-gray-800">
-          {children}
+        <main className="h-full dark:bg-gray-800">
+          <Sidebar />
+          <div className="mt-16 p-4 lg:ml-80 lg:mt-0">{children}</div>
         </main>
         <Toaster position="top-right" />
       </body>
