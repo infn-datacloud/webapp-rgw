@@ -39,15 +39,15 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
           <div className="text-xl font-bold">{name}</div>
           <Subview
             title="Created at:"
-            text={creation_date ? dateToHuman(new Date(creation_date)) : "N/A"}
+            item={creation_date ? dateToHuman(new Date(creation_date)) : "N/A"}
             icon={<ClockIcon />}
           />
           <Subview
             title="Usage:"
-            text={getHumanSize(size) ?? "N/A"}
+            item={getHumanSize(size) ?? "N/A"}
             icon={<ChartPieIcon />}
           />
-          <Subview title="Objects:" text={`${objects}`} icon={<CubeIcon />} />
+          <Subview title="Objects:" item={`${objects}`} icon={<CubeIcon />} />
         </div>
         <div className="ml-auto mr-0 flex space-x-2 p-4 sm:flex-col sm:space-x-0 sm:space-y-4">
           <EditBucketButton bucket={name} configuration={bucketConfiguration} />

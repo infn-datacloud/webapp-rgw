@@ -51,6 +51,7 @@ module.exports = {
       },
       animation: {
         progress: "progress 0.75s infinite linear",
+        "pulse-fast": "pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       keyframes: {
         progress: {
