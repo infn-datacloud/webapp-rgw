@@ -49,6 +49,16 @@ module.exports = {
           hover: "#ed2639",
         },
       },
+      animation: {
+        progress: "progress 0.75s infinite linear",
+      },
+      keyframes: {
+        progress: {
+          "0%": { transform: "translateX(0) scaleX(0)" },
+          "40%": { transform: "translateX(0) scaleX(0.4)" },
+          "100%": { transform: "translateX(100%) scaleX(0.1)" },
+        },
+      },
     },
     plugins: [],
   },
