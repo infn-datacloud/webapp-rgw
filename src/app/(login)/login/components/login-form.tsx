@@ -6,6 +6,18 @@ import { toaster } from "@/components/toaster";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import Spinner from "@/components/Spinner";
+
+function Loading() {
+  return (
+    <div className="fixed inset-0 z-10 bg-gray-600/50 backdrop-blur-sm">
+      <div className="mx-auto mt-48 h-16 w-16 text-secondary">
+        <Spinner />
+        <p className="mt-8 text-xl text-secondary">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -40,6 +52,7 @@ export default function LoginForm() {
 
   return (
     <>
+      {status === "loading" ? <Loading /> : null}
       <Form action={handleCredentialsLogin} className="space-y-2">
         <Input name="accessKeyId" placeholder="Access Key Id" required />
         <Input
