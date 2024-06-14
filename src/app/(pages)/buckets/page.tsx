@@ -1,15 +1,24 @@
 import { Page } from "@/components/Page";
-import { BucketInfo } from "@/models/bucket";
 import { makeS3Client } from "@/services/s3/actions";
 import { BucketSummaryView } from "./components/SummaryView";
+import { SummaryLoading } from "./components/loading";
 import Toolbar from "./components/Toolbar";
+import { Bucket } from "@aws-sdk/client-s3";
+import { Suspense } from "react";
 
-function BucketsInfos(props: { bucketsInfos: BucketInfo[] }) {
-  const { bucketsInfos } = props;
+function BucketsInfos(props: { buckets: Bucket[] }) {
+  const { buckets } = props;
   return (
     <>
-      {bucketsInfos.map(el => {
-        return <BucketSummaryView className={"mb-4"} key={el.name} {...el} />;
+      {buckets.map(bucket => {
+        return (
+          <Suspense
+            fallback={<SummaryLoading bucket={bucket.Name} />}
+            key={bucket.Name}
+          >
+            <BucketSummaryView bucket={bucket} />
+          </Suspense>
+        );
       })}
     </>
   );
@@ -17,12 +26,12 @@ function BucketsInfos(props: { bucketsInfos: BucketInfo[] }) {
 
 export default async function Buckets() {
   const s3 = await makeS3Client();
-  const bucketsInfos = await s3.getBucketsInfos();
+  const buckets = await s3.fetchBucketList();
 
   return (
     <Page title="Buckets">
       <Toolbar />
-      <BucketsInfos bucketsInfos={bucketsInfos} />
+      <BucketsInfos buckets={buckets} />
     </Page>
   );
 }

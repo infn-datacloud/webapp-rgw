@@ -12,6 +12,7 @@ import {
   GetBucketVersioningCommandOutput,
   GetObjectCommand,
   GetObjectLockConfigurationCommand,
+  HeadBucketCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
   ListObjectsV2CommandOutput,
@@ -75,9 +76,8 @@ export class S3Service {
   async fetchPublicBuckets() {
     // make const copies that won't change after the safety guard
     const publisherBucket = this.publisherBucket;
-    const groups = this.groups;
 
-    if (!publisherBucket || !groups) {
+    if (!publisherBucket || !this.groups) {
       console.warn(
         "Bucket publisher or groups not defined",
         this.publisherBucket,
@@ -86,6 +86,7 @@ export class S3Service {
       return [];
     }
 
+    const groups = this.groups.filter(group => group.split("/").length > 2);
     const promises = groups.map(async group => {
       const cmd = new ListObjectsV2Command({
         Bucket: this.publisherBucket,
@@ -114,6 +115,17 @@ export class S3Service {
     const buckets: Bucket[] = names.map(name => {
       return { Name: name };
     });
+
+    try {
+      const scratch = { Name: "scratch" };
+      const headCmd = new HeadBucketCommand({ Bucket: "scratch" });
+      await this.client.send(headCmd);
+      buckets.push(scratch);
+    } catch (error) {
+      const msg = error instanceof Error ? error.name : error;
+      console.warn("cannot access to 'scratch' bucket:", msg);
+    }
+
     return buckets;
   }
 
@@ -181,9 +193,13 @@ export class S3Service {
     return info;
   }
 
+  async getBucketInfos(bucket: string) {
+    const objects = await this.listObjects(bucket);
+    return S3Service.computeBucketSummary({ Name: bucket }, objects);
+  }
+
   async getBucketsInfos() {
     const buckets = await this.fetchBucketList();
-    buckets.push({ Name: "scratch" });
     const validBuckets = buckets.filter(bucket => !!bucket.Name);
 
     const promises = validBuckets.map(async bucket => {
@@ -197,7 +213,8 @@ export class S3Service {
       p.status === "fulfilled"
         ? bucketsInfos.push(p.value)
         : console.warn(
-            `cannot fetch bucket '${p.reason.BucketName}', ` + `reason: '${p.reason}'`
+            `cannot fetch bucket '${p.reason.BucketName}', ` +
+              `reason: '${p.reason}'`
           );
     });
     return bucketsInfos;
