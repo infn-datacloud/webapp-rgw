@@ -8,8 +8,8 @@ import { Suspense } from "react";
 function LoadingBar() {
   return (
     <div className="w-full">
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/10">
-        <div className="animate-progress h-full w-full origin-left rounded-full bg-primary" />
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/10 dark:bg-secondary/10">
+        <div className="animate-progress h-full w-full origin-left rounded-full bg-primary dark:bg-primary-200" />
       </div>
     </div>
   );
