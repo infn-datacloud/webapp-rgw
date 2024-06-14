@@ -76,8 +76,8 @@ export class S3Service {
   async fetchPublicBuckets() {
     // make const copies that won't change after the safety guard
     const publisherBucket = this.publisherBucket;
-
-    if (!publisherBucket || !this.groups) {
+    const groups = this.groups;
+    if (!publisherBucket || !groups) {
       console.warn(
         "Bucket publisher or groups not defined",
         this.publisherBucket,
@@ -86,7 +86,6 @@ export class S3Service {
       return [];
     }
 
-    const groups = this.groups.filter(group => group.split("/").length > 2);
     const promises = groups.map(async group => {
       const cmd = new ListObjectsV2Command({
         Bucket: this.publisherBucket,
