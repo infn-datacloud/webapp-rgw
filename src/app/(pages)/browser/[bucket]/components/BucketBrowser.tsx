@@ -93,8 +93,8 @@ export default function BucketBrowser(props: Readonly<BucketBrowserProps>) {
     setCurrentPath(newNode);
   };
 
-  const handleOnDeleted = () => {
-    router.push(`/browser/${bucket}`);
+  const handleOnDelete = () => {
+    router.refresh();
     setSelectedObjectsKeys(new Set());
   };
 
@@ -129,14 +129,14 @@ export default function BucketBrowser(props: Readonly<BucketBrowserProps>) {
         bucket={bucket}
         objects={selectedObjects}
         onClose={handleCloseBucketInspector}
-        onDelete={handleOnDeleted}
+        onDelete={handleOnDelete}
       />
       <Toolbar
         bucket={bucket}
         currentPath={currentPath.path}
         objectsToDelete={Array.from(selectedObjectsKeys.keys())}
         onPathChange={handlePathChange}
-        onDeleted={handleOnDeleted}
+        onDeleted={handleOnDelete}
       />
       <PathViewer
         bucket={bucket}
