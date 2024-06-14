@@ -11,8 +11,8 @@ export default async function Browser() {
   }
 
   const s3 = await makeS3Client();
-  const bucketsInfos = await s3.getBucketsInfos();
-  const tableData = makeTableData(bucketsInfos);
+  const buckets = await s3.fetchBucketList();
+  const tableData = makeTableData(buckets);
 
   return (
     <Page title="Browser">

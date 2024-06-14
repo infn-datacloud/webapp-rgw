@@ -1,21 +1,22 @@
 import { Cell, Column, Row, TableData } from "@/components/Table";
-import { BucketInfo } from "@/models/bucket";
 import { dateToHuman } from "@/commons/utils";
+import { Bucket } from "@aws-sdk/client-s3";
 
-export function makeTableData(infos: BucketInfo[]): TableData {
+export function makeTableData(buckets: Bucket[]): TableData {
   const cols: Column[] = [
     { id: "bucket", name: "Bucket" },
     { id: "creation_date", name: "Creation Date" },
   ];
-  const rows = infos.map((bucketInfo: BucketInfo): Row => {
+  const validBuckets = buckets.filter(bucket => !!bucket.Name);
+  const rows = validBuckets.map((bucket: Bucket): Row => {
     const cols = new Map<string, Cell>();
-    const { name, creation_date } = bucketInfo;
-    cols.set("bucket", { value: name ?? "N/A" });
+    const { Name, CreationDate } = bucket;
+    cols.set("bucket", { value: Name ?? "N/A" });
     cols.set("creation_date", {
-      value: creation_date ? dateToHuman(new Date(creation_date)) : "N/A",
+      value: CreationDate ? dateToHuman(new Date(CreationDate)) : "N/A",
     });
     return {
-      id: bucketInfo.name,
+      id: bucket.Name!,
       selected: false,
       columns: cols,
     };
