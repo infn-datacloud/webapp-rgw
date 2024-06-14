@@ -14,10 +14,17 @@ export const InputFile = ({ onChange, icon }: InputFileProps) => {
     }
   };
 
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    console.log("handle change");
+    onChange(e);
+    // reset the <input> value to allow subsequent uploads of the same file
+    e.target.value = "";
+  };
+
   return (
     <div className="">
       <input
-        onChange={onChange}
+        onChange={handleChange}
         className="hidden"
         type="file"
         id="file-selector"
