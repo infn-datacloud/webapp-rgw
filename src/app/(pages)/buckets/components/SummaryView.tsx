@@ -1,5 +1,5 @@
 import { dateToHuman, getHumanSize } from "@/commons/utils";
-import { BucketConfiguration, BucketInfo } from "@/models/bucket";
+import { BucketConfiguration } from "@/models/bucket";
 import { ChartPieIcon, ClockIcon, CubeIcon } from "@heroicons/react/24/outline";
 import DeleteBucketButton from "./DeleteBucketButton";
 import EditBucketButton from "./EditBucketButton";
@@ -33,7 +33,7 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
   }
 
   return (
-    <div className="dark:bg-primary-dark mt-4 rounded border bg-secondary p-2 text-primary dark:text-secondary">
+    <div className="mt-4 rounded border bg-secondary p-2 text-primary dark:bg-primary-dark dark:text-secondary">
       <div className="grid grid-cols-1 sm:grid-cols-2">
         <div>
           <div className="text-xl font-bold">{name}</div>
