@@ -13,6 +13,9 @@ const nextConfig = {
   serverRuntimeConfig: {
     appVersion: process.env.npm_package_version || "",
   },
+  compiler: {
+    removeConsole: { exclude: ["error"] },
+  },
 };
 
 export default nextConfig;

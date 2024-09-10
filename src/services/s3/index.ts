@@ -30,6 +30,12 @@ import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { dropDuplicates } from "@/commons/utils";
 
+if (process.env.NODE_ENV === "production") {
+  console.debug = () => {};
+  console.log = () => {};
+  console.warn = () => {};
+}
+
 const awsConfig: AWSConfig = {
   endpoint: process.env.S3_ENDPOINT!,
   region: process.env.S3_REGION!,
