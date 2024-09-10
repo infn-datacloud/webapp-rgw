@@ -30,7 +30,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { dropDuplicates } from "@/commons/utils";
 
-if (process.env.NODE_ENV === "production") {
+if (process.env.APP_ENV === "production") {
   console.debug = () => {};
   console.log = () => {};
   console.warn = () => {};
