@@ -9,7 +9,6 @@ export default auth(req => {
 
   const sessionNotFound = !session && req.nextUrl.pathname !== "/login";
   if (sessionNotFound) {
-    console.log("session not found");
     const newUrl = new URL("/login", req.nextUrl.origin);
     return Response.redirect(newUrl);
   }
@@ -23,7 +22,7 @@ export default auth(req => {
     req.nextUrl.pathname !== "/logout" &&
     req.nextUrl.pathname !== "/login"
   ) {
-    console.log("access keys expired, redirect to /logout");
+    console.debug("access keys expired, redirect to /logout");
     const newUrl = new URL("/logout", req.nextUrl.origin);
     return Response.redirect(newUrl);
   }

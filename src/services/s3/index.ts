@@ -313,7 +313,7 @@ export class S3Service {
       }
     });
     upload.done().then(() => {
-      console.log(`Object ${fileObject.object.Key} uploaded`);
+      console.debug(`Object ${fileObject.object.Key} uploaded`);
       if (onComplete) {
         onComplete();
       }

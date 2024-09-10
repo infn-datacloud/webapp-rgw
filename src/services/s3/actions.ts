@@ -3,7 +3,6 @@ import { auth } from "@/auth";
 import { S3ClientConfig } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { S3Service } from ".";
-import { redirect } from "next/navigation";
 
 export async function s3ClientConfig(
   credentials: AwsCredentialIdentity
