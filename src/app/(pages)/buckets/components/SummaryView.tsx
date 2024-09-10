@@ -24,7 +24,7 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
     bucketConfiguration = await getBucketConfiguration(name);
   } catch (err) {
     if (err instanceof Error) {
-      console.error(
+      console.warn(
         `cannot fetch bucket configuration for bucket '${name}': error '${err}'`
       );
     } else {

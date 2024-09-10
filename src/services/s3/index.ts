@@ -100,7 +100,7 @@ export class S3Service {
       p.status === "fulfilled"
         ? success.push(p.value)
         : console.warn(
-            `cannot list objects for group '${groups[i]}', reason: '${p.reason}'`
+            `cannot list objects of group '${groups[i]}', reason: '${p.reason}'`
           );
     });
 
@@ -119,8 +119,8 @@ export class S3Service {
         if (next.status === "fulfilled") {
           acc.push(bucketNames[index]);
         } else {
-          console.error(
-            `cannot list find bucket '${bucketNames[index]}': reason '${next.reason}'`
+          console.warn(
+            `cannot head bucket '${bucketNames[index]}': reason '${next.reason}'`
           );
         }
         return acc;
