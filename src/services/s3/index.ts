@@ -158,7 +158,7 @@ export class S3Service {
       this.fetchPrivateBuckets(),
       this.fetchPublicBuckets(),
     ]);
-    return [...privates, ...publics];
+    return { privates, publics };
   }
 
   async listObjects(bucket: string): Promise<_Object[]> {
@@ -217,7 +217,8 @@ export class S3Service {
   }
 
   async getBucketsInfos() {
-    const buckets = await this.fetchBucketList();
+    const { publics, privates } = await this.fetchBucketList();
+    const buckets = [...publics, ...privates];
     const validBuckets = buckets.filter(bucket => !!bucket.Name);
 
     const promises = validBuckets.map(async bucket => {

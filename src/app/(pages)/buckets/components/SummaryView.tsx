@@ -10,10 +10,11 @@ import Subview from "./Subview";
 
 export interface BucketSummaryViewProps {
   bucket: Bucket;
+  isPublic?: boolean;
 }
 
 export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
-  const { bucket } = props;
+  const { bucket, isPublic } = props;
   const s3 = await makeS3Client();
   const { name, creation_date, size, objects } = await s3.getBucketInfos(
     bucket.Name!
@@ -49,10 +50,15 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
           />
           <Subview title="Objects:" item={`${objects}`} icon={<CubeIcon />} />
         </div>
-        <div className="ml-auto mr-0 flex space-x-2 p-4 sm:flex-col sm:space-x-0 sm:space-y-4">
-          <EditBucketButton bucket={name} configuration={bucketConfiguration} />
-          <DeleteBucketButton bucket={name} />
-        </div>
+        {!isPublic ? (
+          <div className="ml-auto mr-0 flex space-x-2 p-4 sm:flex-col sm:space-x-0 sm:space-y-4">
+            <EditBucketButton
+              bucket={name}
+              configuration={bucketConfiguration}
+            />
+            <DeleteBucketButton bucket={name} />
+          </div>
+        ) : null}
       </div>
     </div>
   );

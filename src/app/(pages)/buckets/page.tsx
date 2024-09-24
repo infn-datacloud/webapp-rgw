@@ -6,8 +6,8 @@ import Toolbar from "./components/Toolbar";
 import { Bucket } from "@aws-sdk/client-s3";
 import { Suspense } from "react";
 
-function BucketsInfos(props: { buckets: Bucket[] }) {
-  const { buckets } = props;
+function BucketsInfos(props: { buckets: Bucket[]; isPublic: boolean }) {
+  const { buckets, isPublic } = props;
   return (
     <>
       {buckets.map(bucket => {
@@ -16,7 +16,7 @@ function BucketsInfos(props: { buckets: Bucket[] }) {
             fallback={<SummaryLoading bucket={bucket.Name} />}
             key={bucket.Name}
           >
-            <BucketSummaryView bucket={bucket} />
+            <BucketSummaryView bucket={bucket} isPublic={isPublic} />
           </Suspense>
         );
       })}
@@ -31,7 +31,8 @@ export default async function Buckets() {
   return (
     <Page title="Buckets">
       <Toolbar />
-      <BucketsInfos buckets={buckets} />
+      <BucketsInfos buckets={buckets.privates} isPublic={false} />
+      <BucketsInfos buckets={buckets.publics} isPublic={true} />
     </Page>
   );
 }

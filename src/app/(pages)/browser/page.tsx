@@ -5,7 +5,8 @@ import BucketsTable from "./components/buckets-table";
 
 export default async function Browser() {
   const s3 = await makeS3Client();
-  const buckets = await s3.fetchBucketList();
+  const { publics, privates } = await s3.fetchBucketList();
+  const buckets = [...privates, ...publics];
   const tableData = makeTableData(buckets);
 
   return (
