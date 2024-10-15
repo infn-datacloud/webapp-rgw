@@ -100,16 +100,10 @@ export class S3Service {
       return await this.client.send(cmd);
     });
 
-    let success: ListObjectsV2CommandOutput[] = [];
     const results = await Promise.allSettled(promises);
-    results.forEach((p, i) => {
-      p.status === "fulfilled"
-        ? success.push(p.value)
-        : console.warn(
-            `cannot list objects of group '${groups[i]}', reason: '${p.reason}'`
-          );
-    });
-
+    const success = results
+      .filter(res => res.status === "fulfilled")
+      .map(res => res.value);
     const contents = success.flatMap(bucket => bucket.Contents ?? []);
     const bucketNames = contents.map(bucket => {
       return bucket.Key!.split("/").splice(-1)[0];
