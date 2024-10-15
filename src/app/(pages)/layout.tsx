@@ -14,7 +14,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="dark:bg-gray-800">
+      <body className="h-screen dark:bg-gray-800">
         <Sidebar />
         <main className="mt-16 p-4 lg:ml-80 lg:mt-0">{children}</main>
         <Toaster position="top-right" />
