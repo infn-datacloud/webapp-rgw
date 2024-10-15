@@ -11,7 +11,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="dark:bg-primary-dark bg-primary">
+      <body className="inset-0 h-screen bg-primary dark:bg-primary-dark">
         <SessionProvider>{children}</SessionProvider>
         <Toaster position="top-right" />
       </body>
