@@ -88,7 +88,7 @@ export default function CreateBucketModal(props: {
         router.refresh();
         onClose();
       } else {
-        toaster.danger("Cannot not create bucket", error.message);
+        toaster.danger("Cannot create bucket", error.message);
       }
     };
     submit();
