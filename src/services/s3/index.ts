@@ -326,7 +326,7 @@ export class S3Service {
     return this.client.send(cmd);
   }
 
-  async getPresignedUrl(bucket: string, key: string) {
+  async getPresignedUrl(bucket: string, key: string): Promise<string> {
     const cmdGetObj = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
