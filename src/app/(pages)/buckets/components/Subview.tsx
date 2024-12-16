@@ -1,7 +1,7 @@
 type SubviewProps = {
   title: string;
   item: React.ReactNode;
-  icon: JSX.Element;
+  icon: React.ReactNode;
 };
 
 export default function Subview({ title, item, icon }: SubviewProps) {

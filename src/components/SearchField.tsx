@@ -10,7 +10,7 @@ interface SearchFieldProps {
 export const SearchFiled = (props: SearchFieldProps) => {
   const { className, onChange } = props;
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const typingTimer = useRef<ReturnType<typeof setTimeout>>();
+  const typingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleUserStopTyping = (value: string) => {
     if (onChange) {
