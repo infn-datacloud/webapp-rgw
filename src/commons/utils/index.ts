@@ -1,6 +1,7 @@
 import resolveConfig from "tailwindcss/resolveConfig";
 import _tailwindConfig from "../../../tailwind.config.js";
 import { RWAccess } from "@/models/bucket";
+import { S3ServiceException } from "@aws-sdk/client-s3";
 
 export const tailwindConfig = resolveConfig(_tailwindConfig);
 
@@ -31,20 +32,18 @@ export const decodeJwtPayload = (token: string) => {
 };
 
 export function parseS3Error(err: unknown) {
-  console.error(err);
-  let message = "Unknown Error";
+  console.log(err);
   if (err instanceof Error) {
     switch (err.name) {
       case "AccessDenied":
-        message = "Access Denied";
-        break;
+        return "Access Denied";
       case "BucketNotEmpty":
-        message = "Bucket is not empty";
-        break;
+        return "Bucket is not empty";
       default:
+        "Unknown Error";
     }
   }
-  return { message };
+  return "Unknown Error";
 }
 
 export function dateToHuman(date: Date) {

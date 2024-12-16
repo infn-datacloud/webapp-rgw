@@ -1,20 +1,23 @@
 "use server";
 import { parseS3Error } from "@/commons/utils";
-import { BucketConfiguration } from "@/models/bucket";
 import { makeS3Client } from "@/services/s3/actions";
 
-export async function setBucketConfiguration(
-  bucket: string,
-  config: BucketConfiguration
-) {
-  const s3 = await makeS3Client();
-  const { versioning, objectLock } = config;
+export async function setBucketVersioning(bucket: string, enabled: boolean) {
   try {
-    await Promise.all([
-      s3.setBucketVersioning(bucket, versioning),
-      // s3.setBucketObjectLock(bucket, objectLock),
-    ]);
+    const s3 = await makeS3Client();
+    await s3.setBucketVersioning(bucket, enabled);
+    return {};
   } catch (err) {
-    return parseS3Error(err);
+    return { error: parseS3Error(err) };
+  }
+}
+
+export async function setBucketObjectLock(bucket: string, enabled: boolean) {
+  try {
+    const s3 = await makeS3Client();
+    await s3.setBucketObjectLock(bucket, enabled);
+    return {};
+  } catch (err) {
+    return { error: parseS3Error(err) };
   }
 }

@@ -14,7 +14,7 @@ export default function DeleteBucketButton(props: { bucket: string }) {
       if (!error) {
         toaster.success("Bucket successfully deleted");
       } else {
-        toaster.danger("Cannot  delete bucket", error.message);
+        toaster.danger("Cannot delete bucket", error);
       }
     };
     submit();

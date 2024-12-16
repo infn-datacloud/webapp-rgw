@@ -18,7 +18,7 @@ export default function DeleteButton(props: {
         onDeleted?.();
         toaster.success("Object(s) successfully deleted");
       } else {
-        toaster.danger("Cannot delete object(s)", error.message);
+        toaster.danger("Cannot delete object(s)", error);
       }
     };
     _delete();

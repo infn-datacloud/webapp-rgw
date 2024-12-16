@@ -243,8 +243,9 @@ export class S3Service {
   }
 
   async setBucketVersioning(bucket: string, enabled: boolean) {
+    console.log("culo", enabled);
     const versioningConfiguration: VersioningConfiguration = {
-      Status: enabled ? "Enabled" : "Suspended",
+      Status : enabled ? "Enabled" : "Suspended",
     };
     const putVersioningCommand = new PutBucketVersioningCommand({
       Bucket: bucket,
