@@ -6,15 +6,25 @@ stages:
 
 next-version:
   stage: prerelease
-  image: node:20
+  image: node:22
   script:
     - npm install @semantic-release/exec @semantic-release/gitlab
     - npx semantic-release --generate-notes false --dry-run
   artifacts:
     paths:
       - version.txt
-  except:
-    - tags
+  rules:
+    - changes:
+        - src/**/*
+        - public/**/*
+        - tests/**/*
+        - Dockerfile
+        - next.config.mjs
+        - package.json
+        - package-lock.json
+        - postcss.config.js
+        - jest.config.ts
+        - gitlab-ci.yaml
 
 build:
   stage: docker
@@ -29,23 +39,32 @@ build:
   script:
     - docker build . --pull -t "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}"
     - docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}"
-  except:
-    - tags
+  rules:
+    - changes:
+        - src/**/*
+        - public/**/*
+        - tests/**/*
+        - Dockerfile
+        - next.config.mjs
+        - package.json
+        - package-lock.json
+        - postcss.config.js
+        - jest.config.ts
+        - gitlab-ci.yaml
 
 release:
   stage: release
-  image: node:20
+  image: node:22
   script:
     - npm install @semantic-release/exec @semantic-release/gitlab
     - npx semantic-release
   artifacts:
     paths:
       - version.txt
-  only:
-    refs:
-      - main
-      - dev
-      - /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
+    - if: $CI_COMMIT_REF_NAME == "dev"
+    - if: $CI_COMMIT_REF_NAME =~ /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
 
 tag-version:
   stage: release
@@ -62,10 +81,9 @@ tag-version:
     docker push "${CI_REGISTRY_IMAGE}:${version}"
   needs:
     - release
-  only:
-    refs:
-      - main
-      - dev
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
+    - if: $CI_COMMIT_REF_NAME == "dev"
 
 tag-latest:
   stage: release
@@ -80,9 +98,8 @@ tag-latest:
     docker push "${CI_REGISTRY_IMAGE}:latest"
   needs:
     - build
-  only:
-    refs:
-      - main
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
 
 tag-latest-dev:
   stage: release
@@ -97,6 +114,13 @@ tag-latest-dev:
     docker push "${CI_REGISTRY_IMAGE}:latest-dev"
   needs:
     - build
-  only:
-    refs:
-      - dev
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "dev"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG

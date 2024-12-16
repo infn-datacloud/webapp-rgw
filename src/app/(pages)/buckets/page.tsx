@@ -1,25 +1,15 @@
-import { Page } from "@/components/Page";
+import { Page } from "@/components/page";
 import { makeS3Client } from "@/services/s3/actions";
-import { BucketSummaryView } from "./components/SummaryView";
-import { SummaryLoading } from "./components/loading";
-import Toolbar from "./components/Toolbar";
 import { Bucket } from "@aws-sdk/client-s3";
-import { Suspense } from "react";
+import { BucketInfo, Toolbar } from "./components";
 
 function BucketsInfos(props: { buckets: Bucket[]; isPublic: boolean }) {
   const { buckets, isPublic } = props;
   return (
     <>
-      {buckets.map(bucket => {
-        return (
-          <Suspense
-            fallback={<SummaryLoading bucket={bucket.Name} />}
-            key={bucket.Name}
-          >
-            <BucketSummaryView bucket={bucket} isPublic={isPublic} />
-          </Suspense>
-        );
-      })}
+      {buckets.map(bucket => (
+        <BucketInfo key={bucket.Name} bucket={bucket} isPublic={isPublic} />
+      ))}
     </>
   );
 }

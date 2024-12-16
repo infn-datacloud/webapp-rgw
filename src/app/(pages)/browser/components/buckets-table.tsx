@@ -1,5 +1,5 @@
 "use client";
-import { Table, TableData } from "@/components/Table";
+import { Table, TableData } from "@/components/table";
 import { useRouter } from "next/navigation";
 
 export default function BucketsTable(props: { data: TableData }) {
