@@ -1,4 +1,4 @@
-import { Cell, Column, Row, TableData } from "@/components/Table";
+import { Cell, Column, Row, TableData } from "@/components/table";
 import { dateToHuman } from "@/commons/utils";
 import { Bucket } from "@aws-sdk/client-s3";
 

@@ -1,6 +1,6 @@
-import BucketBrowser from "./components/BucketBrowser";
+import BucketBrowser from "./components/browser";
 import { makeS3Client } from "@/services/s3/actions";
-import { Page } from "@/components/Page";
+import { Page } from "@/components/page";
 import { _Object } from "@aws-sdk/client-s3";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";

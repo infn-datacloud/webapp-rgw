@@ -1,4 +1,4 @@
-import { Page } from "@/components/Page";
+import { Page } from "@/components/page";
 import { makeS3Client } from "@/services/s3/actions";
 import { makeTableData } from "./utils";
 import BucketsTable from "./components/buckets-table";

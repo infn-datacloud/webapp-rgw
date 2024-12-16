@@ -1,12 +1,12 @@
 "use client";
-import { Button } from "@/components/Button";
-import Form from "@/components/Form";
-import Input from "@/components/Input";
+import { Button } from "@/components/buttons";
+import Form from "@/components/form";
+import Input from "@/components/inputs/input";
 import { toaster } from "@/components/toaster";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import Spinner from "@/components/Spinner";
+import Spinner from "@/components/spinner";
 
 function Loading() {
   return (
