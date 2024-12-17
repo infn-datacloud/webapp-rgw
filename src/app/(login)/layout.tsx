@@ -11,9 +11,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className="inset-0 h-screen bg-primary dark:bg-primary-dark">
         <SessionProvider>{children}</SessionProvider>
-        <Toaster position="top-right"/>
+        <Toaster position="top-right" />
       </body>
     </html>
   );

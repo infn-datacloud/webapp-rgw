@@ -1,28 +1,28 @@
-import { Page } from "@/components/Page";
-import { BucketInfo } from "@/models/bucket";
+import { Page } from "@/components/page";
 import { makeS3Client } from "@/services/s3/actions";
-import { BucketSummaryView } from "./components/SummaryView";
-import Toolbar from "./components/Toolbar";
+import { Bucket } from "@aws-sdk/client-s3";
+import { BucketInfo, Toolbar } from "./components";
 
-function BucketsInfos(props: { bucketsInfos: BucketInfo[] }) {
-  const { bucketsInfos } = props;
+function BucketsInfos(props: { buckets: Bucket[]; isPublic: boolean }) {
+  const { buckets, isPublic } = props;
   return (
     <>
-      {bucketsInfos.map(el => {
-        return <BucketSummaryView className={"mb-4"} key={el.name} {...el} />;
-      })}
+      {buckets.map(bucket => (
+        <BucketInfo key={bucket.Name} bucket={bucket} isPublic={isPublic} />
+      ))}
     </>
   );
 }
 
 export default async function Buckets() {
   const s3 = await makeS3Client();
-  const bucketsInfos = await s3.getBucketsInfos();
+  const buckets = await s3.fetchBucketList();
 
   return (
     <Page title="Buckets">
       <Toolbar />
-      <BucketsInfos bucketsInfos={bucketsInfos} />
+      <BucketsInfos buckets={buckets.privates} isPublic={false} />
+      <BucketsInfos buckets={buckets.publics} isPublic={true} />
     </Page>
   );
 }

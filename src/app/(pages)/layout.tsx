@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
-import { Sidebar } from "@/components/Sidebar";
+import { Sidebar } from "@/components/sidebar";
 import "@/app/globals.css";
 import "@/app/index.css";
 
 export const metadata: Metadata = {
-  title: "INFN Cloud S3 Storage",
-  description: "INFN Cloud S3 Storage",
+  title: "INFN Cloud Object Storage",
+  description: "INFN Cloud Object Storage",
 };
 
 export default function RootLayout({
@@ -14,16 +14,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>
-        <aside
-          id="default-sidebar"
-          className="fixed top-0 left-0 z-5 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0"
-          aria-label="Sidebar"
-        >
-          <Sidebar />
-        </aside>
-        <main className="p-4 sm:ml-64">{children}</main>
-        <Toaster position="top-right"/>
+      <body className="h-screen dark:bg-gray-800">
+        <Sidebar />
+        <main className="mt-16 p-4 lg:ml-80 lg:mt-0">{children}</main>
+        <Toaster position="top-right" />
       </body>
     </html>
   );

@@ -3,13 +3,64 @@ module.exports = {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      container: {
+        center: true,
+      },
+      borderRadius: {
+        DEFAULT: "10px",
+        half: "5px",
+      },
+      textColor: {
+        DEFAULT: "#dc2626",
+      },
       colors: {
-        infn: "#4496b8",
+        transparent: "transparent",
+        current: "currentColor",
+        primary: {
+          DEFAULT: "#002a48",
+          50: "#f5fbff",
+          100: "#e0f2ff",
+          200: "#485c79",
+          hover: "#20385a",
+          dark: "#00223a",
+        },
+        light: {
+          DEFAULT: "#4196b4",
+          hover: "#347890",
+        },
+        secondary: {
+          DEFAULT: "#fefefe",
+          50: "#fefefe80",
+          hover: "#e2e2e2",
+        },
+        success: {
+          DEFAULT: "#3da657",
+          50: "#35de2380",
+          hover: "#3da65760",
+        },
+        warning: {
+          DEFAULT: "#ffc107",
+          50: "#ffc10780",
+          hover: "#ffc822",
+        },
+        danger: {
+          DEFAULT: "#de2335",
+          50: "#de233580",
+          hover: "#ed2639",
+        },
+      },
+      animation: {
+        progress: "progress 0.75s infinite linear",
+        "pulse-fast": "pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+      },
+      keyframes: {
+        progress: {
+          "0%": { transform: "translateX(0) scaleX(0)" },
+          "40%": { transform: "translateX(0) scaleX(0.4)" },
+          "100%": { transform: "translateX(100%) scaleX(0.1)" },
+        },
       },
     },
-    container: {
-      center: true,
-    },
+    plugins: [],
   },
-  plugins: [],
 };

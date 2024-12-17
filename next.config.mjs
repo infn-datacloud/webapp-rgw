@@ -5,13 +5,16 @@ const nextConfig = {
     return [
       {
         source: "/",
-        destination: "/home",
+        destination: "/browser",
         permanent: true,
       },
     ];
   },
   serverRuntimeConfig: {
     appVersion: process.env.npm_package_version || "",
+  },
+  compiler: {
+    removeConsole: { exclude: ["error"] },
   },
 };
 

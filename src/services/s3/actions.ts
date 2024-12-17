@@ -3,15 +3,21 @@ import { auth } from "@/auth";
 import { S3ClientConfig } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { S3Service } from ".";
-import { redirect } from "next/navigation";
 
 export async function s3ClientConfig(
   credentials: AwsCredentialIdentity
 ): Promise<S3ClientConfig> {
+  let { expiration } = credentials;
+  if (expiration && !(expiration instanceof Date)) {
+    expiration = new Date(expiration);
+  }
+  
+  const creds = { ...credentials, expiration };
+
   return {
     endpoint: process.env.S3_ENDPOINT!,
     region: process.env.S3_REGION!,
-    credentials,
+    credentials: creds,
     forcePathStyle: true,
   };
 }

@@ -20,17 +20,22 @@
   .text-balance {
     text-wrap: balance;
   }
+  .show-sidebar {
+    @apply translate-x-0;
+  }
 }
-
 
 @layer base {
   h1 {
-    @apply text-2xl;
+    @apply text-4xl font-bold;
   }
   h2 {
-    @apply text-xl;
+    @apply text-2xl font-bold;
   }
   h3 {
-    @apply text-lg;
+    @apply text-xl font-bold;
+  }
+  h4 {
+    @apply text-lg font-bold;
   }
 }

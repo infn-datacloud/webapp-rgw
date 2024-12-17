@@ -1,11 +1,23 @@
 "use client";
-import { Button } from "@/components/Button";
-import Form from "@/components/Form";
-import Input from "@/components/Input";
+import { Button } from "@/components/buttons";
+import Form from "@/components/form";
+import Input from "@/components/inputs/input";
 import { toaster } from "@/components/toaster";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import Spinner from "@/components/spinner";
+
+function Loading() {
+  return (
+    <div className="fixed inset-0 z-10 bg-gray-600/50 backdrop-blur-sm">
+      <div className="mx-auto mt-48 h-16 w-16 text-secondary">
+        <Spinner />
+        <p className="mt-8 text-xl text-secondary">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -40,6 +52,7 @@ export default function LoginForm() {
 
   return (
     <>
+      {status === "loading" ? <Loading /> : null}
       <Form action={handleCredentialsLogin} className="space-y-2">
         <Input name="accessKeyId" placeholder="Access Key Id" required />
         <Input

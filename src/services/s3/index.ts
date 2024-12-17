@@ -12,6 +12,7 @@ import {
   GetBucketVersioningCommandOutput,
   GetObjectCommand,
   GetObjectLockConfigurationCommand,
+  HeadBucketCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
   ListObjectsV2CommandOutput,
@@ -28,6 +29,12 @@ import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { dropDuplicates } from "@/commons/utils";
+
+if (process.env.APP_ENV === "production") {
+  console.debug = () => {};
+  console.log = () => {};
+  console.warn = () => {};
+}
 
 const awsConfig: AWSConfig = {
   endpoint: process.env.S3_ENDPOINT!,
@@ -76,7 +83,6 @@ export class S3Service {
     // make const copies that won't change after the safety guard
     const publisherBucket = this.publisherBucket;
     const groups = this.groups;
-
     if (!publisherBucket || !groups) {
       console.warn(
         "Bucket publisher or groups not defined",
@@ -94,23 +100,34 @@ export class S3Service {
       return await this.client.send(cmd);
     });
 
-    let success: ListObjectsV2CommandOutput[] = [];
     const results = await Promise.allSettled(promises);
-    results.forEach((p, i) => {
-      p.status === "fulfilled"
-        ? success.push(p.value)
-        : console.warn(
-            `cannot list objects for group '${groups[i]}', reason: '${p.reason}'`
-          );
-    });
-
+    const success = results
+      .filter(res => res.status === "fulfilled")
+      .map(res => res.value);
     const contents = success.flatMap(bucket => bucket.Contents ?? []);
-
-    let names = contents.map(c => {
-      const keys = c.Key!.split("/");
-      return keys[keys.length - 1];
+    const bucketNames = contents.map(bucket => {
+      return bucket.Key!.split("/").splice(-1)[0];
     });
-    names = dropDuplicates(names);
+    bucketNames.push("scratch");
+    const headPromises = bucketNames.map(key => {
+      const headCmd = new HeadBucketCommand({ Bucket: key });
+      return this.client.send(headCmd);
+    });
+
+    const validBuckets = (await Promise.allSettled(headPromises)).reduce(
+      (acc: string[], next, index) => {
+        if (next.status === "fulfilled") {
+          acc.push(bucketNames[index]);
+        } else {
+          console.warn(
+            `cannot head bucket '${bucketNames[index]}': reason '${next.reason}'`
+          );
+        }
+        return acc;
+      },
+      []
+    );
+    const names = dropDuplicates(validBuckets);
     const buckets: Bucket[] = names.map(name => {
       return { Name: name };
     });
@@ -135,30 +152,37 @@ export class S3Service {
       this.fetchPrivateBuckets(),
       this.fetchPublicBuckets(),
     ]);
-    return [...privates, ...publics];
+    return { privates, publics };
   }
 
   async listObjects(bucket: string): Promise<_Object[]> {
     let content: _Object[] = [];
     let completed = false;
     let continuationToken: string | undefined = undefined;
-    while (!completed) {
-      const cmd = new ListObjectsV2Command({
-        Bucket: bucket,
-        ContinuationToken: continuationToken,
-      });
-      const response: ListObjectsV2CommandOutput = await this.client.send(cmd);
-      const { Contents, IsTruncated, NextContinuationToken } = response;
-      if (Contents) {
-        content = content.concat(Contents);
-        if (IsTruncated) {
-          continuationToken = NextContinuationToken;
+    try {
+      while (!completed) {
+        const cmd = new ListObjectsV2Command({
+          Bucket: bucket,
+          ContinuationToken: continuationToken,
+        });
+        const response: ListObjectsV2CommandOutput =
+          await this.client.send(cmd);
+        const { Contents, IsTruncated, NextContinuationToken } = response;
+        if (Contents) {
+          content = content.concat(Contents);
+          if (IsTruncated) {
+            continuationToken = NextContinuationToken;
+          } else {
+            completed = true;
+          }
         } else {
-          completed = true;
+          return [];
         }
-      } else {
-        return [];
       }
+    } catch (err) {
+      console.error(
+        `cannot list object for bucket '${bucket}': '${err instanceof Error ? err.name : "unknown error"}'`
+      );
     }
     return content;
   }
@@ -181,9 +205,14 @@ export class S3Service {
     return info;
   }
 
+  async getBucketInfos(bucket: string) {
+    const objects = await this.listObjects(bucket);
+    return S3Service.computeBucketSummary({ Name: bucket }, objects);
+  }
+
   async getBucketsInfos() {
-    const buckets = await this.fetchBucketList();
-    buckets.push({ Name: "scratch" });
+    const { publics, privates } = await this.fetchBucketList();
+    const buckets = [...publics, ...privates];
     const validBuckets = buckets.filter(bucket => !!bucket.Name);
 
     const promises = validBuckets.map(async bucket => {
@@ -197,7 +226,8 @@ export class S3Service {
       p.status === "fulfilled"
         ? bucketsInfos.push(p.value)
         : console.warn(
-            `cannot fetch bucket '${p.reason.BucketName}', ` + `reason: '${p.reason}'`
+            `cannot fetch bucket '${p.reason.BucketName}', ` +
+              `reason: '${p.reason}'`
           );
     });
     return bucketsInfos;
@@ -213,8 +243,9 @@ export class S3Service {
   }
 
   async setBucketVersioning(bucket: string, enabled: boolean) {
+    console.log("culo", enabled);
     const versioningConfiguration: VersioningConfiguration = {
-      Status: enabled ? "Enabled" : "Suspended",
+      Status : enabled ? "Enabled" : "Suspended",
     };
     const putVersioningCommand = new PutBucketVersioningCommand({
       Bucket: bucket,
@@ -284,7 +315,7 @@ export class S3Service {
       }
     });
     upload.done().then(() => {
-      console.log(`Object ${fileObject.object.Key} uploaded`);
+      console.debug(`Object ${fileObject.object.Key} uploaded`);
       if (onComplete) {
         onComplete();
       }
@@ -296,7 +327,7 @@ export class S3Service {
     return this.client.send(cmd);
   }
 
-  async getPresignedUrl(bucket: string, key: string) {
+  async getPresignedUrl(bucket: string, key: string): Promise<string> {
     const cmdGetObj = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
