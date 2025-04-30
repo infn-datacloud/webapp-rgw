@@ -8,12 +8,12 @@ import { FileIcon } from "./file-icon";
 import { getHumanSize } from "@/commons/utils";
 import Paginator from "@/components/paginator";
 
-function Folder(
-  props: Readonly<{ prefix: CommonPrefix; pathname: string }>
-) {
-  const { prefix, pathname } = props;
-  const href = `${pathname}/${prefix.Prefix}`;
-  const folderName = prefix.Prefix?.split("/").splice(-2);
+function Folder(props: Readonly<{ bucket: string; prefix: CommonPrefix }>) {
+  const { bucket, prefix } = props;
+  const href = `/browser/${bucket}/${prefix.Prefix}`;
+  const path = prefix.Prefix?.split("/");
+  path?.pop();
+  const folderName = path?.pop();
   return (
     <li className="flex border-b border-slate-200 p-4 hover:bg-slate-200">
       <Link className="flex w-full" href={href}>
@@ -54,11 +54,11 @@ function Object(props: Readonly<{ object: _Object }>) {
 
 type ObjectTableProps = {
   listObjectsOutput: ListObjectsV2CommandOutput;
-  pathname: string;
+  bucket: string;
 };
 
 export function ObjectTable(props: Readonly<ObjectTableProps>) {
-  const { listObjectsOutput, pathname } = props;
+  const { listObjectsOutput, bucket } = props;
   const { Contents, CommonPrefixes, NextContinuationToken } = listObjectsOutput;
   return (
     <div className="rounded bg-slate-100 text-sm text-primary shadow-md">
@@ -70,11 +70,7 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
       </div>
       <ul className="bg-white">
         {CommonPrefixes?.map(prefix => (
-          <Folder
-            key={prefix.Prefix}
-            prefix={prefix}
-            pathname={pathname}
-          />
+          <Folder key={prefix.Prefix} prefix={prefix} bucket={bucket} />
         ))}
         {Contents?.map(object => <Object key={object.Key} object={object} />)}
       </ul>

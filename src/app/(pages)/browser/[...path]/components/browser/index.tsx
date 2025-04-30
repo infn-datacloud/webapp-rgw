@@ -1,5 +1,6 @@
 import { makeS3Client } from "@/services/s3/actions";
 import { ObjectTable } from "./table";
+import PathViewer from "./path-viewer";
 
 export type BucketBrowserProps = {
   path: [string];
@@ -9,15 +10,15 @@ export type BucketBrowserProps = {
 
 export async function Browser(props: Readonly<BucketBrowserProps>) {
   const { path, count, nextContinuationToken } = props;
+
+  const folder = path.splice(1).join("/");
   const bucket = path[0];
-  const prefix = path.length > 1 ? path.splice(1).join("/") + "/" : "";
+  const prefix = folder ? `${folder}/` : undefined;
+  const filepath = `${bucket}/${folder}`;
 
   if (!bucket) {
     return <p>Bucket not found</p>;
   }
-
-  const currentPath = path.join("/");
-  const pathname = `/browser/${currentPath}`;
 
   const s3 = await makeS3Client();
   const response = await s3.listObjects(
@@ -33,7 +34,8 @@ export async function Browser(props: Readonly<BucketBrowserProps>) {
 
   return (
     <div>
-      <ObjectTable listObjectsOutput={response} pathname={pathname} />
+      <PathViewer currentPath={filepath} />
+      <ObjectTable listObjectsOutput={response} bucket={bucket} />
     </div>
   );
 }
