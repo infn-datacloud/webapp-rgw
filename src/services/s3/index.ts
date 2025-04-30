@@ -15,7 +15,6 @@ import {
   HeadBucketCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
-  ListObjectsV2CommandOutput,
   ObjectLockConfiguration,
   PutBucketVersioningCommand,
   PutObjectLockConfigurationCommand,
@@ -24,7 +23,7 @@ import {
   VersioningConfiguration,
   _Object,
 } from "@aws-sdk/client-s3";
-import { BucketInfo, FileObjectWithProgress } from "@/models/bucket";
+import { FileObjectWithProgress } from "@/models/bucket";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -155,82 +154,26 @@ export class S3Service {
     return { privates, publics };
   }
 
-  async listObjects(bucket: string): Promise<_Object[]> {
-    let content: _Object[] = [];
-    let completed = false;
-    let continuationToken: string | undefined = undefined;
+  async listObjects(
+    bucket: string,
+    maxKeys = 10,
+    prefix?: string,
+    continuationToken?: string
+  ) {
     try {
-      while (!completed) {
-        const cmd = new ListObjectsV2Command({
-          Bucket: bucket,
-          ContinuationToken: continuationToken,
-        });
-        const response: ListObjectsV2CommandOutput =
-          await this.client.send(cmd);
-        const { Contents, IsTruncated, NextContinuationToken } = response;
-        if (Contents) {
-          content = content.concat(Contents);
-          if (IsTruncated) {
-            continuationToken = NextContinuationToken;
-          } else {
-            completed = true;
-          }
-        } else {
-          return [];
-        }
-      }
+      const cmd = new ListObjectsV2Command({
+        Bucket: bucket,
+        ContinuationToken: continuationToken,
+        Delimiter: "/",
+        Prefix: prefix,
+        MaxKeys: maxKeys,
+      });
+      return await this.client.send(cmd);
     } catch (err) {
       console.error(
         `cannot list object for bucket '${bucket}': '${err instanceof Error ? err.name : "unknown error"}'`
       );
     }
-    return content;
-  }
-
-  /** Compute Bucket Summary Info, counting all objects and summing their size */
-  static computeBucketSummary(bucket: Bucket, objects: _Object[]) {
-    const info: BucketInfo = {
-      name: bucket.Name ?? "N/A",
-      creation_date: bucket.CreationDate?.toString(),
-      rw_access: { read: true, write: true },
-      objects: 0,
-      size: 0,
-    };
-    if (objects) {
-      objects.forEach(o => {
-        ++info.objects;
-        info.size += o.Size ?? 0.0;
-      });
-    }
-    return info;
-  }
-
-  async getBucketInfos(bucket: string) {
-    const objects = await this.listObjects(bucket);
-    return S3Service.computeBucketSummary({ Name: bucket }, objects);
-  }
-
-  async getBucketsInfos() {
-    const { publics, privates } = await this.fetchBucketList();
-    const buckets = [...publics, ...privates];
-    const validBuckets = buckets.filter(bucket => !!bucket.Name);
-
-    const promises = validBuckets.map(async bucket => {
-      const { Name } = bucket;
-      const objects = await this.listObjects(Name!);
-      return S3Service.computeBucketSummary(bucket, objects);
-    });
-    const results = await Promise.allSettled(promises);
-    let bucketsInfos: BucketInfo[] = [];
-    results.forEach(p => {
-      p.status === "fulfilled"
-        ? bucketsInfos.push(p.value)
-        : console.warn(
-            `cannot fetch bucket '${p.reason.BucketName}', ` +
-              `reason: '${p.reason}'`
-          );
-    });
-    return bucketsInfos;
   }
 
   async getBucketVersioning(
@@ -243,9 +186,8 @@ export class S3Service {
   }
 
   async setBucketVersioning(bucket: string, enabled: boolean) {
-    console.log("culo", enabled);
     const versioningConfiguration: VersioningConfiguration = {
-      Status : enabled ? "Enabled" : "Suspended",
+      Status: enabled ? "Enabled" : "Suspended",
     };
     const putVersioningCommand = new PutBucketVersioningCommand({
       Bucket: bucket,

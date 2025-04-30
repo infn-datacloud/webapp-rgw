@@ -4,7 +4,7 @@ import {
   PhotoIcon,
 } from "@heroicons/react/24/outline";
 
-function Icon(props: { extension: string }) {
+function Icon(props: { extension: string | undefined }) {
   const { extension } = props;
   switch (extension) {
     case "png":
@@ -18,6 +18,6 @@ function Icon(props: { extension: string }) {
   }
 }
 
-export default function FileIcon(props: { extension: string }) {
-  return <div className="w-5">{<Icon {...props} />}</div>;
+export function FileIcon(props: { extension: string | undefined }) {
+  return <div className="size-5">{<Icon {...props} />}</div>;
 }
