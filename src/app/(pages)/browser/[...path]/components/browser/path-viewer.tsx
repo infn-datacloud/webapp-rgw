@@ -6,10 +6,8 @@ import { ChevronUpIcon } from "@heroicons/react/24/solid";
 function PathBackButton(props: Readonly<{ currentPath: string }>) {
   const { currentPath } = props;
   const isRoot = currentPath.split("/").pop() === "";
-  console.log(currentPath, isRoot);
-  const goBack = () => {
-    window.history.back();
-  };
+  const goBack = () => window.history.back();
+
   return (
     <button
       className="my-auto h-8 w-8 rounded-full p-[5px] text-primary transition-transform hover:bg-neutral-200 data-[root=true]:-rotate-90 dark:text-secondary dark:hover:bg-neutral-600"
