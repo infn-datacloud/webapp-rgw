@@ -1,6 +1,7 @@
 import { Page } from "@/components/page";
 import { _Object } from "@aws-sdk/client-s3";
 import { Browser } from "./components";
+import { makeS3Client } from "@/services/s3/actions";
 
 type BrowserProps = {
   params: Promise<{ path: [string] }>;
@@ -14,12 +15,37 @@ type BrowserProps = {
 export default async function BucketBrowser(props: Readonly<BrowserProps>) {
   const { path } = await props.params;
   const searchParams = await props.searchParams;
-  const next = searchParams?.next;
+  const nextContinuationToken = searchParams?.next;
   const count = searchParams?.count ? parseInt(searchParams?.count) : undefined;
 
+  const folder = path.splice(1).join("/");
+  const bucket = path[0];
+  const prefix = folder ? `${folder}/` : undefined;
+  const filepath = `${bucket}/${folder}`;
+
+  if (!bucket) {
+    return <p>Bucket not found</p>;
+  }
+
+  const s3 = await makeS3Client();
+  const response = await s3.listObjects(
+    bucket,
+    count,
+    prefix,
+    nextContinuationToken
+  );
+
+  if (!response) {
+    return <div>Error</div>;
+  }
+
   return (
-    <Page title={path[0]}>
-      <Browser path={path} count={count} nextContinuationToken={next} />
+    <Page title={bucket}>
+      <Browser
+        bucket={bucket}
+        filepath={filepath}
+        listObjectOutput={response}
+      />
     </Page>
   );
 }
