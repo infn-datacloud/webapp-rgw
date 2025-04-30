@@ -9,10 +9,10 @@ import { getHumanSize } from "@/commons/utils";
 import Paginator from "@/components/paginator";
 
 function Folder(
-  props: Readonly<{ prefix: CommonPrefix; currentPath: string }>
+  props: Readonly<{ prefix: CommonPrefix; pathname: string }>
 ) {
-  const { prefix, currentPath } = props;
-  const href = `${currentPath}/${prefix.Prefix}`;
+  const { prefix, pathname } = props;
+  const href = `${pathname}/${prefix.Prefix}`;
   const folderName = prefix.Prefix?.split("/").splice(-2);
   return (
     <li className="flex border-b border-slate-200 p-4 hover:bg-slate-200">
@@ -54,11 +54,11 @@ function Object(props: Readonly<{ object: _Object }>) {
 
 type ObjectTableProps = {
   listObjectsOutput: ListObjectsV2CommandOutput;
-  currentPath: string;
+  pathname: string;
 };
 
 export function ObjectTable(props: Readonly<ObjectTableProps>) {
-  const { listObjectsOutput, currentPath } = props;
+  const { listObjectsOutput, pathname } = props;
   const { Contents, CommonPrefixes, NextContinuationToken } = listObjectsOutput;
   return (
     <div className="rounded bg-slate-100 text-sm text-primary shadow-md">
@@ -73,7 +73,7 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
           <Folder
             key={prefix.Prefix}
             prefix={prefix}
-            currentPath={currentPath}
+            pathname={pathname}
           />
         ))}
         {Contents?.map(object => <Object key={object.Key} object={object} />)}

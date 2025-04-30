@@ -15,7 +15,9 @@ export async function Browser(props: Readonly<BucketBrowserProps>) {
   if (!bucket) {
     return <p>Bucket not found</p>;
   }
-  const currentPath = "/browser/" + path.join("/");
+
+  const currentPath = path.join("/");
+  const pathname = `/browser/${currentPath}`;
 
   const s3 = await makeS3Client();
   const response = await s3.listObjects(
@@ -31,7 +33,7 @@ export async function Browser(props: Readonly<BucketBrowserProps>) {
 
   return (
     <div>
-      <ObjectTable listObjectsOutput={response} currentPath={currentPath} />
+      <ObjectTable listObjectsOutput={response} pathname={pathname} />
     </div>
   );
 }
