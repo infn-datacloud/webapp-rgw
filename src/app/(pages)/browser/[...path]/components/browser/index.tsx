@@ -1,6 +1,7 @@
 import { makeS3Client } from "@/services/s3/actions";
 import { ObjectTable } from "./table";
 import PathViewer from "./path-viewer";
+import Toolbar from "./toolbar";
 
 export type BucketBrowserProps = {
   path: [string];
@@ -34,6 +35,7 @@ export async function Browser(props: Readonly<BucketBrowserProps>) {
 
   return (
     <div>
+      <Toolbar bucket={bucket} currentPath={filepath} objectsToDelete={[]} />
       <PathViewer currentPath={filepath} />
       <ObjectTable listObjectsOutput={response} bucket={bucket} />
     </div>
