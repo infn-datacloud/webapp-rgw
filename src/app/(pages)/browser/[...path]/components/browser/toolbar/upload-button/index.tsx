@@ -13,10 +13,10 @@ import { toaster } from "@/components/toaster";
 export default function UploadButton(
   props: Readonly<{
     bucket: string;
-    currentPath: string;
+    prefix?: string;
   }>
 ) {
-  const { bucket, currentPath } = props;
+  const { bucket, prefix } = props;
   const { status, data } = useSession();
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, defaultState);
@@ -44,7 +44,7 @@ export default function UploadButton(
   useEffect(() => {
     if (state.allComplete) {
       toaster.success("All files have been successfully uploaded");
-      router.refresh();
+      router.push(`/browser/${bucket}/${prefix}`);
     }
   }, [state.allComplete, router]);
 
@@ -85,11 +85,8 @@ export default function UploadButton(
     const { files } = e.target;
     const filesToUpload = new Array(files.length);
     for (let i = 0; i < files.length; ++i) {
-      // avoid trailing slash if root is empty or "/"
-      const Key =
-        currentPath.length > 1
-          ? `${currentPath}/${files[i].name}`
-          : files[i].name;
+      // prefix already account for trailing "/"
+      const Key = `${prefix}${files[i].name}`;
       filesToUpload[i] = new FileObjectWithProgress({ Key }, files[i]);
     }
     uploadFiles(filesToUpload);

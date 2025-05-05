@@ -51,6 +51,7 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
         key={key}
         bucket={bucket}
         filepath={filepath}
+        prefix={prefix}
         listObjectOutput={response}
       />
     </Page>

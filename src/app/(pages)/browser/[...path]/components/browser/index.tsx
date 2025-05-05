@@ -42,6 +42,7 @@ function initFolderStates(commonPrefixes?: CommonPrefix[]) {
 export type BucketBrowserProps = {
   bucket: string;
   filepath: string;
+  prefix?: string;
   listObjectOutput: ListObjectsV2CommandOutput;
 };
 
@@ -49,7 +50,7 @@ type ObjectsState = CheckboxState<_Object>;
 type FolderState = CheckboxState<CommonPrefix>;
 
 export function Browser(props: Readonly<BucketBrowserProps>) {
-  const { bucket, filepath, listObjectOutput } = props;
+  const { bucket, filepath, prefix, listObjectOutput } = props;
   const { Contents, CommonPrefixes, NextContinuationToken } = listObjectOutput;
   const router = useRouter();
 
@@ -92,6 +93,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
       <Toolbar
         bucket={bucket}
         currentPath={filepath}
+        prefix={prefix}
         objectsToDelete={selectedObjects}
         foldersToDelete={selectedPrefixes}
         onDeleted={handleDelete}

@@ -11,6 +11,7 @@ export default function Toolbar(
   props: Readonly<{
     bucket: string;
     currentPath: string;
+    prefix?: string;
     objectsToDelete: _Object[];
     foldersToDelete: CommonPrefix[];
     onPathChange?: (newPath: string) => void;
@@ -20,6 +21,7 @@ export default function Toolbar(
   const {
     bucket,
     currentPath,
+    prefix,
     objectsToDelete,
     foldersToDelete,
     onPathChange,
@@ -29,12 +31,11 @@ export default function Toolbar(
     <div className="mt-8 grid grid-cols-1 sm:grid-cols-2">
       <div className="flex space-x-2 py-1">
         <HomeButton />
-        <UploadButton bucket={bucket} currentPath={currentPath} />
+        <UploadButton bucket={bucket} prefix={prefix} />
         <RefreshButton />
       </div>
       <div className="flex space-x-2 py-1 sm:ml-auto sm:mr-0">
         <NewPathButton
-          bucket={bucket}
           currentPath={currentPath}
           onPathChange={onPathChange}
         />
