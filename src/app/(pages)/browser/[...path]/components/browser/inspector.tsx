@@ -1,5 +1,5 @@
 import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { _Object } from "@aws-sdk/client-s3";
+import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
 import { Inspector, InspectorProps } from "@/components/inspector";
 import IsomorphicDate from "@/components/isomorphic-date";
 import { getHumanSize } from "@/commons/utils";
@@ -49,34 +49,39 @@ function ObjectDetail(object: _Object) {
 interface BucketInspectorProps extends InspectorProps {
   bucket: string;
   objects: _Object[];
+  prefixes: CommonPrefix[];
   onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
   onDelete?: () => void;
 }
 
 export function BucketInspector(props: BucketInspectorProps) {
-  const { bucket, isOpen, objects, onClose, onDelete } = props;
+  const { bucket, isOpen, objects, prefixes, onClose, onDelete } = props;
   const keys = objects.map(o => o.Key!);
   let object: _Object;
   let title: string;
-
-  switch (objects.length) {
-    case 0:
-      object = { Key: "N/A" };
-      title = "N/A";
-      break;
-    case 1:
-      object = objects[0];
-      title = object.Key ?? "N/A";
-      break;
-    default:
-      object = {
-        Key: `Multiple values (${objects.length})`,
-        ETag: `Multiple values (${objects.length})`,
-        Size: objects.reduce((acc: number, value: _Object) => {
-          return (acc += value.Size ?? 0);
-        }, 0),
-      };
-      title = `Multiple values (${objects.length})`;
+  if (prefixes.length === 0) {
+    switch (objects.length) {
+      case 0:
+        object = { Key: "N/A" };
+        title = "N/A";
+        break;
+      case 1:
+        object = objects[0];
+        title = object.Key ?? "N/A";
+        break;
+      default:
+        object = {
+          Key: `Multiple values (${objects.length})`,
+          ETag: `Multiple values (${objects.length})`,
+          Size: objects.reduce((acc: number, value: _Object) => {
+            return (acc += value.Size ?? 0);
+          }, 0),
+        };
+        title = `Multiple values (${objects.length})`;
+    }
+  } else {
+    object = { Key: "N/A" };
+    title = `Multiple values (${prefixes.length + objects.length})`;
   }
 
   return (
@@ -98,7 +103,8 @@ export function BucketInspector(props: BucketInspectorProps) {
           <DownloadButton bucket={bucket} objectsToDownloads={keys} />
           <DeleteButton
             bucket={bucket}
-            objectsToDelete={keys}
+            objectsToDelete={objects}
+            foldersToDelete={prefixes}
             onDeleted={onDelete}
           />
           {/* Details */}

@@ -7,7 +7,7 @@ import {
   Bucket,
   CreateBucketCommand,
   DeleteBucketCommand,
-  DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetBucketVersioningCommand,
   GetBucketVersioningCommandOutput,
   GetObjectCommand,
@@ -15,13 +15,13 @@ import {
   HeadBucketCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
+  ObjectIdentifier,
   ObjectLockConfiguration,
   PutBucketVersioningCommand,
   PutObjectLockConfigurationCommand,
   S3Client,
   S3ClientConfig,
   VersioningConfiguration,
-  _Object,
 } from "@aws-sdk/client-s3";
 import { FileObjectWithProgress } from "@/models/bucket";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
@@ -158,13 +158,14 @@ export class S3Service {
     bucket: string,
     maxKeys = 10,
     prefix?: string,
+    delimiter?: string,
     continuationToken?: string
   ) {
     try {
       const cmd = new ListObjectsV2Command({
         Bucket: bucket,
         ContinuationToken: continuationToken,
-        Delimiter: "/",
+        Delimiter: delimiter,
         Prefix: prefix,
         MaxKeys: maxKeys,
       });
@@ -264,8 +265,13 @@ export class S3Service {
     });
   }
 
-  deleteObject(Bucket: string, Key: string) {
-    const cmd = new DeleteObjectCommand({ Bucket, Key });
+  deleteObjects(Bucket: string, objects: ObjectIdentifier[]) {
+    const cmd = new DeleteObjectsCommand({
+      Bucket,
+      Delete: {
+        Objects: objects,
+      },
+    });
     return this.client.send(cmd);
   }
 

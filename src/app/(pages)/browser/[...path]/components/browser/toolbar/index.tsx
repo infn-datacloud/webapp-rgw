@@ -5,18 +5,26 @@ import UploadButton from "./upload-button";
 import RefreshButton from "./refresh-button";
 import NewPathButton from "./new-path-button";
 import DeleteButton from "./delete-button";
+import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
 
 export default function Toolbar(
   props: Readonly<{
     bucket: string;
     currentPath: string;
-    objectsToDelete: string[];
+    objectsToDelete: _Object[];
+    foldersToDelete: CommonPrefix[];
     onPathChange?: (newPath: string) => void;
     onDeleted?: () => void;
   }>
 ) {
-  const { bucket, currentPath, objectsToDelete, onPathChange, onDeleted } =
-    props;
+  const {
+    bucket,
+    currentPath,
+    objectsToDelete,
+    foldersToDelete,
+    onPathChange,
+    onDeleted,
+  } = props;
   return (
     <div className="mt-8 grid grid-cols-1 sm:grid-cols-2">
       <div className="flex space-x-2 py-1">
@@ -33,6 +41,7 @@ export default function Toolbar(
         <DeleteButton
           bucket={bucket}
           objectsToDelete={objectsToDelete}
+          foldersToDelete={foldersToDelete}
           onDeleted={onDeleted}
         />
       </div>

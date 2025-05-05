@@ -10,6 +10,7 @@ import {
   ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3";
 import { CheckboxState } from "@/components/checkbox";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 function initObjectStates(contents?: _Object[]) {
@@ -50,6 +51,7 @@ type FolderState = CheckboxState<CommonPrefix>;
 export function Browser(props: Readonly<BucketBrowserProps>) {
   const { bucket, filepath, listObjectOutput } = props;
   const { Contents, CommonPrefixes, NextContinuationToken } = listObjectOutput;
+  const router = useRouter();
 
   const [foldersStates, setFolderStates] = useState(
     initFolderStates(CommonPrefixes)
@@ -69,6 +71,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
   };
 
   const deselectAll = () => {
+    setFolderStates(initFolderStates(listObjectOutput.CommonPrefixes));
     setObjectsStates(initObjectStates(listObjectOutput.Contents));
   };
 
@@ -76,15 +79,31 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     .filter(state => state.checked)
     .map(state => state.underlying);
 
+  const selectedPrefixes = foldersStates
+    .filter(state => state.checked)
+    .map(state => state.underlying);
+
+  const handleDelete = () => {
+    router.refresh();
+  };
+
   return (
     <div>
-      <Toolbar bucket={bucket} currentPath={filepath} objectsToDelete={[]} />
+      <Toolbar
+        bucket={bucket}
+        currentPath={filepath}
+        objectsToDelete={selectedObjects}
+        foldersToDelete={selectedPrefixes}
+        onDeleted={handleDelete}
+      />
       <PathViewer currentPath={filepath} />
       <BucketInspector
-        isOpen={selectedObjects.length > 0}
+        isOpen={selectedObjects.length + selectedPrefixes.length > 0}
         bucket={bucket}
         objects={selectedObjects}
+        prefixes={selectedPrefixes}
         onClose={deselectAll}
+        onDelete={handleDelete}
       />
       <ObjectTable
         bucket={bucket}

@@ -1,5 +1,4 @@
 import { Page } from "@/components/page";
-import { _Object } from "@aws-sdk/client-s3";
 import { Browser } from "./components";
 import { makeS3Client } from "@/services/s3/actions";
 
@@ -22,6 +21,7 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
   const bucket = path[0];
   const prefix = folder ? `${folder}/` : undefined;
   const filepath = `${bucket}/${folder}`;
+  const delimiter = "/";
 
   if (!bucket) {
     return <p>Bucket not found</p>;
@@ -32,6 +32,7 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
     bucket,
     count,
     prefix,
+    delimiter,
     nextContinuationToken
   );
 
@@ -40,7 +41,7 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
   }
 
   // this is a trick to force a remount of the Browser component for each
-  // request, thus invalidating its internal states and re-render it with the 
+  // request, thus invalidating its internal states and re-render it with the
   // changed data
   const key = response.$metadata.requestId;
 
