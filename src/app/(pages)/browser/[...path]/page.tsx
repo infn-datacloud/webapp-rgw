@@ -39,9 +39,15 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
     return <div>Error</div>;
   }
 
+  // this is a trick to force a remount of the Browser component for each
+  // request, thus invalidating its internal states and re-render it with the 
+  // changed data
+  const key = response.$metadata.requestId;
+
   return (
     <Page title={bucket}>
       <Browser
+        key={key}
         bucket={bucket}
         filepath={filepath}
         listObjectOutput={response}

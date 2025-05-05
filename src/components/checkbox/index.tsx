@@ -1,12 +1,18 @@
 import { Checkbox as HeadlessCheckbox } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/16/solid";
 
-type CheckBoxProps = {
+export interface CheckboxState<T> {
+  checked: boolean;
+  underlying: T;
+  index: number;
+}
+
+type CheckboxProps = {
   checked?: boolean;
   onChange?: (value: boolean) => void;
 };
 
-export function Checkbox(props: Readonly<CheckBoxProps>) {
+export function Checkbox(props: Readonly<CheckboxProps>) {
   const { checked, onChange } = props;
 
   return (

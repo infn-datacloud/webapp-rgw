@@ -1,24 +1,29 @@
 "use client";
 
-import {
-  _Object,
-  CommonPrefix,
-  ListObjectsV2CommandOutput,
-} from "@aws-sdk/client-s3";
+import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
 import Paginator from "@/components/paginator";
 import { FolderRow } from "./folder-row";
 import { ObjectRow } from "./object-row";
+import { CheckboxState } from "@/components/checkbox";
 
 type ObjectTableProps = {
-  listObjectsOutput: ListObjectsV2CommandOutput;
   bucket: string;
-  onSelectFolder?: (prefix: CommonPrefix, value: boolean) => void;
-  onSelectObject?: (object: _Object, value: boolean) => void;
+  objectsStates: CheckboxState<_Object>[];
+  foldersStates: CheckboxState<CommonPrefix>[];
+  nextContinuationToken?: string;
+  onSelectFolder?: (state: CheckboxState<CommonPrefix>, value: boolean) => void;
+  onSelectObject?: (state: CheckboxState<_Object>, value: boolean) => void;
 };
 
 export function ObjectTable(props: Readonly<ObjectTableProps>) {
-  const { listObjectsOutput, bucket, onSelectFolder, onSelectObject } = props;
-  const { Contents, CommonPrefixes, NextContinuationToken } = listObjectsOutput;
+  const {
+    bucket,
+    objectsStates,
+    foldersStates,
+    onSelectFolder,
+    onSelectObject,
+    nextContinuationToken,
+  } = props;
 
   return (
     <div className="rounded bg-slate-100 text-sm text-primary shadow-md">
@@ -29,23 +34,23 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
         <div className="min-w-20 font-bold">Size</div>
       </div>
       <ul className="bg-white">
-        {CommonPrefixes?.map(prefix => (
+        {foldersStates?.map(state => (
           <FolderRow
-            key={prefix.Prefix}
-            prefix={prefix}
+            key={state.underlying.Prefix}
+            state={state}
             bucket={bucket}
-            onChange={value => onSelectFolder?.(prefix, value)}
+            onChange={onSelectFolder}
           />
         ))}
-        {Contents?.map(object => (
+        {objectsStates?.map(state => (
           <ObjectRow
-            key={object.Key}
-            object={object}
-            onChange={value => onSelectObject?.(object, value)}
+            key={state.underlying.Key}
+            state={state}
+            onChange={onSelectObject}
           />
         ))}
       </ul>
-      <Paginator nextContinuationToken={NextContinuationToken} />
+      <Paginator nextContinuationToken={nextContinuationToken} />
     </div>
   );
 }

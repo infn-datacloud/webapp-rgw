@@ -2,18 +2,17 @@
 
 import { getHumanSize } from "@/commons/utils";
 import { _Object } from "@aws-sdk/client-s3";
-import { Checkbox } from "@/components/checkbox";
+import { Checkbox, CheckboxState } from "@/components/checkbox";
 import { FileIcon } from "./file-icon";
-import { useState } from "react";
 
 type ObjectRowProps = {
-  object: _Object;
-  onChange?: (value: boolean) => void;
+  state: CheckboxState<_Object>;
+  onChange?: (state: CheckboxState<_Object>, value: boolean) => void;
 };
 
 export function ObjectRow(props: Readonly<ObjectRowProps>) {
-  const { object, onChange } = props;
-  const [checked, setChecked] = useState(false);
+  const { state, onChange } = props;
+  const object = state.underlying;
 
   const lastModified = (() => {
     const { LastModified } = object;
@@ -28,9 +27,7 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
   const size = object.Size ? getHumanSize(object.Size) : "N/A";
 
   const toggle = () => {
-    const newValue = !checked;
-    setChecked(newValue);
-    onChange?.(newValue);
+    onChange?.(state, !state.checked);
   };
 
   return (
@@ -39,7 +36,7 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
         className="flex w-full items-center gap-2 border-b border-slate-200 bg-white p-4 text-left hover:bg-slate-100"
         onClick={toggle}
       >
-        <Checkbox checked={checked} />
+        <Checkbox checked={state.checked} />
         <div className="min-w-8">
           <FileIcon extension={extension} />
         </div>

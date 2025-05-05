@@ -9,7 +9,34 @@ import {
   CommonPrefix,
   ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3";
+import { CheckboxState } from "@/components/checkbox";
 import { useState } from "react";
+
+function initObjectStates(contents?: _Object[]) {
+  if (!contents) {
+    return [];
+  }
+  return contents.map((content, index) => {
+    return {
+      checked: false,
+      underlying: content,
+      index,
+    };
+  });
+}
+
+function initFolderStates(commonPrefixes?: CommonPrefix[]) {
+  if (!commonPrefixes) {
+    return [];
+  }
+  return commonPrefixes.map((commonPrefix, index) => {
+    return {
+      checked: false,
+      underlying: commonPrefix,
+      index,
+    };
+  });
+}
 
 export type BucketBrowserProps = {
   bucket: string;
@@ -17,47 +44,55 @@ export type BucketBrowserProps = {
   listObjectOutput: ListObjectsV2CommandOutput;
 };
 
+type ObjectsState = CheckboxState<_Object>;
+type FolderState = CheckboxState<CommonPrefix>;
+
 export function Browser(props: Readonly<BucketBrowserProps>) {
   const { bucket, filepath, listObjectOutput } = props;
+  const { Contents, CommonPrefixes, NextContinuationToken } = listObjectOutput;
 
-  const [selectedFolders, setSelectedFolders] = useState(
-    new Map<string, CommonPrefix>()
+  const [foldersStates, setFolderStates] = useState(
+    initFolderStates(CommonPrefixes)
   );
-  const [selectedObjects, setSelectedObjects] = useState(
-    new Map<string, _Object>()
+  const [objectsStates, setObjectsStates] = useState(
+    initObjectStates(Contents)
   );
 
-  const handleSelectFolder = (prefix: CommonPrefix, value: boolean) => {
-    console.log(prefix, value);
-    if (prefix.Prefix) {
-      const newMap = new Map(selectedFolders);
-      value ? newMap.set(prefix.Prefix, prefix) : newMap.delete(prefix.Prefix);
-      setSelectedFolders(newMap);
-    }
+  const handleSelectFolder = (folderState: FolderState, value: boolean) => {
+    foldersStates[folderState.index].checked = value;
+    setFolderStates([...foldersStates]);
   };
 
-  const handleSelectObject = (object: _Object, value: boolean) => {
-    if (object.Key) {
-      const newMap = new Map(selectedObjects);
-      value ? newMap.set(object.Key, object) : newMap.delete(object.Key);
-      setSelectedObjects(newMap);
-    }
+  const handleSelectObject = (objectState: ObjectsState, value: boolean) => {
+    objectsStates[objectState.index].checked = value;
+    setObjectsStates([...objectsStates]);
   };
+
+  const deselectAll = () => {
+    setObjectsStates(initObjectStates(listObjectOutput.Contents));
+  };
+
+  const selectedObjects = objectsStates
+    .filter(state => state.checked)
+    .map(state => state.underlying);
 
   return (
     <div>
       <Toolbar bucket={bucket} currentPath={filepath} objectsToDelete={[]} />
       <PathViewer currentPath={filepath} />
       <BucketInspector
-        isOpen={selectedObjects.size > 0}
+        isOpen={selectedObjects.length > 0}
         bucket={bucket}
-        objects={Array.from(selectedObjects.values())}
+        objects={selectedObjects}
+        onClose={deselectAll}
       />
       <ObjectTable
-        listObjectsOutput={listObjectOutput}
         bucket={bucket}
+        objectsStates={objectsStates}
+        foldersStates={foldersStates}
         onSelectFolder={handleSelectFolder}
         onSelectObject={handleSelectObject}
+        nextContinuationToken={NextContinuationToken}
       />
     </div>
   );
