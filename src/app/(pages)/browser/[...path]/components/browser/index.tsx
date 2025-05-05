@@ -44,8 +44,6 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     }
   };
 
-  console.log(selectedObjects);
-
   return (
     <div>
       <Toolbar bucket={bucket} currentPath={filepath} objectsToDelete={[]} />
