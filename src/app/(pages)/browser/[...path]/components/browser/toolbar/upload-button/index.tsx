@@ -45,7 +45,6 @@ export default function UploadButton(
     if (state.allComplete) {
       toaster.success("All files have been successfully uploaded");
       router.refresh();
-      router.push(`/browser/${bucket}/${prefix}`);
     }
   }, [state.allComplete, router]);
 
