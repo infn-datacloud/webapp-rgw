@@ -20,7 +20,6 @@ export default function NewPathButton(props: NewPathButton) {
     <>
       <NewPathModal
         show={showModal}
-        prefix={bucket}
         currentPath={currentPath}
         onPathChange={onPathChange}
         onClose={close}

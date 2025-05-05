@@ -40,7 +40,6 @@ function NewPathTextField({ onChange }: { onChange: (value: string) => void }) {
 }
 
 type ModalProps = {
-  prefix?: string;
   currentPath: string;
   onPathChange?: (newPath: string) => void;
   show: boolean;
@@ -48,7 +47,7 @@ type ModalProps = {
 };
 
 export const NewPathModal = (props: ModalProps) => {
-  const { prefix, currentPath, onPathChange, show, onClose } = props;
+  const { currentPath, onPathChange, show, onClose } = props;
   const [path, setPath] = useState<string>("");
   const router = useRouter();
 
@@ -75,7 +74,7 @@ export const NewPathModal = (props: ModalProps) => {
     <Modal title="Choose or create a new path" show={show} onClose={onClose}>
       <Form action={handleSubmit} className="divide-y">
         <ModalBody>
-          <CurrentPath path={`${prefix}/${currentPath}`} />
+          <CurrentPath path={currentPath} />
           <NewPathTextField onChange={setPath} />
         </ModalBody>
         <ModalFooter>
