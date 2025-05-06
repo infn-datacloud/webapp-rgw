@@ -182,31 +182,40 @@ export class S3Service {
   async searchObjects(
     bucket: string,
     prefix?: string,
-    query?: string // this query should be sanitized
+    query?: string, // this query should be sanitized
+    count: number = 10
   ) {
-    const response = await this.listObjects(bucket, 1000, prefix, "/");
+    const response = await this.listObjects(
+      bucket,
+      count,
+      prefix ?? query,
+      "/"
+    );
 
     if (!response) {
       return;
     }
 
-    const folders = response?.CommonPrefixes;
-    const listsPromises =
-      folders?.map(folder => {
-        const prefix = `${folder.Prefix ?? ""}`;
-        return this.listObjects(bucket, 1000, prefix, query);
-      }) ?? [];
-
     let objects: _Object[] = response?.Contents ?? [];
     let prefixes: CommonPrefix[] = response?.CommonPrefixes ?? [];
 
-    const responses = await Promise.all(listsPromises);
-    for (const r of responses) {
-      if (r?.Contents) {
-        objects = objects.concat(r.Contents);
-      }
-      if (r?.CommonPrefixes) {
-        prefixes = prefixes.concat(r.CommonPrefixes);
+    const currentSize = objects.length + prefixes.length;
+
+    const listsPromises =
+      response?.CommonPrefixes?.map(folder => {
+        const prefix = `${folder.Prefix ?? ""}`;
+        return this.listObjects(bucket, count - currentSize, prefix, query);
+      }) ?? [];
+
+    if (prefixes.length !== count) {
+      const responses = await Promise.all(listsPromises);
+      for (const r of responses) {
+        if (r?.Contents) {
+          objects = objects.concat(r.Contents);
+        }
+        if (r?.CommonPrefixes) {
+          prefixes = prefixes.concat(r.CommonPrefixes);
+        }
       }
     }
 
