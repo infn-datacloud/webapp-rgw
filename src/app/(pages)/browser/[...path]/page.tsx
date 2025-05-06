@@ -2,8 +2,10 @@ import { Page } from "@/components/page";
 import { Browser } from "./components";
 import { makeS3Client } from "@/services/s3/actions";
 import { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
+import { LoadingBar } from "@/components/loading";
+import { Suspense } from "react";
 
-type BrowserProps = {
+type AsyncBrowserProps = {
   params: Promise<{ path: [string] }>;
   searchParams?: Promise<{
     current?: string;
@@ -13,7 +15,7 @@ type BrowserProps = {
   }>;
 };
 
-export default async function BucketBrowser(props: Readonly<BrowserProps>) {
+export async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
   const { path } = await props.params;
   const searchParams = await props.searchParams;
   const nextContinuationToken = searchParams?.next;
@@ -54,15 +56,28 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
   const key = response.$metadata.requestId;
 
   return (
+    <Browser
+      key={key}
+      bucket={bucket}
+      filepath={filepath}
+      prefix={prefix}
+      showFullKeys={searchParams?.q !== undefined}
+      listObjectOutput={response}
+    />
+  );
+}
+
+type BrowserProps = AsyncBrowserProps;
+
+export default async function BrowserPage(props: BrowserProps) {
+  const { path } = await props.params;
+  const bucket = path[0];
+
+  return (
     <Page title={bucket}>
-      <Browser
-        key={key}
-        bucket={bucket}
-        filepath={filepath}
-        prefix={prefix}
-        showFullKeys={searchParams?.q !== undefined}
-        listObjectOutput={response}
-      />
+      <Suspense fallback={<LoadingBar show={true} />}>
+        <AsyncBrowser {...props} />
+      </Suspense>
     </Page>
   );
 }
