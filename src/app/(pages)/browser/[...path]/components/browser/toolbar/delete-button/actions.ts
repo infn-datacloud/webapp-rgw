@@ -9,17 +9,11 @@ export async function deleteFolders(
   bucket: string,
   prefixes: CommonPrefix[]
 ) {
-  const objectsPromises = prefixes.map(pr =>
-    s3.listObjects(bucket, 1000, pr.Prefix)
+  return prefixes.map(pr =>
+    s3.listObjects(bucket, 1000, pr.Prefix).then(output => {
+      return s3.deleteObjects(bucket, output?.Contents as ObjectIdentifier[]);
+    })
   );
-  const responses = await Promise.all(objectsPromises);
-  const objectsLists = responses
-    .filter(v => v !== undefined)
-    .map(response => response.Contents ?? []);
-  const deletePromises = objectsLists.map(objectsList =>
-    s3.deleteObjects(bucket, objectsList as ObjectIdentifier[])
-  );
-  await Promise.all(deletePromises);
 }
 
 export async function deleteAll(
@@ -28,9 +22,7 @@ export async function deleteAll(
   folders: CommonPrefix[]
 ) {
   const s3 = await makeS3Client();
-  const promises = [
-    s3.deleteObjects(bucket, objects as ObjectIdentifier[]),
-    deleteFolders(s3, bucket, folders),
-  ];
-  await Promise.all(promises);
+  const promises = await deleteFolders(s3, bucket, folders);
+  promises.push(s3.deleteObjects(bucket, objects as ObjectIdentifier[]));
+  return Promise.all(promises);
 }
