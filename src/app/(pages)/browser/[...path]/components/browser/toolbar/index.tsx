@@ -51,7 +51,7 @@ export default function Toolbar(
     if (searchParams.get("focus")) {
       document.getElementById("search-field")?.focus();
     }
-  }, []);
+  }, [searchParams]);
 
   return (
     <div className="flex flex-col gap-2">

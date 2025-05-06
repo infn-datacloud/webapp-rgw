@@ -15,7 +15,7 @@ type AsyncBrowserProps = {
   }>;
 };
 
-export async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
+async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
   const { path } = await props.params;
   const searchParams = await props.searchParams;
   const nextContinuationToken = searchParams?.next;
