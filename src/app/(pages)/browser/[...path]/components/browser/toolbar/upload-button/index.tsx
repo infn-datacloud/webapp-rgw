@@ -86,7 +86,7 @@ export default function UploadButton(
     const filesToUpload = new Array(files.length);
     for (let i = 0; i < files.length; ++i) {
       // prefix already account for trailing "/"
-      const Key = `${prefix}${files[i].name}`;
+      const Key = `${prefix ?? ""}${files[i].name}`;
       filesToUpload[i] = new FileObjectWithProgress({ Key }, files[i]);
     }
     uploadFiles(filesToUpload);
