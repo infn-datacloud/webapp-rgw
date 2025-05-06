@@ -7,11 +7,12 @@ import { FileIcon } from "./file-icon";
 
 type ObjectRowProps = {
   state: CheckboxState<_Object>;
+  showFull?: boolean;
   onChange?: (state: CheckboxState<_Object>, value: boolean) => void;
 };
 
 export function ObjectRow(props: Readonly<ObjectRowProps>) {
-  const { state, onChange } = props;
+  const { state, showFull, onChange } = props;
   const object = state.underlying;
 
   const lastModified = (() => {
@@ -22,7 +23,7 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
     return `${LastModified.toLocaleDateString()} ${LastModified.toLocaleTimeString()}`;
   })();
 
-  const fileName = object.Key?.split("/").splice(-1);
+  const fileName = showFull ? object.Key : object.Key?.split("/").splice(-1);
   const extension = object.Key?.split(".").slice(-1)[0];
   const size = object.Size ? getHumanSize(object.Size) : "N/A";
 

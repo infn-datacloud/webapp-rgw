@@ -1,7 +1,6 @@
 "use client";
 
 import { ObjectTable } from "./table";
-import PathViewer from "./path-viewer";
 import Toolbar from "./toolbar";
 import { BucketInspector } from "./inspector";
 import {
@@ -44,13 +43,14 @@ export type BucketBrowserProps = {
   filepath: string;
   prefix?: string;
   listObjectOutput: ListObjectsV2CommandOutput;
+  showFullKeys?: boolean;
 };
 
 type ObjectsState = CheckboxState<_Object>;
 type FolderState = CheckboxState<CommonPrefix>;
 
 export function Browser(props: Readonly<BucketBrowserProps>) {
-  const { bucket, filepath, prefix, listObjectOutput } = props;
+  const { bucket, filepath, prefix, listObjectOutput, showFullKeys } = props;
   const { Contents, CommonPrefixes, NextContinuationToken } = listObjectOutput;
   const router = useRouter();
 
@@ -98,7 +98,6 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         foldersToDelete={selectedPrefixes}
         onDeleted={handleDelete}
       />
-      <PathViewer currentPath={filepath} />
       <BucketInspector
         isOpen={selectedObjects.length + selectedPrefixes.length > 0}
         bucket={bucket}
@@ -114,6 +113,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         onSelectFolder={handleSelectFolder}
         onSelectObject={handleSelectObject}
         nextContinuationToken={NextContinuationToken}
+        showFullKeys={showFullKeys}
       />
     </div>
   );

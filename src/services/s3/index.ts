@@ -4,7 +4,9 @@ import {
 } from "@aws-sdk/client-sts";
 import { AWSConfig, CreateBucketArgs } from "./types";
 import {
+  _Object,
   Bucket,
+  CommonPrefix,
   CreateBucketCommand,
   DeleteBucketCommand,
   DeleteObjectsCommand,
@@ -175,6 +177,61 @@ export class S3Service {
         `cannot list object for bucket '${bucket}': '${err instanceof Error ? err.name : "unknown error"}'`
       );
     }
+  }
+
+  async searchObjects(
+    bucket: string,
+    maxKeys = 10,
+    prefix?: string,
+    query?: string,
+    delimiter?: string,
+    continuationToken?: string
+  ) {
+    const response = await this.listObjects(
+      bucket,
+      maxKeys,
+      // this query should be sanitized
+      prefix,
+      delimiter,
+      continuationToken
+    );
+    if (!response) {
+      return;
+    }
+
+    const folders = response?.CommonPrefixes;
+    const listsPromises =
+      folders?.map(folder => {
+        const prefix = `${folder.Prefix ?? ""}`;
+        return this.listObjects(bucket, 1000, prefix, query);
+      }) ?? [];
+
+    let objects: _Object[] = response?.Contents ?? [];
+    let prefixes: CommonPrefix[] = response?.CommonPrefixes ?? [];
+
+    const responses = await Promise.all(listsPromises);
+    for (const r of responses) {
+      if (r?.Contents) {
+        objects = objects.concat(r.Contents);
+      }
+      if (r?.CommonPrefixes) {
+        prefixes = prefixes.concat(r.CommonPrefixes);
+      }
+    }
+
+    if (query) {
+      const lowerQuery = query.toLocaleLowerCase();
+      objects = objects.filter(
+        o => (o.Key?.toLowerCase().search(lowerQuery) ?? -1) > -1
+      );
+      prefixes = prefixes.filter(
+        p => (p.Prefix?.toLocaleLowerCase().search(lowerQuery) ?? -1) > -1
+      );
+    }
+
+    response.Contents = objects;
+    response.CommonPrefixes = prefixes;
+    return response;
   }
 
   async getBucketVersioning(

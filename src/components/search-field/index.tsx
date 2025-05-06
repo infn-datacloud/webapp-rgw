@@ -4,12 +4,13 @@ import { useRef, useState } from "react";
 
 interface SearchFieldProps {
   className?: string;
+  defaultValue?: string
   onChange?: (query: string) => void;
 }
 
-export const SearchFiled = (props: SearchFieldProps) => {
-  const { className, onChange } = props;
-  const [searchQuery, setSearchQuery] = useState<string>("");
+export const SearchField = (props: SearchFieldProps) => {
+  const { className, defaultValue, onChange } = props;
+  const [searchQuery, setSearchQuery] = useState<string>(defaultValue ?? "");
   const typingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleUserStopTyping = (value: string) => {

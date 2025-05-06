@@ -11,6 +11,7 @@ type ObjectTableProps = {
   objectsStates: CheckboxState<_Object>[];
   foldersStates: CheckboxState<CommonPrefix>[];
   nextContinuationToken?: string;
+  showFullKeys?: boolean;
   onSelectFolder?: (state: CheckboxState<CommonPrefix>, value: boolean) => void;
   onSelectObject?: (state: CheckboxState<_Object>, value: boolean) => void;
 };
@@ -23,6 +24,7 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
     onSelectFolder,
     onSelectObject,
     nextContinuationToken,
+    showFullKeys: showFullKey,
   } = props;
 
   return (
@@ -46,6 +48,7 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
           <ObjectRow
             key={state.underlying.Key}
             state={state}
+            showFull={showFullKey}
             onChange={onSelectObject}
           />
         ))}

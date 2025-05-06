@@ -6,7 +6,6 @@ import { useState } from "react";
 
 type DeleteButtonProps = {
   bucket: string;
-  prefix: string;
   objectsToDelete: _Object[];
   foldersToDelete: CommonPrefix[];
   onDeleted?: () => void;

@@ -1,6 +1,7 @@
 import { Page } from "@/components/page";
 import { Browser } from "./components";
 import { makeS3Client } from "@/services/s3/actions";
+import { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
 
 type BrowserProps = {
   params: Promise<{ path: [string] }>;
@@ -8,6 +9,7 @@ type BrowserProps = {
     current?: string;
     next?: string;
     count?: string;
+    q?: string;
   }>;
 };
 
@@ -19,7 +21,7 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
 
   const folder = path.splice(1).join("/");
   const bucket = path[0];
-  const prefix = folder ? `${folder}/` : undefined;
+  let prefix = folder ? `${folder}/` : undefined;
   const filepath = `${bucket}/${folder}`;
   const delimiter = "/";
 
@@ -28,13 +30,26 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
   }
 
   const s3 = await makeS3Client();
-  const response = await s3.listObjects(
-    bucket,
-    count,
-    prefix,
-    delimiter,
-    nextContinuationToken
-  );
+
+  let response: ListObjectsV2CommandOutput | undefined = undefined;
+  if (searchParams?.q) {
+    response = await s3.searchObjects(
+      bucket,
+      count,
+      prefix,
+      searchParams.q,
+      delimiter,
+      nextContinuationToken
+    );
+  } else {
+    response = await s3.listObjects(
+      bucket,
+      count,
+      prefix,
+      delimiter,
+      nextContinuationToken
+    );
+  }
 
   if (!response) {
     return <div>Error</div>;
@@ -52,6 +67,7 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
         bucket={bucket}
         filepath={filepath}
         prefix={prefix}
+        showFullKeys={searchParams?.q !== undefined}
         listObjectOutput={response}
       />
     </Page>
