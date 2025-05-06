@@ -25,7 +25,7 @@ export const SearchField = (props: SearchFieldProps) => {
     typingTimer.current = setTimeout(() => {
       handleUserStopTyping(value);
       clearInterval(this);
-    }, 500);
+    }, 250);
   };
 
   return (
@@ -33,6 +33,7 @@ export const SearchField = (props: SearchFieldProps) => {
       <div className="flex space-x-4">
         <MagnifyingGlassIcon className="w-5 text-primary" />
         <Input
+          id="search-field"
           value={searchQuery}
           type="search"
           onChange={el => handleQueryChanged(el.currentTarget.value)}

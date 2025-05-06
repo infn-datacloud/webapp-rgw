@@ -9,6 +9,7 @@ import PathViewer from "./path-viewer";
 import { SearchField } from "@/components/search-field";
 import { useRouter, useSearchParams } from "next/navigation";
 import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
+import { useEffect } from "react";
 
 export default function Toolbar(
   props: Readonly<{
@@ -38,12 +39,19 @@ export default function Toolbar(
     const searchParams = new URLSearchParams(window.location.search);
     if (query) {
       searchParams.set("q", query);
+      searchParams.set("focus", "search-field");
     } else {
       searchParams.delete("q");
     }
     const url = `${window.location.pathname}?${searchParams.toString()}`;
     router.push(url);
   };
+
+  useEffect(() => {
+    if (searchParams.get("focus")) {
+      document.getElementById("search-field")?.focus();
+    }
+  }, []);
 
   return (
     <div className="flex flex-col gap-2">
