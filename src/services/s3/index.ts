@@ -181,20 +181,11 @@ export class S3Service {
 
   async searchObjects(
     bucket: string,
-    maxKeys = 10,
     prefix?: string,
-    query?: string,
-    delimiter?: string,
-    continuationToken?: string
+    query?: string // this query should be sanitized
   ) {
-    const response = await this.listObjects(
-      bucket,
-      maxKeys,
-      // this query should be sanitized
-      prefix,
-      delimiter,
-      continuationToken
-    );
+    const response = await this.listObjects(bucket, 1000, prefix, "/");
+
     if (!response) {
       return;
     }

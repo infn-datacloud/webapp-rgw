@@ -33,14 +33,7 @@ export default async function BucketBrowser(props: Readonly<BrowserProps>) {
 
   let response: ListObjectsV2CommandOutput | undefined = undefined;
   if (searchParams?.q) {
-    response = await s3.searchObjects(
-      bucket,
-      count,
-      prefix,
-      searchParams.q,
-      delimiter,
-      nextContinuationToken
-    );
+    response = await s3.searchObjects(bucket, prefix, searchParams.q);
   } else {
     response = await s3.listObjects(
       bucket,
