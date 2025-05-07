@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #002a44;
+  /* --color-primary: var(--color-slate-700); */
+  --color-light: var(--color-slate-600);
+  --color-extralight: var(--color-slate-400);
+  --color-primary-hover: #183e56;
+  --color-secondary: var(--color-gray-100);
+  --color-dark: #021523;
+  --color-success: var(--color-green-600);
+  --color-warning: var(--color-yellow-400);
+  --color-danger: var(--color-red-700);
+  --color-danger-hover: var(--color-red-800);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .show-sidebar {
+    @apply translate-x-0;
+  }
+}
+
+@layer base {
+  h1 {
+    @apply text-4xl font-bold;
+  }
+  h2 {
+    @apply text-2xl font-bold;
+  }
+  h3 {
+    @apply text-xl font-bold;
+  }
+  h4 {
+    @apply text-lg font-bold;
+  }
+}
