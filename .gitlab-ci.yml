@@ -1,10 +1,9 @@
 stages:
   - build
-  - docker
   - release
 
 build:
-  stage: docker
+  stage: build
   image: docker:latest
   services:
     - docker:dind
