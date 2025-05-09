@@ -16,7 +16,7 @@ export default function Login() {
         priority={true}
       />
       <h2 className="mx-auto text-center">Welcome</h2>
-      <div className="mx-auto mt-8 flex max-w-48 flex-col space-y-2">
+      <div className="mx-auto mt-8 flex max-w-54 flex-col space-y-2">
         <Suspense>
           <LoginForm />
         </Suspense>

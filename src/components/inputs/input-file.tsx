@@ -3,10 +3,9 @@ import { Button } from "@/components/buttons";
 
 interface InputFileProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  icon?: ReactNode;
 }
 
-export default function InputFile({ onChange, icon }: InputFileProps) {
+export default function InputFile({ onChange }: InputFileProps) {
   const openFileSelector = async () => {
     const fileSelector = document.getElementById("file-selector");
     if (fileSelector) {
@@ -30,11 +29,13 @@ export default function InputFile({ onChange, icon }: InputFileProps) {
         multiple={true}
       />
       <Button
+        className="btn-secondary"
         title="Upload File"
-        icon={icon}
         color="primary-outline"
         onClick={openFileSelector}
-      />
+      >
+        Upload File
+      </Button>
     </div>
   );
 }

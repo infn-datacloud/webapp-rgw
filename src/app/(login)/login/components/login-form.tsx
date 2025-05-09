@@ -11,9 +11,9 @@ import Spinner from "@/components/spinner";
 function Loading() {
   return (
     <div className="fixed inset-0 z-10 bg-gray-600/50 backdrop-blur-sm">
-      <div className="mx-auto mt-48 h-16 w-16 text-secondary">
+      <div className="text-secondary mx-auto mt-48 h-16 w-16">
         <Spinner />
-        <p className="mt-8 text-xl text-secondary">Loading...</p>
+        <p className="text-secondary mt-8 text-xl">Loading...</p>
       </div>
     </div>
   );
@@ -62,17 +62,21 @@ export default function LoginForm() {
           required
         />
         <Button
-          className="w-full"
+          className="btn-primary block w-full text-center"
           title="Login with local credentials"
           type="submit"
-        />
+        >
+          Login with local credentials
+        </Button>
       </Form>
       <Form action={handleIAMLogin}>
         <Button
-          className="w-full"
+          className="btn-primary mx-auto block w-full"
           title="Login with INDIGO IAM"
           type="submit"
-        />
+        >
+          Login with INDIGO IAM
+        </Button>
       </Form>
     </>
   );

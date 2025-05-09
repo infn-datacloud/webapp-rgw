@@ -6,17 +6,31 @@ import Input from "@/components/inputs/input";
 import Form from "@/components/form";
 
 function ClearButton() {
-  return <Button title="Clear" icon={<XMarkIcon />} type="reset" />;
+  return (
+    <Button title="Cancel" type="reset" className="btn-tertiary">
+      Cancel
+    </Button>
+  );
 }
 
 function SubmitButton({ canSubmit }: { canSubmit: boolean }) {
-  return <Button title="Confirm" icon={<CheckIcon />} disabled={!canSubmit} />;
+  return (
+    <Button
+      title="Confirm"
+      disabled={!canSubmit}
+      className="btn-primary items-center"
+      type="submit"
+    >
+      <CheckIcon className="size-5" />
+      Confirm
+    </Button>
+  );
 }
 
 function CurrentPath({ path }: { path: string }) {
   return (
-    <div className="flex mt-2">
-      <p className="font-semibold mr-2">Current Path: </p>
+    <div className="mt-2 flex">
+      <p className="mr-2 font-semibold">Current Path: </p>
       {path}
     </div>
   );
@@ -27,8 +41,8 @@ function NewPathTextField({ onChange }: { onChange: (value: string) => void }) {
     onChange(event.target.value);
   };
   return (
-    <div className="mt-6 flex space-x-8 content-center">
-      <div className="lg:w-52 my-auto">New Folder Path</div>
+    <div className="mt-6 flex content-center space-x-8">
+      <div className="my-auto lg:w-52">New Folder Path</div>
       <Input
         name="new-path"
         placeholder={"Enter the new Folder Path"}

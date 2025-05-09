@@ -101,8 +101,12 @@ export default function CreateBucketModal(props: {
           <BucketFeatures />
         </ModalBody>
         <ModalFooter>
-          <Button title="Clear" type="reset" color="danger-outline" />
-          <Button title="Create Bucket" type="submit" />
+          <Button className="btn-tertiary" title="Clear" type="reset">
+            Clear
+          </Button>
+          <Button className="btn-primary" title="Create Bucket" type="submit">
+            Create Bucket
+          </Button>
         </ModalFooter>
       </Form>
     </Modal>

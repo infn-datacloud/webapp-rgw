@@ -8,11 +8,9 @@ export default function HomeButton() {
     router.push("/");
   };
   return (
-    <Button
-      title="Home"
-      icon={<HomeIcon />}
-      color="primary-outline"
-      onClick={handleClick}
-    />
+    <Button className="btn-secondary" title="Home" onClick={handleClick}>
+      <HomeIcon className="size-5" />
+      Home
+    </Button>
   );
 }

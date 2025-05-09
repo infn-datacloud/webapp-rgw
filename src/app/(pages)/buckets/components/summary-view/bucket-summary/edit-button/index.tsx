@@ -24,11 +24,14 @@ export default function EditBucketButton(props: {
         }
       />
       <Button
-        icon={<PencilSquareIcon />}
+        className="btn-primary items-center"
         onClick={open}
         title="Edit"
         type="button"
-      />
+      >
+        <PencilSquareIcon className="size-5" />
+        Edit
+      </Button>
     </>
   );
 }
