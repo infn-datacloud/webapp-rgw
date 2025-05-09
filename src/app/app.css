@@ -6,7 +6,7 @@
   --color-light: var(--color-slate-600);
   --color-extralight: var(--color-slate-400);
   --color-primary-hover: #183e56;
-  --color-secondary: var(--color-gray-100);
+  --color-secondary: #fefefe;
   --color-dark: #021523;
   --color-success: var(--color-green-600);
   --color-warning: var(--color-yellow-400);
@@ -15,7 +15,7 @@
 }
 
 @utility btn {
-  @apply flex min-w-12 gap-2 rounded-full px-3 py-2 text-sm text-nowrap;
+  @apply flex min-w-12 justify-center gap-2 rounded-full px-3 py-2 text-sm text-nowrap;
 }
 
 @utility btn-primary {
@@ -27,7 +27,7 @@
 }
 
 @utility btn-tertiary {
-  @apply btn hover:underline;
+  @apply btn font-bold hover:underline;
 }
 
 @utility btn-danger {
