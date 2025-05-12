@@ -1,4 +1,5 @@
 "use client";
+
 import { ReactNode } from "react";
 import {
   Dialog,
@@ -18,7 +19,7 @@ export interface ModalProps {
 
 export const ModalBody = (props: { children?: ReactNode }) => {
   const { children } = props;
-  return <div className="p-4">{children}</div>;
+  return <div className="border-gray-200 p-4">{children}</div>;
 };
 
 export const ModalFooter = (props: { children?: ReactNode }) => {

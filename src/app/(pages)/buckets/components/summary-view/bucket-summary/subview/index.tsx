@@ -4,7 +4,7 @@ type SubviewProps = {
   icon: React.ReactNode;
 };
 
-export default function Subview({ title, item, icon }: SubviewProps) {
+export function Subview({ title, item, icon }: SubviewProps) {
   return (
     <div className="mt-2 flex content-center">
       <div className="my-auto mr-2 w-5">{icon}</div>

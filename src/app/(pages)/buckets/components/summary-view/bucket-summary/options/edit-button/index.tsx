@@ -1,18 +1,21 @@
 "use client";
+
 import { useState } from "react";
-import EditBucketModal from "./modal";
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/buttons";
 import { BucketConfiguration } from "@/models/bucket";
+import { Bucket } from "@aws-sdk/client-s3";
+import EditBucketModal from "./modal";
 
 export default function EditBucketButton(props: {
-  bucket: string;
+  bucket: Bucket;
   configuration?: BucketConfiguration;
 }) {
   const { bucket, configuration } = props;
   const [show, setShow] = useState(false);
+
   const open = () => setShow(true);
   const close = () => setShow(false);
+
   return (
     <>
       <EditBucketModal
@@ -23,8 +26,12 @@ export default function EditBucketButton(props: {
           configuration ?? { versioning: false, objectLock: false }
         }
       />
-      <Button className="btn-primary" onClick={open} title="Edit" type="button">
-        <PencilSquareIcon className="size-5" />
+      <Button
+        className="text-primary hover:bg-primary hover:text-secondary btn-option"
+        as="button"
+        onClick={open}
+        type="button"
+      >
         Edit
       </Button>
     </>

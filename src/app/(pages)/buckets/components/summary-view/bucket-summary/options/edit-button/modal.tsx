@@ -1,5 +1,6 @@
 "use client";
-import { setBucketObjectLock, setBucketVersioning } from "./actions";
+
+import { Bucket } from "@aws-sdk/client-s3";
 import { BucketConfiguration } from "@/models/bucket";
 import { Button, ToggleSwitch } from "@/components/buttons";
 import Modal, { ModalBody, ModalFooter } from "@/components/modal";
@@ -7,9 +8,10 @@ import { toaster } from "@/components/toaster";
 import { parseS3Error } from "@/commons/utils";
 import Form from "@/components/form";
 import { useState } from "react";
+import { setBucketObjectLock, setBucketVersioning } from "./actions";
 
 export default function EditBucketModal(props: {
-  bucket: string;
+  bucket: Bucket;
   show: boolean;
   onClose: () => void;
   configuration: BucketConfiguration;
@@ -18,9 +20,15 @@ export default function EditBucketModal(props: {
   const [versioning, setVersioning] = useState(configuration.versioning);
   const [objectLock, setObjectLock] = useState(configuration.objectLock);
 
+  const bucketName = bucket.Name;
+  if (!bucketName) {
+    console.error("unable to edit a bucket without name");
+    return;
+  }
+
   const editVersioning = async (event: React.FormEvent<HTMLInputElement>) => {
     const enabled = event.currentTarget.checked;
-    const { error } = await setBucketVersioning(bucket, enabled);
+    const { error } = await setBucketVersioning(bucketName, enabled);
     if (error) {
       toaster.danger("Cannot update Versioning", parseS3Error(error));
     } else {
@@ -31,7 +39,7 @@ export default function EditBucketModal(props: {
 
   const editObjectLock = async (event: React.FormEvent<HTMLInputElement>) => {
     const enabled = event.currentTarget.checked;
-    const { error } = await setBucketObjectLock(bucket, enabled);
+    const { error } = await setBucketObjectLock(bucketName, enabled);
     if (error) {
       toaster.danger("Cannot update Object Lock", error);
     } else {
@@ -57,13 +65,20 @@ export default function EditBucketModal(props: {
   };
 
   return (
-    <Modal title={`Edit bucket ${bucket}`} show={show} onClose={onClose}>
+    <Modal title={`Edit bucket ${bucket.Name}`} show={show} onClose={onClose}>
       <Form>
         <ModalBody>
           <BucketFeatures />
         </ModalBody>
         <ModalFooter>
-          <Button title="Close" type="button" onClick={onClose} />
+          <Button
+            className="btn-tertiary"
+            title="Close"
+            type="button"
+            onClick={onClose}
+          >
+            Close
+          </Button>
         </ModalFooter>
       </Form>
     </Modal>

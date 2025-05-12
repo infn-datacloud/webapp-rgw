@@ -1,18 +1,19 @@
+import { Bucket } from "@aws-sdk/client-s3";
 import { dateToHuman } from "@/commons/utils";
 import { BucketConfiguration } from "@/models/bucket";
 import { ClockIcon } from "@heroicons/react/24/outline";
-import DeleteBucketButton from "./delete-button";
-import EditBucketButton from "./edit-button";
 import { getBucketConfiguration } from "./actions";
-import { Bucket } from "@aws-sdk/client-s3";
-import Subview from "./subview";
+import { Subview } from "./subview";
+import { BucketOptions } from "./options";
 
-export interface BucketSummaryViewProps {
+type BucketSummaryViewProps = {
   bucket: Bucket;
   isPublic?: boolean;
-}
+};
 
-export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
+export async function BucketSummaryView(
+  props: Readonly<BucketSummaryViewProps>
+) {
   const { bucket, isPublic } = props;
   const { Name, CreationDate } = bucket;
   const creation_date = CreationDate ? dateToHuman(CreationDate) : "N/A";
@@ -35,7 +36,7 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
   }
 
   return (
-    <div className="bg-secondary text-primary dark:bg-transparent dark:text-secondary mt-4 rounded-xl border border-gray-200 p-2">
+    <div className="bg-secondary text-primary dark:text-secondary mt-4 rounded-xl border border-gray-200 p-2 dark:bg-transparent">
       <div className="grid grid-cols-1 sm:grid-cols-2">
         <div>
           <div className="text-xl font-bold">{Name}</div>
@@ -47,14 +48,13 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
         </div>
         {!isPublic ? (
           <div className="mr-0 ml-auto flex space-x-2 p-4 sm:flex-col sm:space-y-4 sm:space-x-0">
-            <EditBucketButton
-              bucket={Name}
+            <BucketOptions
+              bucket={bucket}
               configuration={bucketConfiguration}
             />
-            <DeleteBucketButton bucket={Name} />
           </div>
         ) : null}
       </div>
     </div>
   );
-};
+}
