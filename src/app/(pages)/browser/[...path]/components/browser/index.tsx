@@ -9,7 +9,6 @@ import {
   ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3";
 import { CheckboxState } from "@/components/checkbox";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 function initObjectStates(contents?: _Object[]) {
@@ -52,7 +51,6 @@ type FolderState = CheckboxState<CommonPrefix>;
 export function Browser(props: Readonly<BucketBrowserProps>) {
   const { bucket, filepath, prefix, listObjectOutput, showFullKeys } = props;
   const { Contents, CommonPrefixes, NextContinuationToken } = listObjectOutput;
-  const router = useRouter();
 
   const [foldersStates, setFolderStates] = useState(
     initFolderStates(CommonPrefixes)
