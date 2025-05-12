@@ -11,6 +11,18 @@
   --color-warning: var(--color-yellow-400);
   --color-danger: var(--color-red-600);
   --color-danger-hover: var(--color-red-800);
+  --animate-wiggle: wiggle 0.75s infinite linear;
+  @keyframes wiggle {
+    0% {
+      transform: translateX(0) scaleX(0);
+    }
+    40% {
+      transform: translateX(0) scaleX(0.4);
+    }
+    100% {
+      transform: translateX(100%) scaleX(0.1);
+    }
+  }
 }
 
 @utility btn {
@@ -39,15 +51,6 @@
 
 @utility btn-danger-tertiary {
   @apply btn hover:text-danger hover:underline;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  .show-sidebar {
-    @apply translate-x-0;
-  }
 }
 
 @layer base {
