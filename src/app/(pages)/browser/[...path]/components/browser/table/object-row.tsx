@@ -32,9 +32,9 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
   };
 
   return (
-    <li>
+    <li className="text-primary dark:text-secondary border-b border-slate-200 bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700">
       <button
-        className="flex w-full items-center gap-2 border-b border-slate-200 bg-white p-4 text-left hover:bg-slate-100"
+        className="flex w-full items-center gap-2 p-4 text-left"
         onClick={toggle}
       >
         <Checkbox checked={state.checked} />

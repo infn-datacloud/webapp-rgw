@@ -107,7 +107,7 @@ export function BucketInspector(props: BucketInspectorProps) {
           />
           {/* Details */}
         </section>
-        <section className="py-4">
+        <section className="py-4 text-base">
           <ObjectDetail {...object} />
         </section>
       </div>

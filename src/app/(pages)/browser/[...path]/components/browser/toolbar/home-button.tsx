@@ -5,7 +5,7 @@ export default function HomeButton() {
   return (
     <Link
       href="/"
-      className="flex items-center rounded-full border border-primary bg-secondary p-1 px-3 text-sm text-primary hover:bg-primary-hover hover:text-secondary dark:border-secondary dark:bg-primary-dark dark:text-secondary"
+      className="border-primary bg-secondary text-primary hover:bg-primary-hover hover:text-secondary dark:border-secondary dark:text-secondary flex items-center gap-2 rounded-full border p-1 px-3 text-sm dark:bg-transparent"
     >
       <HomeIcon className="size-5" />
       Home

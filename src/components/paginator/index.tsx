@@ -41,12 +41,12 @@ export default function Paginator(props: Readonly<PaginatorProps>) {
   };
 
   return (
-    <div className="flex w-full items-center justify-between -space-x-px p-4 leading-tight text-gray-500 hover:text-gray-700">
+    <div className="dark:text-secondary flex w-full items-center justify-between leading-tight text-gray-500">
       <div className="flex items-center space-x-2">
         <div>Show</div>
         <select
           value={itemsPerPage}
-          className="block rounded-lg border border-gray-300 bg-gray-50 p-1 text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-white/10 dark:text-secondary/50"
+          className="dark:text-secondary/50 block rounded-lg border border-gray-300 bg-gray-50 p-1 text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-white/10"
           onChange={e => onChangeItemsPerPage(parseInt(e.currentTarget.value))}
         >
           <option value="10">10</option>
