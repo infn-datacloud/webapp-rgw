@@ -18,7 +18,7 @@ function SubmitButton({ canSubmit }: { canSubmit: boolean }) {
     <Button
       title="Confirm"
       disabled={!canSubmit}
-      className="btn-primary items-center"
+      className="btn-primary"
       type="submit"
     >
       <CheckIcon className="size-5" />

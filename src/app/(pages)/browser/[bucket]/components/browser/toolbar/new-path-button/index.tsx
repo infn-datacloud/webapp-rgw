@@ -29,7 +29,7 @@ export default function NewPathButton(props: NewPathButton) {
         title="New path"
         onClick={open}
         type="button"
-        className="btn-secondary items-center"
+        className="btn-secondary"
       >
         <FolderIcon className="size-5" />
         New path

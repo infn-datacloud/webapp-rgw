@@ -1,5 +1,6 @@
-import { ChangeEvent, ReactNode } from "react";
+import { ArrowUpOnSquareIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/buttons";
+import { ChangeEvent } from "react";
 
 interface InputFileProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -29,11 +30,12 @@ export default function InputFile({ onChange }: InputFileProps) {
         multiple={true}
       />
       <Button
-        className="btn-secondary"
+        className="btn-secondary items-center"
         title="Upload File"
         color="primary-outline"
         onClick={openFileSelector}
       >
+        <ArrowUpOnSquareIcon className="size-5" />
         Upload File
       </Button>
     </div>

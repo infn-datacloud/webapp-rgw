@@ -13,7 +13,7 @@ export default function CreateBucketButton() {
     <>
       <CreateBucketModal show={show} onClose={close} />
       <Button
-        className="btn-secondary items-center"
+        className="btn-secondary"
         title="Create Bucket"
         type="button"
         onClick={open}

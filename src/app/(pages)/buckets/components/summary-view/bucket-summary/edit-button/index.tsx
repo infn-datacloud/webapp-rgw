@@ -23,12 +23,7 @@ export default function EditBucketButton(props: {
           configuration ?? { versioning: false, objectLock: false }
         }
       />
-      <Button
-        className="btn-primary items-center"
-        onClick={open}
-        title="Edit"
-        type="button"
-      >
+      <Button className="btn-primary" onClick={open} title="Edit" type="button">
         <PencilSquareIcon className="size-5" />
         Edit
       </Button>

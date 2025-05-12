@@ -6,11 +6,7 @@ export default function RefreshButton() {
   const router = useRouter();
   const handleClick = () => router.refresh();
   return (
-    <Button
-      className="btn-secondary items-center"
-      title="Refresh"
-      onClick={handleClick}
-    >
+    <Button className="btn-secondary" title="Refresh" onClick={handleClick}>
       <ArrowUturnRightIcon className="size-5" />
       Refresh
     </Button>

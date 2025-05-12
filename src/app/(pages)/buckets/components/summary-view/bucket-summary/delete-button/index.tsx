@@ -22,11 +22,7 @@ export default function DeleteBucketButton(props: { bucket: string }) {
 
   return (
     <Form action={action}>
-      <Button
-        className="btn-danger-secondary items-center"
-        title="Delete"
-        type="submit"
-      >
+      <Button className="btn-danger-secondary" title="Delete" type="submit">
         <TrashIcon className="size-5" />
         Delete
       </Button>

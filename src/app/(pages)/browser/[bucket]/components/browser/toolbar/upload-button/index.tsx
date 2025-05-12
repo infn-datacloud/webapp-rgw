@@ -1,6 +1,5 @@
 import { InputFile } from "@/components/inputs";
 import { FileObjectWithProgress } from "@/models/bucket";
-import { ArrowUpOnSquareIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { S3Service } from "@/services/s3";
 import { ChangeEvent, useEffect, useReducer, useRef } from "react";
@@ -97,7 +96,7 @@ export default function UploadButton(
 
   return (
     <>
-      <InputFile icon={<ArrowUpOnSquareIcon />} onChange={handleChange} />
+      <InputFile onChange={handleChange} />
       <ProgressPopup
         title="Uploading"
         show={state.showPopup}

@@ -14,7 +14,7 @@
 }
 
 @utility btn {
-  @apply flex min-w-12 justify-center gap-2 rounded-full px-3 py-2 text-sm text-nowrap;
+  @apply flex min-w-12 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm text-nowrap;
 }
 
 @utility btn-primary {
