@@ -27,10 +27,12 @@ export default function DeleteButton(props: {
   return (
     <Button
       title="Delete file(s)"
-      icon={<TrashIcon />}
       onClick={deleteObjs}
       disabled={objectsToDelete.length === 0}
-      color="danger-outline"
-    />
+      className="btn-danger-secondary w-full justify-center"
+    >
+      <TrashIcon className="size-5" />
+      Delete file(s)
+    </Button>
   );
 }

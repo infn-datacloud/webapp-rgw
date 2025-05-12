@@ -13,13 +13,13 @@ const { serverRuntimeConfig = {} } = getConfig() || {};
 function UserView(props: Readonly<{ username?: string | null }>) {
   const { username } = props;
   return (
-    <div className="flex justify-between px-4 py-8">
+    <div className="border-secondary flex w-full justify-between border-t p-4">
       {username ? (
         <div className="flex">
-          <div className="w-10 rounded-full bg-secondary p-1 text-primary">
+          <div className="bg-secondary text-primary w-10 rounded-full p-1">
             {<UserIcon />}
           </div>
-          <h4 className="my-auto ml-2 text-center text-secondary">
+          <h4 className="text-secondary my-auto ml-2 text-center">
             {username}
           </h4>
         </div>
@@ -48,27 +48,28 @@ export const Sidebar = async () => {
         id="sidebar-dismiss-btn"
         className="fixed inset-0 z-10 hidden transition-transform"
       />
-      <header className="dark:bg-primary-dark fixed left-0 top-0 z-30 h-16 w-screen bg-primary lg:w-80">
+      <header className="dark:bg-primary-dark bg-primary fixed top-0 left-0 z-30 h-16 w-screen lg:w-80">
         <div className="flex h-full justify-between px-4">
           <div className="flex py-2">
             <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
-            <h2 className="mr-4 mt-auto text-secondary">Object Storage</h2>
+            <h2 className="text-secondary mt-auto mr-4">Object Storage</h2>
           </div>
           <BurgerButton />
         </div>
       </header>
       <aside
         id="left-sidebar"
-        className={
-          "dark:bg-primary-dark fixed bottom-0 left-0 top-16 z-30 w-80 -translate-x-full bg-primary transition-transform lg:translate-x-0"
-        }
+        className="dark:bg-primary-dark bg-primary fixed top-16 bottom-0 left-0 z-30 w-80 -translate-x-full transition-transform lg:translate-x-0"
         aria-label="Sidebar"
       >
-        <Links />
+        <nav className="p-4">
+          <Links />
+        </nav>
         <div className="absolute inset-x-0 bottom-0">
-          <hr className="mx-auto w-11/12" />
-          <UserView username={username} />
-          <div className="w-full bg-primary-200 py-1 text-center text-sm text-secondary">
+          <div className="px-4">
+            <UserView username={username} />
+          </div>
+          <div className="text-secondary w-full bg-slate-600 p-1.5 text-center text-sm">
             v{props.appVersion}
           </div>
         </div>

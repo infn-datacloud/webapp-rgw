@@ -1,9 +1,5 @@
-import resolveConfig from "tailwindcss/resolveConfig";
-import _tailwindConfig from "../../../tailwind.config.js";
 import { RWAccess } from "@/models/bucket";
-import { S3ServiceException } from "@aws-sdk/client-s3";
 
-export const tailwindConfig = resolveConfig(_tailwindConfig);
 
 export const getHumanSize = (size: number) => {
   if (size < 1024) return `${size} B`;
