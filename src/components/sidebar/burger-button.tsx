@@ -1,4 +1,5 @@
 "use client";
+
 import { Bars3Icon } from "@heroicons/react/24/outline";
 const sidebarId = "left-sidebar";
 
@@ -9,10 +10,10 @@ export default function BurgerButton() {
       console.warn(`element with id '${sidebarId}' not found`);
       return;
     }
-    sidebar?.classList.toggle("show-sidebar");
+    sidebar?.classList.toggle("translate-x-0");
 
     const dismissButton = document.getElementById("sidebar-dismiss-btn");
-    dismissButton?.classList.toggle("hidden");
+    dismissButton?.classList.toggle("opacity-0");
   }
 
   return (

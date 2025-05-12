@@ -46,7 +46,7 @@ export const Sidebar = async () => {
     <>
       <DismissButton
         id="sidebar-dismiss-btn"
-        className="fixed inset-0 z-10 hidden transition-transform"
+        className="fixed inset-0 z-10 bg-black/30 opacity-0 transition duration-200"
       />
       <header className="dark:bg-primary-dark bg-primary fixed top-0 left-0 z-30 h-16 w-screen lg:w-80">
         <div className="flex h-full justify-between px-4">
@@ -61,7 +61,7 @@ export const Sidebar = async () => {
       </header>
       <aside
         id="left-sidebar"
-        className="dark:bg-primary-dark bg-primary fixed top-16 bottom-0 left-0 z-30 w-80 -translate-x-full transition-transform lg:translate-x-0"
+        className="dark:bg-primary-dark bg-primary easy-in-out fixed top-16 bottom-0 left-0 z-30 w-80 -translate-x-full transition-transform duration-200 lg:translate-x-0"
         aria-label="Sidebar"
       >
         <nav className="p-4">
