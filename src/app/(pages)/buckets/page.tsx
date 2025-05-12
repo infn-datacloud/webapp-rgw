@@ -21,8 +21,10 @@ export default async function Buckets() {
   return (
     <Page title="Buckets">
       <Toolbar />
-      <BucketsInfos buckets={buckets.privates} isPublic={false} />
-      <BucketsInfos buckets={buckets.publics} isPublic={true} />
+      <ul className="flex flex-col gap-4 pt-4">
+        <BucketsInfos buckets={buckets.privates} isPublic={false} />
+        <BucketsInfos buckets={buckets.publics} isPublic={true} />
+      </ul>
     </Page>
   );
 }

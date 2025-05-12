@@ -3,7 +3,6 @@ import { dateToHuman } from "@/commons/utils";
 import { BucketConfiguration } from "@/models/bucket";
 import { ClockIcon } from "@heroicons/react/24/outline";
 import { getBucketConfiguration } from "./actions";
-import { Subview } from "./subview";
 import { BucketOptions } from "./options";
 
 type BucketSummaryViewProps = {
@@ -16,7 +15,7 @@ export async function BucketSummaryView(
 ) {
   const { bucket, isPublic } = props;
   const { Name, CreationDate } = bucket;
-  const creation_date = CreationDate ? dateToHuman(CreationDate) : "N/A";
+  const creationDate = CreationDate ? dateToHuman(CreationDate) : "N/A";
 
   if (!Name) {
     throw new Error("Bucket has no name");
@@ -36,24 +35,16 @@ export async function BucketSummaryView(
   }
 
   return (
-    <div className="bg-secondary text-primary dark:text-secondary mt-4 rounded-xl border border-gray-200 p-2 dark:bg-transparent">
-      <div className="grid grid-cols-1 sm:grid-cols-2">
-        <div>
-          <div className="text-xl font-bold">{Name}</div>
-          <Subview
-            title="Created at:"
-            item={creation_date}
-            icon={<ClockIcon />}
-          />
+    <div className="bg-secondary text-primary dark:text-secondary dark:border-secondary/30 flex rounded-xl border border-gray-200 p-4 dark:bg-transparent">
+      <div className="flex grow flex-col gap-1">
+        <span className="text-xl font-bold">{Name}</span>
+        <div className="dark:text-secondary/50 my-auto flex items-center gap-1 text-sm">
+          <ClockIcon className="size-4" />
+          <span>Created {creationDate}</span>
         </div>
-        {!isPublic ? (
-          <div className="mr-0 ml-auto flex space-x-2 p-4 sm:flex-col sm:space-y-4 sm:space-x-0">
-            <BucketOptions
-              bucket={bucket}
-              configuration={bucketConfiguration}
-            />
-          </div>
-        ) : null}
+      </div>
+      <div className="my-auto flex-col" hidden={isPublic}>
+        <BucketOptions bucket={bucket} configuration={bucketConfiguration} />
       </div>
     </div>
   );

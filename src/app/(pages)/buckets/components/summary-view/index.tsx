@@ -11,11 +11,14 @@ type BucketInfoProps = {
 export default function BucketInfo(props: Readonly<BucketInfoProps>) {
   const { bucket, isPublic } = props;
   return (
-    <Suspense
-      fallback={<SummaryLoading bucket={bucket.Name} />}
-      key={bucket.Name}
-    >
-      <BucketSummaryView bucket={bucket} isPublic={isPublic} />
-    </Suspense>
+    <li>
+      <Suspense
+        fallback={<SummaryLoading bucket={bucket.Name} />}
+        key={bucket.Name}
+      >
+        <BucketSummaryView bucket={bucket} isPublic={isPublic} />
+        {/* <SummaryLoading bucket={bucket.Name} /> */}
+      </Suspense>
+    </li>
   );
 }

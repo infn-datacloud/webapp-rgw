@@ -27,7 +27,7 @@ export default function EditBucketButton(props: {
         }
       />
       <Button
-        className="text-primary hover:bg-primary hover:text-secondary btn-option"
+        className="text-primary hover:bg-primary hover:text-secondary btn-option dark:text-secondary"
         as="button"
         onClick={open}
         type="button"
