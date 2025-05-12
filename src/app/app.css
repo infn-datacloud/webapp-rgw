@@ -34,7 +34,7 @@
 }
 
 @utility btn-secondary {
-  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary hover:text-secondary dark:bg-dark dark:text-secondary border bg-white;
+  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary hover:text-secondary dark:text-secondary border bg-white dark:bg-transparent;
 }
 
 @utility btn-tertiary {

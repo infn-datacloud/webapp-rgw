@@ -10,7 +10,7 @@ function LoadingSkeleton() {
 export function SummaryLoading(props: Readonly<{ bucket?: string }>) {
   const { bucket } = props;
   return (
-    <div className="bg-secondary text-primary dark:bg-primary-dark dark:text-secondary mt-4 rounded-xl border border-gray-200 p-2">
+    <div className="bg-secondary text-primary dark:text-secondary mt-4 rounded-xl border border-gray-200 p-2 dark:bg-transparent">
       <div className="flex flex-col">
         <div className="text-xl font-bold">{bucket}</div>
         <Subview
