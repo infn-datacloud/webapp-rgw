@@ -10,15 +10,7 @@ type SidebarLinkProps = {
 export default function SidebarLink(props: Readonly<SidebarLinkProps>) {
   const { title, href } = props;
   const pathname = usePathname();
-
-  let className =
-    "p-4 h-10 flex text-secondary rounded-lg items-center transition-colors duration-300 ease-in-out ";
-  const rootPath = pathname.split("/").splice(0, 2).join("/");
-  if (rootPath == href) {
-    className += "bg-primary-200 bg-blend-multiply";
-  } else {
-    className += "hover:bg-primary-hover";
-  }
+  const isRoot = pathname.split("/").splice(0, 2).join("/") === href;
 
   const hideSidebar = () => {
     const dismissButton = document.getElementById("sidebar-dismiss-btn");
@@ -27,7 +19,12 @@ export default function SidebarLink(props: Readonly<SidebarLinkProps>) {
 
   return (
     <li key={href}>
-      <Link className={className} href={href} onClick={hideSidebar}>
+      <Link
+        className="text-secondary data-[is-root=true]:bg-light hover:bg-light flex h-10 items-center rounded-lg p-4 bg-blend-multiply transition-colors duration-300 ease-in-out"
+        href={href}
+        onClick={hideSidebar}
+        data-is-root={isRoot}
+      >
         {title}
       </Link>
     </li>

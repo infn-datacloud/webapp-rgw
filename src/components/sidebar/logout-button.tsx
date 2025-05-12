@@ -9,7 +9,7 @@ export default function LogoutButton() {
 
   return (
     <button
-      className="my-auto rounded-full p-2 text-secondary transition hover:bg-primary-hover active:bg-primary-200"
+      className="text-secondary hover:bg-light active:bg-primary-200 my-auto rounded-full p-2 transition"
       type="submit"
       onClick={logout}
     >

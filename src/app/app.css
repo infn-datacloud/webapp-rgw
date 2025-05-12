@@ -5,7 +5,6 @@
   /* --color-primary: var(--color-slate-700); */
   --color-light: var(--color-slate-600);
   --color-extralight: var(--color-slate-400);
-  --color-primary-hover: #183e56;
   --color-secondary: #fefefe;
   --color-dark: #021523;
   --color-success: var(--color-green-600);
@@ -19,11 +18,11 @@
 }
 
 @utility btn-primary {
-  @apply btn border-primary bg-primary text-secondary hover:bg-primary-hover disabled:border-primary/50 disabled:bg-primary/50 dark:border-secondary/30 dark:bg-primary/30 border disabled:dark:bg-gray-600 disabled:dark:text-gray-800;
+  @apply btn border-primary bg-primary text-secondary hover:bg-light disabled:bg-primary/50 dark:border-secondary/30 dark:bg-primary/30 disabled:border-extralight border disabled:dark:bg-gray-600 disabled:dark:text-gray-800;
 }
 
 @utility btn-secondary {
-  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary-hover hover:text-secondary dark:bg-dark dark:text-secondary border bg-white;
+  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary hover:text-secondary dark:bg-dark dark:text-secondary border bg-white;
 }
 
 @utility btn-tertiary {
