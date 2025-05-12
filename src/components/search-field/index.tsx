@@ -3,13 +3,12 @@ import Input from "../inputs/input";
 import { useRef, useState } from "react";
 
 interface SearchFieldProps {
-  className?: string;
-  defaultValue?: string
+  defaultValue?: string;
   onChange?: (query: string) => void;
 }
 
 export const SearchField = (props: SearchFieldProps) => {
-  const { className, defaultValue, onChange } = props;
+  const { defaultValue, onChange } = props;
   const [searchQuery, setSearchQuery] = useState<string>(defaultValue ?? "");
   const typingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -29,17 +28,15 @@ export const SearchField = (props: SearchFieldProps) => {
   };
 
   return (
-    <div className={className}>
-      <div className="flex space-x-4">
-        <MagnifyingGlassIcon className="w-5 text-primary" />
-        <Input
-          id="search-field"
-          value={searchQuery}
-          type="search"
-          onChange={el => handleQueryChanged(el.currentTarget.value)}
-          placeholder="Type to search"
-        />
-      </div>
+    <div className="flex space-x-4">
+      <MagnifyingGlassIcon className="text-primary w-5" />
+      <Input
+        id="search-field"
+        value={searchQuery}
+        type="search"
+        onChange={el => handleQueryChanged(el.currentTarget.value)}
+        placeholder="Type to search"
+      />
     </div>
   );
 };

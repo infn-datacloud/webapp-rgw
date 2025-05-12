@@ -4,11 +4,10 @@ import HomeButton from "./home-button";
 import UploadButton from "./upload-button";
 import RefreshButton from "./refresh-button";
 import NewPathButton from "./new-path-button";
-import DeleteButton from "./delete-button";
 import PathViewer from "./path-viewer";
 import { SearchField } from "@/components/search-field";
 import { useRouter, useSearchParams } from "next/navigation";
-import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
+import { _Object } from "@aws-sdk/client-s3";
 import { useEffect } from "react";
 
 export default function Toolbar(
@@ -16,21 +15,10 @@ export default function Toolbar(
     bucket: string;
     currentPath: string;
     prefix?: string;
-    objectsToDelete: _Object[];
-    foldersToDelete: CommonPrefix[];
     onPathChange?: (newPath: string) => void;
-    onDeleted?: () => void;
   }>
 ) {
-  const {
-    bucket,
-    currentPath,
-    prefix,
-    objectsToDelete,
-    foldersToDelete,
-    onPathChange,
-    onDeleted,
-  } = props;
+  const { bucket, currentPath, prefix, onPathChange } = props;
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -55,27 +43,29 @@ export default function Toolbar(
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex">
-        <div className="flex grow gap-2 py-1">
+      <div className="flex flex-col sm:flex-row">
+        <div className="flex grow flex-row gap-2 py-1">
           <HomeButton />
           <UploadButton bucket={bucket} prefix={prefix} />
           <RefreshButton />
         </div>
-        <div className="flex gap-2 py-1">
+        <div className="flex flex-row gap-2 py-1 sm:flex-col">
           <NewPathButton
             currentPath={currentPath}
             onPathChange={onPathChange}
           />
         </div>
       </div>
-      <div className="flex w-full">
-        <div className="flex grow">
+      <div className="flex w-full flex-col sm:flex-row sm:items-center">
+        <div className="grow flex-row sm:flex-col">
           <PathViewer currentPath={currentPath} />
         </div>
-        <SearchField
-          defaultValue={searchParams.get("q") ?? undefined}
-          onChange={handleQueryChanged}
-        />
+        <div className="flex flex-row justify-end sm:flex-col">
+          <SearchField
+            defaultValue={searchParams.get("q") ?? undefined}
+            onChange={handleQueryChanged}
+          />
+        </div>
       </div>
     </div>
   );

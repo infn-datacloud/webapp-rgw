@@ -52,7 +52,9 @@ export const Sidebar = async () => {
         <div className="flex h-full justify-between px-4">
           <div className="flex py-2">
             <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
-            <h2 className="text-secondary mt-auto mr-4">Object Storage</h2>
+            <h2 className="text-secondary mt-auto mr-4 truncate text-nowrap">
+              Object Storage
+            </h2>
           </div>
           <BurgerButton />
         </div>

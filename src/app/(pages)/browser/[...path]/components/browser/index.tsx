@@ -83,7 +83,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     .map(state => state.underlying);
 
   return (
-    <div>
+    <div className="space-y-2">
       <Toolbar
         bucket={bucket}
         currentPath={filepath}
