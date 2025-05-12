@@ -3,14 +3,14 @@ import Subview from "../bucket-summary/subview";
 
 function LoadingSkeleton() {
   return (
-    <div className="my-auto h-3 w-1/5 animate-pulse-fast rounded-full bg-gray-200 duration-100" />
+    <div className="my-auto h-3 w-1/5 animate-pulse rounded-full bg-gray-200" />
   );
 }
 
 export function SummaryLoading(props: Readonly<{ bucket?: string }>) {
   const { bucket } = props;
   return (
-    <div className="mt-4 rounded border bg-secondary p-2 text-primary dark:bg-primary-dark dark:text-secondary">
+    <div className="bg-secondary text-primary dark:bg-primary-dark dark:text-secondary mt-4 rounded-xl border border-gray-200 p-2">
       <div className="flex flex-col">
         <div className="text-xl font-bold">{bucket}</div>
         <Subview
