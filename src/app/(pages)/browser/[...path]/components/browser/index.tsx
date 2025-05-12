@@ -84,13 +84,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
 
   return (
     <div className="space-y-2">
-      <Toolbar
-        bucket={bucket}
-        currentPath={filepath}
-        prefix={prefix}
-        objectsToDelete={selectedObjects}
-        foldersToDelete={selectedPrefixes}
-      />
+      <Toolbar bucket={bucket} currentPath={filepath} prefix={prefix} />
       <BucketInspector
         isOpen={selectedObjects.length + selectedPrefixes.length > 0}
         bucket={bucket}
