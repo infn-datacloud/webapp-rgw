@@ -1,4 +1,3 @@
-
 export function getHumanSize(size: number) {
   if (size < 1024) return `${size} B`;
   if (size < 1000000) return `${(size / 1000).toFixed(1)} kB`;
@@ -26,12 +25,29 @@ export function parseS3Error(err: unknown) {
   return "Unknown Error";
 }
 
-export function dateToHuman(date: Date) {
-  return new Intl.DateTimeFormat("it-IT", {
-    dateStyle: "medium",
-    timeStyle: "medium",
-    timeZone: "Europe/Rome",
-  }).format(date);
+export function dateToHuman(date: Date): string {
+  const now = Date.now();
+  const delta = now - date.getTime();
+  const sign = delta >= 0 ? -1 : 1;
+
+  if (delta >= 0 && delta < 86400000) {
+    return "today";
+  }
+  const absDelta = Math.abs(delta);
+  const formatter = new Intl.RelativeTimeFormat("en");
+  const days = Math.ceil(absDelta / 86400000);
+
+  if (days <= 31) {
+    return formatter.format(sign * days, "day");
+  }
+
+  const months = Math.floor(absDelta / 2678400000);
+  if (months < 12) {
+    return formatter.format(sign * months, "month");
+  }
+
+  const years = Math.floor(absDelta / 32140800000);
+  return formatter.format(sign * years, "year");
 }
 
 export function dropDuplicates<T>(arr: T[]): T[] {

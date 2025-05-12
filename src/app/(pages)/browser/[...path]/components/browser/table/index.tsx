@@ -31,9 +31,7 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
     <div className="text-primary dark:text-secondary rounded-xl bg-neutral-100 text-sm shadow-md dark:bg-slate-700">
       <div className="flex px-4 pt-8 pb-2">
         <div className="min-w-8" />
-        <div className="grow font-bold">Name</div>
-        <div className="min-w-80 font-bold">Last Modified</div>
-        <div className="min-w-20 font-bold">Size</div>
+        <div className="font-bold">Name</div>
       </div>
       <ul className="bg-secondary">
         {foldersStates?.map(state => (
