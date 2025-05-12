@@ -1,5 +1,5 @@
 import { useState, ChangeEvent } from "react";
-import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/buttons";
 import Modal, { ModalBody, ModalFooter } from "@/components/modal";
 import Input from "@/components/inputs/input";
@@ -7,11 +7,25 @@ import Form from "@/components/form";
 import { useRouter } from "next/navigation";
 
 function ClearButton() {
-  return <Button title="Clear" icon={<XMarkIcon />} type="reset" />;
+  return (
+    <Button title="Cancel" type="reset" className="btn-tertiary">
+      Cancel
+    </Button>
+  );
 }
 
 function SubmitButton({ canSubmit }: { canSubmit: boolean }) {
-  return <Button title="Confirm" icon={<CheckIcon />} disabled={!canSubmit} />;
+  return (
+    <Button
+      title="Confirm"
+      disabled={!canSubmit}
+      className="btn-primary"
+      type="submit"
+    >
+      <CheckIcon className="size-5" />
+      Confirm
+    </Button>
+  );
 }
 
 function CurrentPath({ path }: { path: string }) {

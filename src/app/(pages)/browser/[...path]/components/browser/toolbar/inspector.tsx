@@ -3,8 +3,8 @@ import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
 import { Inspector, InspectorProps } from "@/components/inspector";
 import IsomorphicDate from "@/components/isomorphic-date";
 import { getHumanSize } from "@/commons/utils";
-import DeleteButton from "./toolbar/delete-button";
-import DownloadButton from "./toolbar/download-button";
+import DeleteButton from "./delete-button";
+import DownloadButton from "./download-button";
 
 type DetailProps = {
   title: string;
@@ -51,11 +51,10 @@ interface BucketInspectorProps extends InspectorProps {
   objects: _Object[];
   prefixes: CommonPrefix[];
   onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
-  onDelete?: () => void;
 }
 
 export function BucketInspector(props: BucketInspectorProps) {
-  const { bucket, isOpen, objects, prefixes, onClose, onDelete } = props;
+  const { bucket, isOpen, objects, prefixes, onClose } = props;
   const keys = objects.map(o => o.Key!);
   let object: _Object;
   let title: string;
@@ -96,7 +95,7 @@ export function BucketInspector(props: BucketInspectorProps) {
       <div className="flex flex-col divide-y px-4">
         {/* Title */}
         <section className="py-4">
-          <div className="break-words text-lg font-semibold">{title}</div>
+          <div className="text-lg font-semibold break-words">{title}</div>
         </section>
         {/* Buttons */}
         <section className="space-y-4 py-4">
@@ -105,7 +104,6 @@ export function BucketInspector(props: BucketInspectorProps) {
             bucket={bucket}
             objectsToDelete={objects}
             foldersToDelete={prefixes}
-            onDeleted={onDelete}
           />
           {/* Details */}
         </section>

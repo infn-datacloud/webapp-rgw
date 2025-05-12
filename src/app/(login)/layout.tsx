@@ -1,8 +1,7 @@
 "use client";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
-import "../globals.css";
-import "../index.css";
+import "@/app/app.css";
 
 export default function RootLayout({
   children,
@@ -11,7 +10,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="inset-0 h-screen bg-primary dark:bg-primary-dark">
+      <body className="bg-primary dark:bg-primary-dark inset-0 h-screen">
         <SessionProvider>{children}</SessionProvider>
         <Toaster position="top-right" />
       </body>

@@ -76,7 +76,7 @@ function TableRow(props: Readonly<TableRowProps>) {
 
   return (
     <tr
-      className="mx-0 cursor-pointer text-primary hover:bg-slate-200 hover:text-primary-hover dark:text-secondary dark:hover:bg-primary-hover dark:hover:text-secondary"
+      className="text-primary hover:text-light dark:text-secondary dark:hover:bg-light dark:hover:text-secondary mx-0 cursor-pointer hover:bg-slate-200"
       key={row.id}
     >
       {selectable ? (

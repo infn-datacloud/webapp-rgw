@@ -1,12 +1,12 @@
-import { ChangeEvent, ReactNode } from "react";
+import { ArrowUpOnSquareIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/buttons";
+import { ChangeEvent } from "react";
 
 interface InputFileProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  icon?: ReactNode;
 }
 
-export default function InputFile({ onChange, icon }: InputFileProps) {
+export default function InputFile({ onChange }: InputFileProps) {
   const openFileSelector = async () => {
     const fileSelector = document.getElementById("file-selector");
     if (fileSelector) {
@@ -30,11 +30,14 @@ export default function InputFile({ onChange, icon }: InputFileProps) {
         multiple={true}
       />
       <Button
+        className="btn-secondary items-center"
         title="Upload File"
-        icon={icon}
         color="primary-outline"
         onClick={openFileSelector}
-      />
+      >
+        <ArrowUpOnSquareIcon className="size-5" />
+        Upload File
+      </Button>
     </div>
   );
 }

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import { Sidebar } from "@/components/sidebar";
-import "@/app/globals.css";
-import "@/app/index.css";
+import "@/app/app.css";
 
 export const metadata: Metadata = {
   title: "INFN Cloud Object Storage",

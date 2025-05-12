@@ -1,19 +1,20 @@
 "use client";
+
 import { Button } from "@/components/buttons";
 import Form from "@/components/form";
 import Input from "@/components/inputs/input";
 import { toaster } from "@/components/toaster";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Spinner from "@/components/spinner";
 
 function Loading() {
   return (
     <div className="fixed inset-0 z-10 bg-gray-600/50 backdrop-blur-sm">
-      <div className="mx-auto mt-48 h-16 w-16 text-secondary">
+      <div className="text-secondary mx-auto mt-48 h-16 w-16">
         <Spinner />
-        <p className="mt-8 text-xl text-secondary">Loading...</p>
+        <p className="text-secondary mt-8 text-xl">Loading...</p>
       </div>
     </div>
   );
@@ -21,17 +22,17 @@ function Loading() {
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
-
+  const [loading, setLoading] = useState(false);
   const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
     const error = searchParams.get("error");
-    const code = searchParams.get("code");
+    setLoading(false);
     if (error) {
-      toaster.danger(code ?? "Unknown Error", "");
+      toaster.danger(error ?? "Unknown Error", "");
     }
-  }, [router, searchParams]);
+  }, [router, searchParams, setLoading]);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -39,20 +40,28 @@ export default function LoginForm() {
     }
   }, [status, router]);
 
-  const handleCredentialsLogin = async (formData: FormData) => {
-    await signIn("credentials", {
-      accessKeyId: formData.get("accessKeyId"),
-      secretAccessKey: formData.get("secretAccessKey"),
-    });
+  const handleCredentialsLogin = (formData: FormData) => {
+    const login = async () => {
+      await signIn("credentials", {
+        accessKeyId: formData.get("accessKeyId"),
+        secretAccessKey: formData.get("secretAccessKey"),
+      });
+    };
+    setLoading(true);
+    login();
   };
 
-  const handleIAMLogin = async () => {
-    await signIn("indigo-iam");
+  const handleIAMLogin = () => {
+    const login = async () => {
+      await signIn("indigo-iam");
+    };
+    setLoading(true);
+    login();
   };
 
   return (
     <>
-      {status === "loading" ? <Loading /> : null}
+      {loading ? <Loading /> : null}
       <Form action={handleCredentialsLogin} className="space-y-2">
         <Input name="accessKeyId" placeholder="Access Key Id" required />
         <Input
@@ -62,17 +71,21 @@ export default function LoginForm() {
           required
         />
         <Button
-          className="w-full"
+          className="btn-primary block w-full text-center"
           title="Login with local credentials"
           type="submit"
-        />
+        >
+          Login with local credentials
+        </Button>
       </Form>
       <Form action={handleIAMLogin}>
         <Button
-          className="w-full"
+          className="btn-primary mx-auto block w-full"
           title="Login with INDIGO IAM"
           type="submit"
-        />
+        >
+          Login with INDIGO IAM
+        </Button>
       </Form>
     </>
   );

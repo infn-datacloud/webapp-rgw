@@ -35,7 +35,7 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
   }
 
   return (
-    <div className="mt-4 rounded border bg-secondary p-2 text-primary dark:bg-primary-dark dark:text-secondary">
+    <div className="bg-secondary text-primary dark:bg-transparent dark:text-secondary mt-4 rounded-xl border border-gray-200 p-2">
       <div className="grid grid-cols-1 sm:grid-cols-2">
         <div>
           <div className="text-xl font-bold">{Name}</div>
@@ -46,7 +46,7 @@ export const BucketSummaryView = async (props: BucketSummaryViewProps) => {
           />
         </div>
         {!isPublic ? (
-          <div className="my-auto ml-auto mr-0 flex gap-2 p-2 sm:space-x-0">
+          <div className="mr-0 ml-auto flex space-x-2 p-4 sm:flex-col sm:space-y-4 sm:space-x-0">
             <EditBucketButton
               bucket={Name}
               configuration={bucketConfiguration}

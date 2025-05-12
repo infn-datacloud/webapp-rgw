@@ -45,14 +45,14 @@ export default function Modal(props: ModalProps) {
             {/* Backdrop */}
             <TransitionChild
               enter="ease-out duration-300"
-              enterFrom="opacity-0 transform-[scale(95%)]"
-              enterTo="opacity-100 transform-[scale(100%)]"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
               leave="ease-in duration-200"
-              leaveFrom="opacity-100 transform-[scale(100%)]"
-              leaveTo="opacity-0 transform-[scale(95%)]"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
               <div
-                className="z-25 fixed inset-0 bg-black/30"
+                className="fixed inset-0 z-25 bg-black/30"
                 aria-hidden="true"
               />
             </TransitionChild>
@@ -65,8 +65,8 @@ export default function Modal(props: ModalProps) {
               leaveFrom="opacity-100 transform-[scale(100%)]"
               leaveTo="opacity-0 transform-[scale(95%)]"
             >
-              <DialogPanel className="z-50 w-full max-w-lg divide-y rounded bg-secondary p-4 text-primary dark:bg-slate-800 dark:text-secondary">
-                <DialogTitle as="h2" className="pb-2 text-xl font-bold">
+              <DialogPanel className="bg-secondary text-primary dark:text-secondary z-50 w-full max-w-lg divide-y rounded-lg p-4 dark:bg-slate-800">
+                <DialogTitle className="border-gray-200 pb-2 text-xl font-bold">
                   <div className="flex justify-between">
                     {title}
                     <button onClick={onClose}>

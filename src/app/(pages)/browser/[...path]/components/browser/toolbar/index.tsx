@@ -66,12 +66,6 @@ export default function Toolbar(
             currentPath={currentPath}
             onPathChange={onPathChange}
           />
-          <DeleteButton
-            bucket={bucket}
-            objectsToDelete={objectsToDelete}
-            foldersToDelete={foldersToDelete}
-            onDeleted={onDeleted}
-          />
         </div>
       </div>
       <div className="flex w-full">

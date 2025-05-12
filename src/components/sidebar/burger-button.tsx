@@ -17,10 +17,10 @@ export default function BurgerButton() {
 
   return (
     <button
-      className="my-auto rounded-md p-1 transition hover:bg-primary-hover active:bg-primary-200 lg:hidden"
+      className="hover:bg-light active:bg-primary-200 my-auto rounded-md p-1 transition lg:hidden"
       onClick={toggleSidebar}
     >
-      <Bars3Icon className="w-8 text-secondary" />
+      <Bars3Icon className="text-secondary w-8" />
     </button>
   );
 }

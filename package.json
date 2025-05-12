@@ -2,11 +2,18 @@
   "name": "webapp-rgw",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "test": "NODE_ENV=test jest",
+    "lint": "tsc --project ./tsconfig.json --noEmit && eslint . --ext ts,tsx,js --report-unused-disable-directives --max-warnings 0"
+  },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.645.0",
-    "@aws-sdk/client-sts": "^3.645.0",
-    "@aws-sdk/lib-storage": "^3.645.0",
-    "@aws-sdk/s3-request-presigner": "^3.645.0",
+    "@aws-sdk/client-s3": "^3",
+    "@aws-sdk/client-sts": "^3",
+    "@aws-sdk/lib-storage": "^3",
+    "@aws-sdk/s3-request-presigner": "^3",
     "@headlessui/react": "^2",
     "@heroicons/react": "^2",
     "next": "^15",
@@ -16,25 +23,18 @@
     "sharp": "^0.33",
     "sonner": "^1.7"
   },
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "test": "NODE_ENV=test jest",
-    "lint": "tsc --project ./tsconfig.json --noEmit && eslint . --ext ts,tsx,js --report-unused-disable-directives --max-warnings 0"
-  },
   "devDependencies": {
-    "@aws-sdk/types": "3.664.0",
+    "@aws-sdk/types": "^3",
+    "@tailwindcss/postcss":"^4.1",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10",
     "eslint": "^9",
     "eslint-config-next": "^15",
-    "postcss": "^8",
     "prettier": "^3",
     "prettier-plugin-tailwindcss": "^0",
-    "tailwindcss": "^3",
+    "tailwindcss": "^4.1",
     "typescript": "^5"
   }
 }

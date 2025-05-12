@@ -2,7 +2,7 @@
 
 import { ObjectTable } from "./table";
 import Toolbar from "./toolbar";
-import { BucketInspector } from "./inspector";
+import { BucketInspector } from "./toolbar/inspector";
 import {
   _Object,
   CommonPrefix,
@@ -84,10 +84,6 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     .filter(state => state.checked)
     .map(state => state.underlying);
 
-  const handleDelete = () => {
-    router.refresh();
-  };
-
   return (
     <div>
       <Toolbar
@@ -96,7 +92,6 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         prefix={prefix}
         objectsToDelete={selectedObjects}
         foldersToDelete={selectedPrefixes}
-        onDeleted={handleDelete}
       />
       <BucketInspector
         isOpen={selectedObjects.length + selectedPrefixes.length > 0}
@@ -104,7 +99,6 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         objects={selectedObjects}
         prefixes={selectedPrefixes}
         onClose={deselectAll}
-        onDelete={handleDelete}
       />
       <ObjectTable
         bucket={bucket}

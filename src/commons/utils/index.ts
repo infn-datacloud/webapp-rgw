@@ -1,7 +1,3 @@
-import resolveConfig from "tailwindcss/resolveConfig";
-import _tailwindConfig from "../../../tailwind.config.js";
-
-export const tailwindConfig = resolveConfig(_tailwindConfig);
 
 export function getHumanSize(size: number) {
   if (size < 1024) return `${size} B`;

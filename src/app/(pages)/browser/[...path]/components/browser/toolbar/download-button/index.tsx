@@ -45,9 +45,12 @@ export default function DownloadButton(props: {
   return (
     <Button
       title="Download file(s)"
-      icon={<ArrowDownCircleIcon />}
       onClick={downloadObjects}
       disabled={objectsToDownload.length === 0}
-    />
+      className="btn-primary w-full justify-center"
+    >
+      <ArrowDownCircleIcon className="size-5" />
+      Download files(s)
+    </Button>
   );
 }

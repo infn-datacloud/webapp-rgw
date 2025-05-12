@@ -17,11 +17,14 @@ export function DeleteModalFooter(props: Readonly<DeleteModalFooterProps>) {
       <ModalFooter>
         <Button type="reset" title="Cancel" onClick={onClose} />
         <Button
+          className="btn-danger"
           title="Delete"
           color="danger"
           type="submit"
-          icon={<TrashIcon />}
-        />
+        >
+          <TrashIcon className="size-5" />
+          Delete
+        </Button>
       </ModalFooter>
     </div>
   );

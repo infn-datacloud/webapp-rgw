@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #002a44;
+  /* --color-primary: var(--color-slate-700); */
+  --color-light: var(--color-slate-600);
+  --color-extralight: var(--color-slate-400);
+  --color-secondary: #fefefe;
+  --color-dark: #021523;
+  --color-success: var(--color-green-600);
+  --color-warning: var(--color-yellow-400);
+  --color-danger: var(--color-red-600);
+  --color-danger-hover: var(--color-red-800);
+  --animate-wiggle: wiggle 0.75s infinite linear;
+  @keyframes wiggle {
+    0% {
+      transform: translateX(0) scaleX(0);
+    }
+    40% {
+      transform: translateX(0) scaleX(0.4);
+    }
+    100% {
+      transform: translateX(100%) scaleX(0.1);
+    }
+  }
+}
+
+@utility btn {
+  @apply flex min-w-12 items-center justify-center gap-2 rounded-full px-3 py-2 text-sm text-nowrap;
+}
+
+@utility btn-primary {
+  @apply btn border-primary bg-primary text-secondary hover:bg-light disabled:bg-primary/50 dark:border-secondary/30 dark:bg-primary/30 disabled:border-extralight border disabled:dark:bg-gray-600 disabled:dark:text-gray-800;
+}
+
+@utility btn-secondary {
+  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary hover:text-secondary dark:text-secondary border bg-white dark:bg-transparent;
+}
+
+@utility btn-tertiary {
+  @apply btn font-bold hover:underline;
+}
+
+@utility btn-danger {
+  @apply btn bg-danger text-secondary hover:bg-danger-hover disabled:bg-danger/50;
+}
+
+@utility btn-danger-secondary {
+  @apply btn border-danger bg-secondary text-danger not-disabled:hover:bg-danger not-disabled:hover:text-secondary disabled:border-danger/30 dark:bg-primary border;
+}
+
+@utility btn-danger-tertiary {
+  @apply btn hover:text-danger hover:underline;
+}
+
+@layer base {
+  h1 {
+    @apply text-4xl font-bold;
+  }
+  h2 {
+    @apply text-2xl font-bold;
+  }
+  h3 {
+    @apply text-xl font-bold;
+  }
+  h4 {
+    @apply text-lg font-bold;
+  }
+}
