@@ -28,7 +28,7 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
   };
 
   return (
-    <li className="text-primary dark:text-secondary border-b border-slate-200 bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700">
+    <li className="text-primary dark:text-secondary border-b border-slate-200 bg-white hover:bg-slate-100 dark:border-white/30 dark:bg-slate-800 dark:hover:bg-slate-700">
       <button
         className="flex w-full items-center gap-2 px-4 py-2 text-left"
         onClick={toggle}
@@ -46,7 +46,7 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
             <div className="inline-flex sm:justify-end">
               <span className="text-sm font-bold">{size}</span>
             </div>
-            <span className="flex items-center justify-end gap-1 text-slate-500">
+            <span className="dark:text-secondary/60 flex items-center justify-end gap-1 text-slate-500">
               <ClockIcon className="size-4" />
               <small className="font-light">{lastModified}</small>
             </span>

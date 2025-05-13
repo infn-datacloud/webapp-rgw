@@ -64,7 +64,7 @@ export default function Paginator(props: Readonly<PaginatorProps>) {
           </Link>
         </li>
       </ul>
-      <div className="flex items-center space-x-2 text-slate-500">
+      <div className="dark:text-secondary/60 flex items-center space-x-2 text-slate-500">
         <span>Show</span>
         <select
           value={itemsPerPage}

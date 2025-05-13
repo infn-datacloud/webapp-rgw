@@ -10,7 +10,7 @@ function PathBackButton(props: Readonly<{ currentPath: string }>) {
 
   return (
     <button
-      className="text-primary dark:text-secondary my-auto h-8 w-8 rounded-full bg-neutral-100 p-[5px] transition-transform hover:bg-neutral-200 data-[root=true]:-rotate-90 dark:hover:bg-neutral-600"
+      className="text-primary dark:text-secondary my-auto h-8 w-8 rounded-full bg-neutral-100 p-[5px] transition-transform hover:bg-neutral-200 data-[root=true]:-rotate-90 dark:bg-white/30 dark:hover:bg-neutral-600"
       onClick={goBack}
       type="button"
       data-root={isRoot}
@@ -28,7 +28,7 @@ export default function PathViewer(props: Readonly<PathViewerProps>) {
   const { currentPath } = props;
   return (
     <div className="text-primary dark:text-secondary flex items-center gap-2">
-      <div className="inline-flex gap-1">
+      <div className="inline-flex gap-1 py-4">
         <PathBackButton currentPath={currentPath} />
         <span className="my-auto inline-block font-bold text-nowrap">
           Current path:

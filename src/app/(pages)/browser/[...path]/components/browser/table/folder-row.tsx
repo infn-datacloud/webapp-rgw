@@ -20,7 +20,7 @@ export function FolderRow(props: Readonly<FolderRowProps>) {
   const folderName = path?.pop();
 
   return (
-    <li className="text-primary dark:text-secondary flex gap-2 border-b border-slate-200 bg-white p-4 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700">
+    <li className="text-primary dark:text-secondary flex gap-2 border-b border-slate-200 bg-white p-4 hover:bg-slate-100 dark:border-white/30 dark:bg-slate-800 dark:hover:bg-slate-700">
       <Checkbox
         checked={state.checked}
         onChange={newValue => onChange?.(state, newValue)}
