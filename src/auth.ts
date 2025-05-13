@@ -3,9 +3,9 @@ import type { NextAuthConfig } from "next-auth";
 import type { DefaultJWT } from "next-auth/jwt";
 import type { Profile, User, Awaitable, TokenSet } from "@auth/core/types";
 import type { OIDCConfig } from "next-auth/providers";
+import Credentials from "next-auth/providers/credentials";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { S3Service } from "./services/s3";
-import Credentials from "next-auth/providers/credentials";
 import { s3ClientConfig } from "./services/s3/actions";
 import { decodeJwtPayload } from "./commons/utils";
 
@@ -121,8 +121,10 @@ export const authConfig: NextAuthConfig = {
     },
 
     authorized({ auth }) {
-      const isLoggedIn = !!auth?.user;
-      return isLoggedIn;
+      const expiration = new Date(auth?.credentials?.expiration ?? 0);
+      const now = new Date();
+      const sessionExpired = expiration < now;
+      return !!auth && !sessionExpired;
     },
 
     async session({ session, token }) {
