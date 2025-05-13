@@ -28,8 +28,8 @@ export const SearchField = (props: SearchFieldProps) => {
   };
 
   return (
-    <div className="flex space-x-4">
-      <MagnifyingGlassIcon className="text-primary w-5" />
+    <div className="flex items-center gap-2">
+      <MagnifyingGlassIcon className="text-primary size-6" />
       <Input
         id="search-field"
         value={searchQuery}
