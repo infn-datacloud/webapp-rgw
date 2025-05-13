@@ -1,14 +1,13 @@
-import { auth } from "@/auth";
+"use client";
+
 import Image from "next/image";
 import logo from "@/imgs/infn-cloud.png";
 import { Links } from "./nav-links";
-import getConfig from "next/config";
 import LogoutButton from "./logout-button";
-import { UserIcon } from "@heroicons/react/24/solid";
-import BurgerButton from "./burger-button";
-import DismissButton from "./dismiss-button";
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
+import { Bars3Icon, UserIcon } from "@heroicons/react/24/solid";
+import { useState } from "react";
+import { Button } from "@/components/buttons";
+import { Transition } from "@headlessui/react";
 
 function UserView(props: Readonly<{ username?: string | null }>) {
   const { username } = props;
@@ -29,25 +28,18 @@ function UserView(props: Readonly<{ username?: string | null }>) {
   );
 }
 
-export const getStaticProps = function () {
-  return {
-    props: {
-      appVersion: serverRuntimeConfig.appVersion || "",
-    },
-  };
+type SidebarProps = {
+  username?: string | null;
+  appVersion?: string | null;
 };
 
-export const Sidebar = async () => {
-  const session = await auth();
-  const username = session?.user?.name;
-  const { props } = getStaticProps();
+export function Sidebar(props: Readonly<SidebarProps>) {
+  const { username, appVersion } = props;
+  const [show, setShow] = useState(false);
+  const toggle = () => setShow(!show);
 
   return (
     <>
-      <DismissButton
-        id="sidebar-dismiss-btn"
-        className="fixed inset-0 z-10 bg-black/30 opacity-0 transition duration-200"
-      />
       <header className="dark:bg-primary-dark bg-primary fixed top-0 left-0 z-30 h-16 w-screen lg:w-80">
         <div className="flex h-full justify-between px-4">
           <div className="flex py-2">
@@ -56,13 +48,25 @@ export const Sidebar = async () => {
               Object Storage
             </h2>
           </div>
-          <BurgerButton />
+          <button
+            className="hover:bg-light active:bg-primary-200 my-auto rounded-md p-1 transition lg:hidden"
+            onClick={toggle}
+          >
+            <Bars3Icon className="text-secondary w-8" />
+          </button>
         </div>
       </header>
+      <Transition show={show}>
+        <Button
+          id="sidebar-backdrop"
+          className="fixed inset-0 z-10 bg-black/30 transition data-closed:opacity-0"
+          onClick={toggle}
+        />
+      </Transition>
       <aside
-        id="left-sidebar"
-        className="dark:bg-primary-dark bg-primary easy-in-out fixed top-16 bottom-0 left-0 z-30 w-80 -translate-x-full transition-transform duration-200 lg:translate-x-0"
+        className="dark:bg-primary-dark bg-primary easy-in-out fixed top-16 bottom-0 left-0 z-30 w-80 transition-transform duration-200 data-[closed=true]:-translate-x-full lg:!translate-x-0"
         aria-label="Sidebar"
+        data-closed={!show}
       >
         <nav className="p-4">
           <Links />
@@ -72,10 +76,10 @@ export const Sidebar = async () => {
             <UserView username={username} />
           </div>
           <div className="text-secondary w-full bg-slate-600 p-1.5 text-center text-sm">
-            v{props.appVersion}
+            v{appVersion}
           </div>
         </div>
       </aside>
     </>
   );
-};
+}
