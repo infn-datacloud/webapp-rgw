@@ -185,12 +185,7 @@ export class S3Service {
     query?: string, // this query should be sanitized
     count: number = 10
   ) {
-    const response = await this.listObjects(
-      bucket,
-      count,
-      prefix ?? query,
-      "/"
-    );
+    const response = await this.listObjects(bucket, 1000, prefix, "/");
 
     if (!response) {
       return;
@@ -199,15 +194,16 @@ export class S3Service {
     let objects: _Object[] = response?.Contents ?? [];
     let prefixes: CommonPrefix[] = response?.CommonPrefixes ?? [];
 
-    const currentSize = objects.length + prefixes.length;
-
     const listsPromises =
       response?.CommonPrefixes?.map(folder => {
-        const prefix = `${folder.Prefix ?? ""}`;
-        return this.listObjects(bucket, count - currentSize, prefix, query);
+        return this.listObjects(
+          bucket,
+          count,
+          `${prefix ? prefix : ""}${folder.Prefix}`
+        );
       }) ?? [];
 
-    if (prefixes.length !== count) {
+    if (prefixes.length) {
       const responses = await Promise.all(listsPromises);
       for (const r of responses) {
         if (r?.Contents) {
@@ -228,7 +224,6 @@ export class S3Service {
         p => (p.Prefix?.toLocaleLowerCase().search(lowerQuery) ?? -1) > -1
       );
     }
-
     response.Contents = objects;
     response.CommonPrefixes = prefixes;
     return response;
