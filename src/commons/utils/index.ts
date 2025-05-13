@@ -1,3 +1,4 @@
+
 export function getHumanSize(size: number) {
   if (size < 1024) return `${size} B`;
   if (size < 1000000) return `${(size / 1000).toFixed(1)} kB`;
@@ -29,7 +30,7 @@ export function dateToHuman(date: Date): string {
   const now = Date.now();
   const delta = now - date.getTime();
   const sign = delta >= 0 ? -1 : 1;
-
+  
   if (delta >= 0 && delta < 86400000) {
     return "today";
   }
@@ -49,6 +50,7 @@ export function dateToHuman(date: Date): string {
   const years = Math.floor(absDelta / 32140800000);
   return formatter.format(sign * years, "year");
 }
+
 
 export function dropDuplicates<T>(arr: T[]): T[] {
   return [...new Set(arr)];

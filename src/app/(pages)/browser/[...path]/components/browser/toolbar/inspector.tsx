@@ -1,8 +1,7 @@
 import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
 import { Inspector, InspectorProps } from "@/components/inspector";
-import IsomorphicDate from "@/components/isomorphic-date";
-import { getHumanSize } from "@/commons/utils";
+import { dateToHuman, getHumanSize } from "@/commons/utils";
 import DeleteButton from "./delete-button";
 import DownloadButton from "./download-button";
 
@@ -21,13 +20,10 @@ function Detail({ title, children }: DetailProps) {
 }
 
 function ObjectDetail(object: _Object) {
-  const LastModified = () => {
-    const { LastModified } = object;
-    if (LastModified) {
-      return <IsomorphicDate date={LastModified} />;
-    }
-    return "N/A";
-  };
+  const lastModified = object.LastModified
+    ? dateToHuman(object.LastModified)
+    : "N/A";
+
   return (
     <>
       <div className="flex items-center">
@@ -38,9 +34,7 @@ function ObjectDetail(object: _Object) {
       </div>
       <Detail title={"Key"}>{object.Key ?? "N/A"}</Detail>
       <Detail title={"ETag"}>{object.ETag}</Detail>
-      <Detail title={"Last Modified"}>
-        <LastModified />
-      </Detail>
+      <Detail title={"Last Modified"}>{lastModified}</Detail>
       <Detail title={"Size"}>{getHumanSize(object.Size ?? 0)}</Detail>
     </>
   );
