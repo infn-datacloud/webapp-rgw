@@ -1,8 +1,13 @@
 import { registerOTel } from "@vercel/otel";
 
-export function register() {
+export async function register() {
+    if (process.env.NEXT_RUNTIME === 'nodejs') {
+    await import('./instrumentation.node.ts')
+  }
   registerOTel({
-    serviceName: "s3webui",
-    attributes: { "host.name": process.env.AUTH_URL },
+    serviceName: process.env.OTEL_SERVICE_NAME,
+    attributes: { 
+      "service.namespace": process.env.OTEL_SERVICE_NAMESPACE
+    },
   });
 }
