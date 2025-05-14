@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 import { InputFile } from "@/components/inputs";
 import { FileObjectWithProgress } from "@/models/bucket";
 import { useSession } from "next-auth/react";

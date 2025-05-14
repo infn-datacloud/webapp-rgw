@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 import { useState, ChangeEvent } from "react";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/buttons";

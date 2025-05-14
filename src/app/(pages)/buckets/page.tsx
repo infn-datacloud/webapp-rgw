@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 import { Page } from "@/components/page";
 import { makeS3Client } from "@/services/s3/actions";
 import { Bucket } from "@aws-sdk/client-s3";

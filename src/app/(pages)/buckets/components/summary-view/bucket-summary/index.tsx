@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 import { Bucket } from "@aws-sdk/client-s3";
 import { dateToHuman } from "@/commons/utils";
 import { BucketConfiguration } from "@/models/bucket";

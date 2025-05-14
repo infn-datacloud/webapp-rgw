@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 import { dateToHuman } from "@/commons/utils";
 import { Bucket } from "@aws-sdk/client-s3";
 import { ClockIcon } from "@heroicons/react/24/outline";

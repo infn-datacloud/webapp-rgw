@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 "use client";
 import { createBucket } from "./actions";
 import Modal, { ModalBody, ModalFooter } from "@/components/modal";
