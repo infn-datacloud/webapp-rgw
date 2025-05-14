@@ -10,6 +10,7 @@ import { parseS3Error } from "@/commons/utils";
 import { useRouter } from "next/navigation";
 import { DeleteModalFooter } from "./modal-footer";
 import { deleteAll } from "./actions";
+import { useState } from "react";
 
 type ConfirmationModalProps = {
   show: boolean;
@@ -21,10 +22,12 @@ type ConfirmationModalProps = {
 
 export function ConfirmationModal(props: Readonly<ConfirmationModalProps>) {
   const { show, onClose, bucket, objectsToDelete, foldersToDelete } = props;
+  const [pending, setPending] = useState(false);
   const router = useRouter();
 
   const action = async () => {
     try {
+      setPending(true);
       await deleteAll(bucket, objectsToDelete, foldersToDelete);
       toaster.success("Object(s) successfully deleted");
       onClose?.();
@@ -32,6 +35,8 @@ export function ConfirmationModal(props: Readonly<ConfirmationModalProps>) {
     } catch (err) {
       const error = parseS3Error(err);
       toaster.danger("Cannot delete object(s)", error);
+    } finally {
+      setPending(false);
     }
   };
 
@@ -51,7 +56,11 @@ export function ConfirmationModal(props: Readonly<ConfirmationModalProps>) {
             ))}
           </ul>
         </ModalBody>
-        <DeleteModalFooter onClose={onClose} />
+        <DeleteModalFooter
+          pending={pending}
+          onClick={() => setPending(true)}
+          onClose={onClose}
+        />
       </Form>
     </Modal>
   );
