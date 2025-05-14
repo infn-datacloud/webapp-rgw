@@ -32,6 +32,9 @@ import {
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { dropDuplicates } from "@/commons/utils";
+import { trace } from "@opentelemetry/api";
+
+const tracer = trace.getTracer("s3webui");
 
 if (process.env.APP_ENV === "production") {
   console.debug = () => {};
@@ -72,90 +75,114 @@ export class S3Service {
       RoleSessionName: crypto.randomUUID(),
       WebIdentityToken: access_token,
     });
-    const response = await sts.send(command);
-    const credentials = response.Credentials!;
-    return {
-      accessKeyId: credentials.AccessKeyId!,
-      secretAccessKey: credentials.SecretAccessKey!,
-      sessionToken: credentials.SessionToken!,
-      expiration: credentials.Expiration,
-    };
+    return await tracer.startActiveSpan("loginWithSTS", async span => {
+      try {
+        const response = await sts.send(command);
+        const credentials = response.Credentials!;
+        return {
+          accessKeyId: credentials.AccessKeyId!,
+          secretAccessKey: credentials.SecretAccessKey!,
+          sessionToken: credentials.SessionToken!,
+          expiration: credentials.Expiration,
+        };
+      } finally {
+        span.end();
+      }
+    });
   }
 
   async fetchPublicBuckets() {
-    // make const copies that won't change after the safety guard
-    const publisherBucket = this.publisherBucket;
-    const groups = this.groups;
-    if (!publisherBucket || !groups) {
-      console.warn(
-        "Bucket publisher or groups not defined",
-        this.publisherBucket,
-        this.groups
-      );
-      return [];
-    }
-
-    const promises = groups.map(async group => {
-      const cmd = new ListObjectsV2Command({
-        Bucket: this.publisherBucket,
-        Prefix: group,
-      });
-      return await this.client.send(cmd);
-    });
-
-    const results = await Promise.allSettled(promises);
-    const success = results
-      .filter(res => res.status === "fulfilled")
-      .map(res => res.value);
-    const contents = success.flatMap(bucket => bucket.Contents ?? []);
-    const bucketNames = contents.map(bucket => {
-      return bucket.Key!.split("/").splice(-1)[0];
-    });
-    bucketNames.push("scratch");
-    const headPromises = bucketNames.map(key => {
-      const headCmd = new HeadBucketCommand({ Bucket: key });
-      return this.client.send(headCmd);
-    });
-
-    const validBuckets = (await Promise.allSettled(headPromises)).reduce(
-      (acc: string[], next, index) => {
-        if (next.status === "fulfilled") {
-          acc.push(bucketNames[index]);
-        } else {
+    return await tracer.startActiveSpan("fetchPublicBuckets", async span => {
+      try {
+        // make const copies that won't change after the safety guard
+        const publisherBucket = this.publisherBucket;
+        const groups = this.groups;
+        if (!publisherBucket || !groups) {
           console.warn(
-            `cannot head bucket '${bucketNames[index]}': reason '${next.reason}'`
+            "Bucket publisher or groups not defined",
+            this.publisherBucket,
+            this.groups
           );
+          return [];
         }
-        return acc;
-      },
-      []
-    );
-    const names = dropDuplicates(validBuckets);
-    const buckets: Bucket[] = names.map(name => {
-      return { Name: name };
+
+        const promises = groups.map(async group => {
+          const cmd = new ListObjectsV2Command({
+            Bucket: this.publisherBucket,
+            Prefix: group,
+          });
+          return await this.client.send(cmd);
+        });
+
+        const results = await Promise.allSettled(promises);
+        const success = results
+          .filter(res => res.status === "fulfilled")
+          .map(res => res.value);
+        const contents = success.flatMap(bucket => bucket.Contents ?? []);
+        const bucketNames = contents.map(bucket => {
+          return bucket.Key!.split("/").splice(-1)[0];
+        });
+        bucketNames.push("scratch");
+        const headPromises = bucketNames.map(key => {
+          const headCmd = new HeadBucketCommand({ Bucket: key });
+          return this.client.send(headCmd);
+        });
+
+        const validBuckets = (await Promise.allSettled(headPromises)).reduce(
+          (acc: string[], next, index) => {
+            if (next.status === "fulfilled") {
+              acc.push(bucketNames[index]);
+            } else {
+              console.warn(
+                `cannot head bucket '${bucketNames[index]}': reason '${next.reason}'`
+              );
+            }
+            return acc;
+          },
+          []
+        );
+        const names = dropDuplicates(validBuckets);
+        const buckets: Bucket[] = names.map(name => {
+          return { Name: name };
+        });
+        return buckets;
+      } finally {
+        span.end();
+      }
     });
-    return buckets;
   }
 
   async fetchPrivateBuckets() {
-    let buckets: Bucket[] = [];
-    const listBucketCmd = new ListBucketsCommand({});
-    const response = await this.client.send(listBucketCmd);
-    const { Buckets } = response;
-    if (Buckets) {
-      buckets = buckets.concat(Buckets);
-    } else {
-      console.warn("Warning: Expected Bucket[], got undefined");
-    }
-    return buckets;
+    return await tracer.startActiveSpan("fetchPrivateBuckets", async span => {
+      try {
+        let buckets: Bucket[] = [];
+        const listBucketCmd = new ListBucketsCommand({});
+        const response = await this.client.send(listBucketCmd);
+        const { Buckets } = response;
+        if (Buckets) {
+          buckets = buckets.concat(Buckets);
+        } else {
+          console.warn("Warning: Expected Bucket[], got undefined");
+        }
+        return buckets;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   async fetchBucketList() {
-    const [privates, publics] = await Promise.all([
-      this.fetchPrivateBuckets(),
-      this.fetchPublicBuckets(),
-    ]);
-    return { privates, publics };
+    return await tracer.startActiveSpan("fetchBucketList", async span => {
+      try {
+        const [privates, publics] = await Promise.all([
+          this.fetchPrivateBuckets(),
+          this.fetchPublicBuckets(),
+        ]);
+        return { privates, publics };
+      } finally {
+        span.end();
+      }
+    });
   }
 
   async listObjects(
@@ -187,48 +214,54 @@ export class S3Service {
     query?: string, // this query should be sanitized
     count: number = 10
   ) {
-    const response = await this.listObjects(bucket, 1000, prefix, "/");
+    return await tracer.startActiveSpan("searchObjects", async span => {
+      try {
+        const response = await this.listObjects(bucket, 1000, prefix, "/");
 
-    if (!response) {
-      return;
-    }
-
-    let objects: _Object[] = response?.Contents ?? [];
-    let prefixes: CommonPrefix[] = response?.CommonPrefixes ?? [];
-
-    const listsPromises =
-      response?.CommonPrefixes?.map(folder => {
-        return this.listObjects(
-          bucket,
-          count,
-          `${prefix ? prefix : ""}${folder.Prefix}`
-        );
-      }) ?? [];
-
-    if (prefixes.length) {
-      const responses = await Promise.all(listsPromises);
-      for (const r of responses) {
-        if (r?.Contents) {
-          objects = objects.concat(r.Contents);
+        if (!response) {
+          return;
         }
-        if (r?.CommonPrefixes) {
-          prefixes = prefixes.concat(r.CommonPrefixes);
+
+        let objects: _Object[] = response?.Contents ?? [];
+        let prefixes: CommonPrefix[] = response?.CommonPrefixes ?? [];
+
+        const listsPromises =
+          response?.CommonPrefixes?.map(folder => {
+            return this.listObjects(
+              bucket,
+              count,
+              `${prefix ? prefix : ""}${folder.Prefix}`
+            );
+          }) ?? [];
+
+        if (prefixes.length) {
+          const responses = await Promise.all(listsPromises);
+          for (const r of responses) {
+            if (r?.Contents) {
+              objects = objects.concat(r.Contents);
+            }
+            if (r?.CommonPrefixes) {
+              prefixes = prefixes.concat(r.CommonPrefixes);
+            }
+          }
         }
+
+        if (query) {
+          const lowerQuery = query.toLocaleLowerCase();
+          objects = objects.filter(
+            o => (o.Key?.toLowerCase().search(lowerQuery) ?? -1) > -1
+          );
+          prefixes = prefixes.filter(
+            p => (p.Prefix?.toLocaleLowerCase().search(lowerQuery) ?? -1) > -1
+          );
+        }
+        response.Contents = objects;
+        response.CommonPrefixes = prefixes;
+        return response;
+      } finally {
+        span.end();
       }
-    }
-
-    if (query) {
-      const lowerQuery = query.toLocaleLowerCase();
-      objects = objects.filter(
-        o => (o.Key?.toLowerCase().search(lowerQuery) ?? -1) > -1
-      );
-      prefixes = prefixes.filter(
-        p => (p.Prefix?.toLocaleLowerCase().search(lowerQuery) ?? -1) > -1
-      );
-    }
-    response.Contents = objects;
-    response.CommonPrefixes = prefixes;
-    return response;
+    });
   }
 
   async getBucketVersioning(
@@ -287,8 +320,6 @@ export class S3Service {
     const cmd = new DeleteBucketCommand({ Bucket: bucket });
     return await this.client.send(cmd);
   }
-
-
 
   deleteObjects(Bucket: string, objects: ObjectIdentifier[]) {
     const cmd = new DeleteObjectsCommand({
