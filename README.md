@@ -123,3 +123,16 @@ docker run \
   --env-file .env \
   baltig.infn.it:4567/infn-cloud/webapp-rgw
 ```
+## Telemetry
+
+The application supports Opentelemetry instrumentation and INFN-CNAF Otello
+service. To enable telemetry, add to your `.env` file the following variables
+
+```
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otello.cloud.cnaf.infn.it/collector
+OTEL_SERVICE_NAME=s3webui
+OTEL_SERVICE_NAMESPACE=s3webui-dev.cloud.cnaf.infn.it  # CHANGE ME
+```
+
+and replace the `OTEL_SERVICE_NAMESPACE` variable with your endpoint (it is
+similar to `AUTH_URL` variable but without the protocol and port).
