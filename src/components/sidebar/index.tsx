@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import logo from "@/imgs/infn-cloud.png";
-import { Links } from "./nav-links";
 import LogoutButton from "./logout-button";
 import { Bars3Icon, UserIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { Button } from "@/components/buttons";
 import { Transition } from "@headlessui/react";
+import SidebarLink from "./sidebar-link";
 
 function UserView(props: Readonly<{ username?: string | null }>) {
   const { username } = props;
@@ -37,6 +37,7 @@ export function Sidebar(props: Readonly<SidebarProps>) {
   const { username, appVersion } = props;
   const [show, setShow] = useState(false);
   const toggle = () => setShow(!show);
+  const close = () => setShow(false);
 
   return (
     <>
@@ -69,7 +70,8 @@ export function Sidebar(props: Readonly<SidebarProps>) {
         data-closed={!show}
       >
         <nav className="p-4">
-          <Links />
+          <SidebarLink title="Browser" href="/browser" onClick={close} />
+          <SidebarLink title="Buckets" href="/buckets" onClick={close} />
         </nav>
         <div className="absolute inset-x-0 bottom-0">
           <div className="px-4">
