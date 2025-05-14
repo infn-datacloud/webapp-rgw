@@ -1,44 +1,9 @@
-import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
 import { Inspector, InspectorProps } from "@/components/inspector";
 import { dateToHuman, getHumanSize } from "@/commons/utils";
 import DeleteButton from "./delete-button";
 import DownloadButton from "./download-button";
-
-type DetailProps = {
-  title: string;
-  children?: React.ReactElement | string;
-};
-
-function Detail({ title, children }: DetailProps) {
-  return (
-    <div className="my-4">
-      <div className="text-md font-semibold">{title}</div>
-      <div className="break-all">{children}</div>
-    </div>
-  );
-}
-
-function ObjectDetail(object: _Object) {
-  const lastModified = object.LastModified
-    ? dateToHuman(object.LastModified)
-    : "N/A";
-
-  return (
-    <>
-      <div className="flex items-center">
-        <h3 className="text-lg font-semibold">Object Info</h3>
-        <div className="ml-4 w-5">
-          <InformationCircleIcon />
-        </div>
-      </div>
-      <Detail title={"Key"}>{object.Key ?? "N/A"}</Detail>
-      <Detail title={"ETag"}>{object.ETag}</Detail>
-      <Detail title={"Last Modified"}>{lastModified}</Detail>
-      <Detail title={"Size"}>{getHumanSize(object.Size ?? 0)}</Detail>
-    </>
-  );
-}
 
 interface BucketInspectorProps extends InspectorProps {
   bucket: string;
@@ -52,6 +17,7 @@ export function BucketInspector(props: BucketInspectorProps) {
   const keys = objects.map(o => o.Key!);
   let object: _Object;
   let title: string;
+
   if (prefixes.length === 0) {
     switch (objects.length) {
       case 0:
@@ -76,33 +42,48 @@ export function BucketInspector(props: BucketInspectorProps) {
     object = { Key: "N/A" };
     title = `Multiple values (${prefixes.length + objects.length})`;
   }
+  const lastModified = object.LastModified
+    ? dateToHuman(object.LastModified)
+    : "N/A";
 
   return (
     <Inspector isOpen={isOpen}>
-      <div className="flex flex-row-reverse p-4">
+      <div className="flex justify-between p-4">
+        <div className="text-lg font-semibold">{title}</div>
         <button onClick={onClose}>
           <div className="w-6 rounded-full bg-neutral-300 p-[3px] text-neutral-500 hover:bg-neutral-400">
             <XMarkIcon />
           </div>
         </button>
       </div>
-      <div className="flex flex-col divide-y px-4">
-        {/* Title */}
-        <section className="py-4">
-          <div className="text-lg font-semibold break-words">{title}</div>
+      <div className="flex flex-col divide-y divide-slate-400 px-4">
+        <section className="flex flex-col gap-2 py-8 text-sm">
+          <div className="flex flex-col break-all">
+            <span className="dark:text-secondary/60 text-xs font-light text-slate-500">
+              Etag
+            </span>
+            {object.ETag?.replaceAll('"', "")}
+          </div>
+          <div className="flex flex-col break-all">
+            <span className="dark:text-secondary/60 text-xs font-light text-slate-500">
+              Last Modified
+            </span>
+            {lastModified}
+          </div>
+          <div className="flex flex-col break-all">
+            <span className="dark:text-secondary/60 text-xs font-light text-slate-500">
+              Size
+            </span>
+            {object.Size ? getHumanSize(object.Size) : "N/A"}
+          </div>
         </section>
-        {/* Buttons */}
-        <section className="space-y-4 py-4">
+        <section className="space-y-2 py-8">
           <DownloadButton bucket={bucket} objectsToDownloads={keys} />
           <DeleteButton
             bucket={bucket}
             objectsToDelete={objects}
             foldersToDelete={prefixes}
           />
-          {/* Details */}
-        </section>
-        <section className="py-4 text-base">
-          <ObjectDetail {...object} />
         </section>
       </div>
       {props.children}
