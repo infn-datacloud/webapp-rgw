@@ -29,9 +29,7 @@ import {
   S3ClientConfig,
   VersioningConfiguration,
 } from "@aws-sdk/client-s3";
-import { FileObjectWithProgress } from "@/models/bucket";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
-import { Upload } from "@aws-sdk/lib-storage";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { dropDuplicates } from "@/commons/utils";
 
@@ -290,36 +288,7 @@ export class S3Service {
     return await this.client.send(cmd);
   }
 
-  async uploadObject(
-    bucket: string,
-    fileObject: FileObjectWithProgress,
-    onChange?: () => void,
-    onComplete?: () => void
-  ) {
-    const upload = new Upload({
-      client: this.client,
-      params: {
-        Bucket: bucket,
-        Key: fileObject.object.Key,
-        Body: fileObject.file,
-      },
-    });
-    upload.on("httpUploadProgress", progress => {
-      if (onChange) {
-        let { loaded, total } = progress;
-        loaded = loaded ?? 0;
-        total = total ?? 1;
-        fileObject.setProgress(loaded / total);
-        onChange();
-      }
-    });
-    upload.done().then(() => {
-      console.debug(`Object ${fileObject.object.Key} uploaded`);
-      if (onComplete) {
-        onComplete();
-      }
-    });
-  }
+
 
   deleteObjects(Bucket: string, objects: ObjectIdentifier[]) {
     const cmd = new DeleteObjectsCommand({
