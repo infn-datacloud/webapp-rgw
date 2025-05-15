@@ -33,6 +33,8 @@ import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { dropDuplicates } from "@/commons/utils";
 import { trace } from "@opentelemetry/api";
+import { FileObjectWithProgress } from "@/models/bucket";
+import { Upload } from "@aws-sdk/lib-storage";
 
 const tracer = trace.getTracer("s3webui");
 
@@ -339,5 +341,36 @@ export class S3Service {
       ResponseContentType: "application/octet-stream",
     });
     return await getSignedUrl(this.client, cmdGetObj, { expiresIn: 60 });
+  }
+
+  async uploadObject(
+    bucket: string,
+    fileObject: FileObjectWithProgress,
+    onChange?: () => void,
+    onComplete?: () => void
+  ) {
+    const upload = new Upload({
+      client: this.client,
+      params: {
+        Bucket: bucket,
+        Key: fileObject.object.Key,
+        Body: fileObject.file,
+      },
+    });
+    upload.on("httpUploadProgress", progress => {
+      if (onChange) {
+        let { loaded, total } = progress;
+        loaded = loaded ?? 0;
+        total = total ?? 1;
+        fileObject.setProgress(loaded / total);
+        onChange();
+      }
+    });
+    upload.done().then(() => {
+      console.debug(`Object ${fileObject.object.Key} uploaded`);
+      if (onComplete) {
+        onComplete();
+      }
+    });
   }
 }

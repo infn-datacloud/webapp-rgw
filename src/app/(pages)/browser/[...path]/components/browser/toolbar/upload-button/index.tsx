@@ -12,7 +12,6 @@ import { ProgressPopup } from "@/components/progress";
 import reducer, { defaultState } from "./reducer";
 import { useRouter } from "next/navigation";
 import { toaster } from "@/components/toaster";
-import { uploadObject } from "@/services/s3/browser";
 
 export default function UploadButton(
   props: Readonly<{
@@ -62,7 +61,7 @@ export default function UploadButton(
         state.progressStates.set(file.id, file);
         const onUpdate = () => handleUploadsUpdates(file);
         const onComplete = () => handleUploadComplete();
-        uploadObject(s3.client, bucket, file, onUpdate, onComplete);
+        s3.uploadObject(bucket, file, onUpdate, onComplete);
       });
 
       Promise.all(promises).then(() => {
