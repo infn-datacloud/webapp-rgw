@@ -2,15 +2,12 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import NextAuth, { CredentialsSignin } from "next-auth";
-import type { NextAuthConfig } from "next-auth";
-import type { DefaultJWT } from "next-auth/jwt";
 import type { Profile, User, Awaitable, TokenSet } from "@auth/core/types";
+import NextAuth, { type NextAuthConfig } from "next-auth";
+import type { DefaultJWT } from "next-auth/jwt";
 import type { OIDCConfig } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
-import { S3Service } from "./services/s3";
-import { s3ClientConfig } from "./services/s3/actions";
 import { decodeJwtPayload } from "./commons/utils";
 
 declare module "next-auth/jwt" {
@@ -31,10 +28,6 @@ declare module "@auth/core/types" {
     groups?: string[];
     error?: string;
   }
-}
-
-class AccessDenied extends CredentialsSignin {
-  code = "Invalid credentials";
 }
 
 const IamProvider: OIDCConfig<Profile> = {
@@ -76,18 +69,6 @@ const CredentialsProvider = Credentials({
       throw Error("Credentials not found");
     }
 
-    try {
-      const s3Config = await s3ClientConfig({ accessKeyId, secretAccessKey });
-      const s3 = new S3Service(s3Config);
-      await s3.fetchPrivateBuckets();
-    } catch (err) {
-      if (err instanceof Error && err.name === "AccessDenied") {
-        throw new AccessDenied();
-      }
-      console.error(err);
-      return null;
-    }
-
     const expires_in = process.env.S3_ROLE_DURATION_SECONDS
       ? parseInt(process.env.S3_ROLE_DURATION_SECONDS)
       : 600;
@@ -116,21 +97,23 @@ export const authConfig: NextAuthConfig = {
         const groups = decodeJwtPayload(access_token)["groups"] as
           | string[]
           | undefined;
-        token.credentials = await S3Service.loginWithSTS(access_token);
+        const response = await fetch(`${process.env.AUTH_URL}/login/sts`, {
+          body: JSON.stringify({ access_token }),
+          method: "POST",
+        });
+        token.credentials = await response.json();
         token.groups = groups;
       } else if (user.credentials) {
         token.credentials = user.credentials;
       }
       return token;
     },
-
     authorized({ auth }) {
       const expiration = new Date(auth?.credentials?.expiration ?? 0);
       const now = new Date();
       const sessionExpired = expiration < now;
       return !!auth && !sessionExpired;
     },
-
     async session({ session, token }) {
       const { credentials, groups } = token;
       session.credentials = credentials;
