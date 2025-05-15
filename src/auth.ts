@@ -97,12 +97,16 @@ export const authConfig: NextAuthConfig = {
         const groups = decodeJwtPayload(access_token)["groups"] as
           | string[]
           | undefined;
-        const response = await fetch(`${process.env.AUTH_URL}/login/sts`, {
-          body: JSON.stringify({ access_token }),
-          method: "POST",
-        });
-        token.credentials = await response.json();
-        token.groups = groups;
+        try {
+          const response = await fetch(`${process.env.AUTH_URL}/login/sts`, {
+            body: JSON.stringify({ access_token }),
+            method: "POST",
+          });
+          token.credentials = await response.json();
+          token.groups = groups;
+        } catch (err) {
+          console.error("Cannot perform STS AssumeRoleWithWebIdentity:", err);
+        }
       } else if (user.credentials) {
         token.credentials = user.credentials;
       }
