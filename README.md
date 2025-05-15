@@ -24,7 +24,7 @@ register a new client and configure it as described in the following sections.
 ### Redirect URIs
 
 In the client main page, add all needed redirect uris, in the form of
-`<WEBAPP_URL>/auth/callback/indigo-iam`
+`<WEBAPP_URL>/api/auth/callback/indigo-iam`
 (without the trailing `/`), where `<WEBAPP_URL>` is the hostname of the machine
 hosting the application.
 
@@ -32,14 +32,13 @@ It is possible to configure more than one redirect URI.
 
 For development:
 ```shell
-http://localhost:8080/auth/callback/indigo-iam  # and/or
-http://localhost:8080/auth/callback/indigo-iam
+http://localhost:300/api/auth/callback/indigo-iam
 ```
 
 For a production deployment, the redirect uri will be, for example:
 
 ```shell
-https://s3webui.cloud.infn.it/auth/callback/indigo-iam
+https://s3webui.cloud.infn.it/api/auth/callback/indigo-iam
 ```
 
 ### Scopes
