@@ -126,13 +126,14 @@ docker run \
 ## Telemetry
 
 The application supports Opentelemetry instrumentation and INFN-CNAF Otello
-service. To enable telemetry, add to your `.env` file the following variables
+service. Telemetry is enabled by default and sends traces to
+https://otello.cloud.cnaf.infn.it/collector/v1/traces.
+
+It is possible to change the OTLP collector endpoint setting the
+`OTEL_EXPORTER_OTLP_ENDPOINT` variable.
+
+To disable telemetry export the following environment variable
 
 ```
-OTEL_EXPORTER_OTLP_ENDPOINT=https://otello.cloud.cnaf.infn.it/collector
-OTEL_SERVICE_NAME=s3webui
-OTEL_SERVICE_NAMESPACE=s3webui-dev.cloud.cnaf.infn.it  # CHANGE ME
+OTEL_DISABLE_TELEMETRY=1
 ```
-
-and replace the `OTEL_SERVICE_NAMESPACE` variable with your endpoint (it is
-similar to `AUTH_URL` variable but without the protocol and port).
