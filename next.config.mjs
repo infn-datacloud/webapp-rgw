@@ -13,13 +13,10 @@ const nextConfig = {
   serverRuntimeConfig: {
     appVersion: process.env.npm_package_version || "",
   },
-  experimental: {
-    instrumentationHook: true,
-    serverComponentsExternalPackages: [
-      "@opentelemetry/auto-instrumentations-node",
-      "@opentelemetry/sdk-node",
-    ],
-  },
+  serverExternalPackages: [
+    "@opentelemetry/auto-instrumentations-node",
+    "@opentelemetry/sdk-node",
+  ],
 };
 
 export default nextConfig;
