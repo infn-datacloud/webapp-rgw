@@ -56,6 +56,8 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
   const { bucket, filepath, prefix, listObjectOutput, showFullKeys } = props;
   const { Contents, CommonPrefixes, NextContinuationToken } = listObjectOutput;
 
+  const [showInspector, setShowInspector] = useState(false);
+
   const [foldersStates, setFolderStates] = useState(
     initFolderStates(CommonPrefixes)
   );
@@ -63,19 +65,31 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     initObjectStates(Contents)
   );
 
+  const openInspector = () => setShowInspector(true);
+  const closeInspector = async () => setShowInspector(false);
+
   const handleSelectFolder = (folderState: FolderState, value: boolean) => {
+    if (!showInspector) {
+      openInspector();
+    }
     foldersStates[folderState.index].checked = value;
     setFolderStates([...foldersStates]);
   };
 
   const handleSelectObject = (objectState: ObjectsState, value: boolean) => {
+    if (!showInspector) {
+      openInspector();
+    }
     objectsStates[objectState.index].checked = value;
     setObjectsStates([...objectsStates]);
   };
 
-  const deselectAll = () => {
-    setFolderStates(initFolderStates(listObjectOutput.CommonPrefixes));
-    setObjectsStates(initObjectStates(listObjectOutput.Contents));
+  const deselectAll = async () => {
+    closeInspector();
+    setTimeout(() => {
+      setFolderStates(initFolderStates(listObjectOutput.CommonPrefixes));
+      setObjectsStates(initObjectStates(listObjectOutput.Contents));
+    }, 300);
   };
 
   const selectedObjects = objectsStates
@@ -90,7 +104,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     <div className="space-y-2">
       <Toolbar bucket={bucket} currentPath={filepath} prefix={prefix} />
       <BucketInspector
-        isOpen={selectedObjects.length + selectedPrefixes.length > 0}
+        isOpen={showInspector}
         bucket={bucket}
         objects={selectedObjects}
         prefixes={selectedPrefixes}
