@@ -52,30 +52,30 @@ export function BucketInspector(props: BucketInspectorProps) {
 
   return (
     <Inspector isOpen={isOpen}>
-      <div className="flex justify-between p-4">
+      <div className="flex justify-between border-b border-gray-300 bg-gray-100 p-4 dark:border-white/30 dark:bg-slate-600">
         <div className="text-lg font-semibold">{title}</div>
-        <button onClick={onClose}>
+        <button onClick={onClose} className="mr-0">
           <div className="w-6 rounded-full bg-neutral-300 p-[3px] text-neutral-500 hover:bg-neutral-400">
             <XMarkIcon />
           </div>
         </button>
       </div>
       <div className="flex flex-col divide-y divide-slate-400 px-4">
-        <section className="flex flex-col gap-2 py-8 text-sm">
+        <section className="flex flex-col gap-4 py-8 text-base">
           <div className="flex flex-col break-all">
-            <span className="dark:text-secondary/60 text-xs font-light text-slate-500">
+            <span className="dark:text-secondary/60 text-sm font-light text-slate-500">
               Etag
             </span>
             {object.ETag?.replaceAll('"', "")}
           </div>
           <div className="flex flex-col break-all">
-            <span className="dark:text-secondary/60 text-xs font-light text-slate-500">
+            <span className="dark:text-secondary/60 text-sm font-light text-slate-500">
               Last Modified
             </span>
             {lastModified}
           </div>
           <div className="flex flex-col break-all">
-            <span className="dark:text-secondary/60 text-xs font-light text-slate-500">
+            <span className="dark:text-secondary/60 text-sm font-light text-slate-500">
               Size
             </span>
             {object.Size ? getHumanSize(object.Size) : "N/A"}
