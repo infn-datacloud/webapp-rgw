@@ -12,7 +12,7 @@ const otelServiceNamespace = new URL(process.env.AUTH_URL).hostname;
 
 const otelExportOtlpEndpoint =
   process.env.OTEL_EXPORTER_OTLP_ENDPOINT ??
-  "https://otello.cloud.cnaf.infn.it/collector/v1/traces";
+  "https://otello.cloud.cnaf.infn.it:8443/collector/v1/traces";
 
 export const settings = {
   otelServiceName,
