@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ */
+
 @import "tailwindcss";
 
 @theme {
@@ -34,7 +40,7 @@
 }
 
 @utility btn-secondary {
-  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary hover:text-secondary dark:text-secondary border bg-white dark:bg-transparent;
+  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary hover:text-secondary dark:text-secondary border bg-white dark:bg-transparent dark:hover:bg-slate-600;
 }
 
 @utility btn-tertiary {
@@ -51,6 +57,10 @@
 
 @utility btn-danger-tertiary {
   @apply btn hover:text-danger hover:underline;
+}
+
+@utility btn-option {
+  @apply w-full px-4 py-2 text-left;
 }
 
 @layer base {

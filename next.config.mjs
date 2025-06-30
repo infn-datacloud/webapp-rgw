@@ -13,9 +13,10 @@ const nextConfig = {
   serverRuntimeConfig: {
     appVersion: process.env.npm_package_version || "",
   },
-  compiler: {
-    removeConsole: { exclude: ["error"] },
-  },
+  serverExternalPackages: [
+    "@opentelemetry/auto-instrumentations-node",
+    "@opentelemetry/sdk-node",
+  ],
 };
 
 export default nextConfig;

@@ -1,40 +1,13 @@
 stages:
-  - prerelease
   - build
-  - docker
   - release
 
-next-version:
-  stage: prerelease
-  image: node:22
-  script:
-    - npm install @semantic-release/exec @semantic-release/gitlab
-    - npx semantic-release --generate-notes false --dry-run
-  artifacts:
-    paths:
-      - version.txt
-  rules:
-    - changes:
-        - src/**/*
-        - public/**/*
-        - tests/**/*
-        - Dockerfile
-        - next.config.mjs
-        - package.json
-        - package-lock.json
-        - postcss.config.js
-        - jest.config.ts
-        - gitlab-ci.yaml
-
 build:
-  stage: docker
+  stage: build
   image: docker:latest
   services:
     - docker:dind
   before_script:
-    - apk add npm
-    - if [ ! -f version.txt ]; then echo $(git describe --dirty --tags) > version.txt; fi
-    - npm version --git-tag-version false $(cat version.txt)
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
     - docker build . --pull -t "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}"
@@ -52,70 +25,24 @@ build:
         - jest.config.ts
         - gitlab-ci.yaml
 
-release:
-  stage: release
-  image: node:22
-  script:
-    - npm install @semantic-release/exec @semantic-release/gitlab
-    - npx semantic-release
-  artifacts:
-    paths:
-      - version.txt
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "main"
-    - if: $CI_COMMIT_REF_NAME == "dev"
-    - if: $CI_COMMIT_REF_NAME =~ /^(([0-9]+)\.)?([0-9]+)\.x/ # Maintenance branches
-
 tag-version:
   stage: release
   image: docker:latest
   services:
     - docker:dind
   before_script:
-    - if [ ! -f version.txt ]; then echo "Artifact not found. Skipping job."; exit 0; fi
-    - version=$(cat version.txt)
+    - version=$(awk -F'"' '/"version"/ { print $4 }' package.json)
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script: |
     docker pull "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
     docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:${version}"
     docker push "${CI_REGISTRY_IMAGE}:${version}"
-  needs:
-    - release
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "main"
-    - if: $CI_COMMIT_REF_NAME == "dev"
-
-tag-latest:
-  stage: release
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-  script: |
-    docker pull "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
     docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:latest"
     docker push "${CI_REGISTRY_IMAGE}:latest"
   needs:
     - build
   rules:
-    - if: $CI_COMMIT_REF_NAME == "main"
-
-tag-latest-dev:
-  stage: release
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-  script: |
-    docker pull "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}"
-    docker tag "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}" "${CI_REGISTRY_IMAGE}:latest-dev"
-    docker push "${CI_REGISTRY_IMAGE}:latest-dev"
-  needs:
-    - build
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "dev"
+    - if: $CI_COMMIT_REF_NAME =~ /^\d+.\d+.\d+$/
 
 workflow:
   rules:

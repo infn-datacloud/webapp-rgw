@@ -1,0 +1,86 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
+import { Layout } from "@/app/components/layout";
+import { LoadingBar } from "@/components/loading";
+import { makeS3Client } from "@/services/s3/actions";
+import { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
+import { Suspense } from "react";
+import { Browser } from "./components";
+
+type AsyncBrowserProps = {
+  params: Promise<{ path: [string] }>;
+  searchParams?: Promise<{
+    current?: string;
+    next?: string;
+    count?: string;
+    q?: string;
+  }>;
+};
+
+async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
+  const { path } = await props.params;
+  const searchParams = await props.searchParams;
+  const nextContinuationToken = searchParams?.next;
+  const count = searchParams?.count ? parseInt(searchParams?.count) : undefined;
+
+  const folder = path.splice(1).join("/");
+  const bucket = path[0];
+  let prefix = folder ? `${folder}/` : undefined;
+  const filepath = `${bucket}/${folder}`;
+  const delimiter = "/";
+
+  if (!bucket) {
+    return <p>Bucket not found</p>;
+  }
+
+  const s3 = await makeS3Client();
+
+  let response: ListObjectsV2CommandOutput | undefined = undefined;
+  if (searchParams?.q) {
+    response = await s3.searchObjects(bucket, prefix, searchParams.q);
+  } else {
+    response = await s3.listObjects(
+      bucket,
+      count,
+      prefix,
+      delimiter,
+      nextContinuationToken
+    );
+  }
+
+  if (!response) {
+    return <div>Error</div>;
+  }
+
+  // this is a trick to force a remount of the Browser component for each
+  // request, thus invalidating its internal states and re-render it with the
+  // changed data
+  const key = response.$metadata.requestId;
+
+  return (
+    <Browser
+      key={key}
+      bucket={bucket}
+      filepath={filepath}
+      prefix={prefix}
+      showFullKeys={searchParams?.q !== undefined}
+      listObjectOutput={response}
+    />
+  );
+}
+
+type BrowserProps = AsyncBrowserProps;
+
+export default async function BrowserPage(props: BrowserProps) {
+  const { path } = await props.params;
+  const bucket = path[0];
+  return (
+    <Layout title={bucket}>
+      <Suspense fallback={<LoadingBar show={true} />}>
+        <AsyncBrowser {...props} />
+      </Suspense>
+    </Layout>
+  );
+}

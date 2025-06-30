@@ -1,15 +1,19 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Input from "../inputs/input";
 import { useRef, useState } from "react";
 
 interface SearchFieldProps {
-  className?: string;
+  defaultValue?: string;
   onChange?: (query: string) => void;
 }
 
-export const SearchFiled = (props: SearchFieldProps) => {
-  const { className, onChange } = props;
-  const [searchQuery, setSearchQuery] = useState<string>("");
+export const SearchField = (props: SearchFieldProps) => {
+  const { defaultValue, onChange } = props;
+  const [searchQuery, setSearchQuery] = useState<string>(defaultValue ?? "");
   const typingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleUserStopTyping = (value: string) => {
@@ -24,20 +28,19 @@ export const SearchFiled = (props: SearchFieldProps) => {
     typingTimer.current = setTimeout(() => {
       handleUserStopTyping(value);
       clearInterval(this);
-    }, 500);
+    }, 250);
   };
 
   return (
-    <div className={className}>
-      <div className="flex space-x-4">
-        <MagnifyingGlassIcon className="w-5 text-primary" />
-        <Input
-          value={searchQuery}
-          type="search"
-          onChange={el => handleQueryChanged(el.currentTarget.value)}
-          placeholder="Type to search"
-        />
-      </div>
+    <div className="flex items-center gap-2">
+      <MagnifyingGlassIcon className="text-primary size-6" />
+      <Input
+        id="search-field"
+        value={searchQuery}
+        type="search"
+        onChange={el => handleQueryChanged(el.currentTarget.value)}
+        placeholder="Type to search"
+      />
     </div>
   );
 };

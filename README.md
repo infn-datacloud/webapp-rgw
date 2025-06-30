@@ -24,7 +24,7 @@ register a new client and configure it as described in the following sections.
 ### Redirect URIs
 
 In the client main page, add all needed redirect uris, in the form of
-`<WEBAPP_URL>/auth/callback/indigo-iam`
+`<WEBAPP_URL>/api/auth/callback/indigo-iam`
 (without the trailing `/`), where `<WEBAPP_URL>` is the hostname of the machine
 hosting the application.
 
@@ -32,14 +32,13 @@ It is possible to configure more than one redirect URI.
 
 For development:
 ```shell
-http://localhost:8080/auth/callback/indigo-iam  # and/or
-http://localhost:8080/auth/callback/indigo-iam
+http://localhost:300/api/auth/callback/indigo-iam
 ```
 
 For a production deployment, the redirect uri will be, for example:
 
 ```shell
-https://s3webui.cloud.infn.it/auth/callback/indigo-iam
+https://s3webui.cloud.infn.it/api/auth/callback/indigo-iam
 ```
 
 ### Scopes
@@ -63,7 +62,7 @@ found at [envs/example.env](envs/example.env).
 
 
 - `AUTH_URL`: hostname of your deployment, for example `htts://s3webui.cloud.infn.it`
-  or `http://localhost:8080` (only required with the built container)
+  or `http://localhost:8080`
 - `AUTH_SECRET`: secret to encrypt session cookies (see below)
 - `IAM_AUTHORITY_URL`: INDIGO IAM endpoint
 - `IAM_CLIENT_ID`: INDIGO IAM client ID
@@ -122,4 +121,18 @@ docker run \
   -p 127.0.0.1:8080:80 \
   --env-file .env \
   baltig.infn.it:4567/infn-cloud/webapp-rgw
+```
+## Telemetry
+
+The application supports Opentelemetry instrumentation and INFN-CNAF Otello
+service. Telemetry is enabled by default and sends traces to
+https://otello.cloud.cnaf.infn.it/collector/v1/traces.
+
+It is possible to change the OTLP collector endpoint setting the
+`OTEL_EXPORTER_OTLP_ENDPOINT` variable.
+
+To disable telemetry export the following environment variable
+
+```
+OTEL_DISABLE_TELEMETRY=1
 ```

@@ -35,7 +35,8 @@ ENV NODE_ENV=production
 COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
-RUN addgroup --system --gid 1001 nodejs && \
+RUN apk add curl openssl && \
+  addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 nextjs && \
   mkdir .next && \
   chown nextjs:nodejs .next

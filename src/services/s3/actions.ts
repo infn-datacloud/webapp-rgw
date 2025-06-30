@@ -1,4 +1,9 @@
+// SPDX-FileCopyrightText: 2025 Istituto Nazionale di Fisica Nucleare
+//
+// SPDX-License-Identifier: EUPL-1.2
+
 "use server";
+
 import { auth } from "@/auth";
 import { S3ClientConfig } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
@@ -11,7 +16,7 @@ export async function s3ClientConfig(
   if (expiration && !(expiration instanceof Date)) {
     expiration = new Date(expiration);
   }
-  
+
   const creds = { ...credentials, expiration };
 
   return {
