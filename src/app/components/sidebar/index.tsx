@@ -6,7 +6,7 @@
 
 import Image from "next/image";
 import logo from "@/imgs/infn-cloud.png";
-import LogoutButton from "./logout-button";
+import { LogoutButton } from "./logout-button";
 import { Bars3Icon, UserIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { Button } from "@/components/buttons";

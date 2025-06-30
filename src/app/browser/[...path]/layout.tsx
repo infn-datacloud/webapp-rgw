@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 "use client";
+
 import { SessionProvider } from "next-auth/react";
 
 export default function SessionLayout(

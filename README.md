@@ -62,7 +62,7 @@ found at [envs/example.env](envs/example.env).
 
 
 - `AUTH_URL`: hostname of your deployment, for example `htts://s3webui.cloud.infn.it`
-  or `http://localhost:8080` (only required with the built container)
+  or `http://localhost:8080`
 - `AUTH_SECRET`: secret to encrypt session cookies (see below)
 - `IAM_AUTHORITY_URL`: INDIGO IAM endpoint
 - `IAM_CLIENT_ID`: INDIGO IAM client ID

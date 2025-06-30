@@ -98,7 +98,7 @@ export const authConfig: NextAuthConfig = {
           | string[]
           | undefined;
         try {
-          const response = await fetch(`${process.env.AUTH_URL}/login/sts`, {
+          const response = await fetch(`${process.env.AUTH_URL}/api/auth/sts`, {
             body: JSON.stringify({ access_token }),
             method: "POST",
           });

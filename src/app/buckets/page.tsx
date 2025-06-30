@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import { Page } from "@/components/page";
 import { makeS3Client } from "@/services/s3/actions";
 import { Bucket } from "@aws-sdk/client-s3";
+import { Layout } from "@/app/components/layout";
 import { BucketInfo, Toolbar } from "./components";
 
 function BucketsInfos(props: { buckets: Bucket[]; isPublic: boolean }) {
@@ -23,12 +23,12 @@ export default async function Buckets() {
   const buckets = await s3.fetchBucketList();
 
   return (
-    <Page title="Buckets">
+    <Layout title="Buckets">
       <Toolbar />
       <ul className="flex flex-col gap-4 pt-4">
         <BucketsInfos buckets={buckets.privates} isPublic={false} />
         <BucketsInfos buckets={buckets.publics} isPublic={true} />
       </ul>
-    </Page>
+    </Layout>
   );
 }

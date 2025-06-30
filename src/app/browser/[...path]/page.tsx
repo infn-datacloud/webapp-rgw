@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import { Page } from "@/components/page";
-import { Browser } from "./components";
+import { Layout } from "@/app/components/layout";
+import { LoadingBar } from "@/components/loading";
 import { makeS3Client } from "@/services/s3/actions";
 import { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
-import { LoadingBar } from "@/components/loading";
 import { Suspense } from "react";
+import { Browser } from "./components";
 
 type AsyncBrowserProps = {
   params: Promise<{ path: [string] }>;
@@ -76,12 +76,11 @@ type BrowserProps = AsyncBrowserProps;
 export default async function BrowserPage(props: BrowserProps) {
   const { path } = await props.params;
   const bucket = path[0];
-
   return (
-    <Page title={bucket}>
+    <Layout title={bucket}>
       <Suspense fallback={<LoadingBar show={true} />}>
         <AsyncBrowser {...props} />
       </Suspense>
-    </Page>
+    </Layout>
   );
 }
