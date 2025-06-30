@@ -42,7 +42,7 @@ tag-version:
   needs:
     - build
   rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^\d+.\d+.\d+$/
+    - if: $CI_COMMIT_REF_NAME =~ /^v\d+.\d+.\d+$/
 
 workflow:
   rules:
