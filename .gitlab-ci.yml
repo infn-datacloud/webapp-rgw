@@ -14,16 +14,16 @@ build:
     - docker push "${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}"
   rules:
     - changes:
-        - src/**/*
-        - public/**/*
-        - tests/**/*
-        - Dockerfile
-        - next.config.mjs
-        - package.json
-        - package-lock.json
-        - postcss.config.js
-        - jest.config.ts
-        - gitlab-ci.yaml
+      - src/**/*
+      - public/**/*
+      - tests/**/*
+      - Dockerfile
+      - next.config.mjs
+      - package.json
+      - package-lock.json
+      - postcss.config.js
+      - jest.config.ts
+      - gitlab-ci.yaml
 
 tag-version:
   stage: release
