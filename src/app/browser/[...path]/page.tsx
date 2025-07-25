@@ -5,7 +5,7 @@
 import { Layout } from "@/app/components/layout";
 import { LoadingBar } from "@/components/loading";
 import { makeS3Client } from "@/services/s3/actions";
-import { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
+import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Suspense } from "react";
 import { Browser } from "./components";
 
@@ -35,40 +35,61 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
     return <p>Bucket not found</p>;
   }
 
-  const s3 = await makeS3Client();
+  try {
+    const s3 = await makeS3Client();
+    const response = searchParams?.q
+      ? await s3.searchObjects(bucket, prefix, searchParams.q)
+      : await s3.listObjects(
+          bucket,
+          count,
+          prefix,
+          delimiter,
+          nextContinuationToken
+        );
 
-  let response: ListObjectsV2CommandOutput | undefined = undefined;
-  if (searchParams?.q) {
-    response = await s3.searchObjects(bucket, prefix, searchParams.q);
-  } else {
-    response = await s3.listObjects(
-      bucket,
-      count,
-      prefix,
-      delimiter,
-      nextContinuationToken
+    // this is a trick to force a remount of the Browser component for each
+    // request, thus invalidating its internal states and re-render it with the
+    // changed data
+    const key = response.$metadata.requestId;
+
+    return (
+      <Browser
+        key={key}
+        bucket={bucket}
+        filepath={filepath}
+        prefix={prefix}
+        showFullKeys={searchParams?.q !== undefined}
+        listObjectOutput={response}
+      />
+    );
+  } catch (e) {
+    if (e instanceof S3ServiceException) {
+      if (e.name === "NoSuchBucket") {
+        return (
+          <div className="flex flex-col justify-center p-16 text-center">
+            <h2 className="text-5xl font-medium">No such bucket :&#40;</h2>
+            <p className="p-2">
+              The bucket your are looking does not exists.
+            </p>
+          </div>
+        );
+      }
+      if (e.name === "AccessDenied") {
+        return (
+          <div className="flex flex-col justify-center p-16 text-center">
+            <h2 className="text-5xl font-medium">Access Denied</h2>
+            <p className="p-2">You don't have access to view this resource.</p>
+          </div>
+        );
+      }
+    }
+    return (
+      <div className="flex flex-col justify-center p-16 text-center">
+        <h2 className="text-5xl font-medium">Oops! :&#40;</h2>
+        <p className="p-2">Something went wrong...</p>
+      </div>
     );
   }
-
-  if (!response) {
-    return <div>Error</div>;
-  }
-
-  // this is a trick to force a remount of the Browser component for each
-  // request, thus invalidating its internal states and re-render it with the
-  // changed data
-  const key = response.$metadata.requestId;
-
-  return (
-    <Browser
-      key={key}
-      bucket={bucket}
-      filepath={filepath}
-      prefix={prefix}
-      showFullKeys={searchParams?.q !== undefined}
-      listObjectOutput={response}
-    />
-  );
 }
 
 type BrowserProps = AsyncBrowserProps;

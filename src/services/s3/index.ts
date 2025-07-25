@@ -194,20 +194,14 @@ export class S3Service {
     delimiter?: string,
     continuationToken?: string
   ) {
-    try {
-      const cmd = new ListObjectsV2Command({
-        Bucket: bucket,
-        ContinuationToken: continuationToken,
-        Delimiter: delimiter,
-        Prefix: prefix,
-        MaxKeys: maxKeys,
-      });
-      return await this.client.send(cmd);
-    } catch (err) {
-      console.error(
-        `cannot list object for bucket '${bucket}': '${err instanceof Error ? err.name : "unknown error"}'`
-      );
-    }
+    const cmd = new ListObjectsV2Command({
+      Bucket: bucket,
+      ContinuationToken: continuationToken,
+      Delimiter: delimiter,
+      Prefix: prefix,
+      MaxKeys: maxKeys,
+    });
+    return await this.client.send(cmd);
   }
 
   async searchObjects(
@@ -219,16 +213,11 @@ export class S3Service {
     return await tracer.startActiveSpan("searchObjects", async span => {
       try {
         const response = await this.listObjects(bucket, 1000, prefix, "/");
-
-        if (!response) {
-          return;
-        }
-
-        let objects: _Object[] = response?.Contents ?? [];
-        let prefixes: CommonPrefix[] = response?.CommonPrefixes ?? [];
+        let objects: _Object[] = response.Contents ?? [];
+        let prefixes: CommonPrefix[] = response.CommonPrefixes ?? [];
 
         const listsPromises =
-          response?.CommonPrefixes?.map(folder => {
+          response.CommonPrefixes?.map(folder => {
             return this.listObjects(
               bucket,
               count,
