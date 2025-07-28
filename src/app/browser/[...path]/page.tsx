@@ -78,7 +78,7 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
         return (
           <div className="flex flex-col justify-center p-16 text-center">
             <h2 className="text-5xl font-medium">Access Denied</h2>
-            <p className="p-2">You don't have access to view this resource.</p>
+            <p className="p-2">You don&apos;t have access to view this resource.</p>
           </div>
         );
       }
