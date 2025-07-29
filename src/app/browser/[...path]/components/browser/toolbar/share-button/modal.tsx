@@ -57,7 +57,7 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
             authentication.
           </p>
           <p>
-            It will automatically expires after your configured time (max 24
+            It will automatically expires after your configured time (max 12
             hours).
           </p>
           <p>
@@ -67,7 +67,7 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
             <span>Expires in (hours):</span>
             <NumberPicker
               min={1}
-              max={24}
+              max={12}
               defaultValue={1}
               onChange={handleHoursChange}
             />
