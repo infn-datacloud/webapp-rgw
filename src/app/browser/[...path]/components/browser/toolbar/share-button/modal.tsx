@@ -61,7 +61,7 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
             hours).
           </p>
           <p>
-            URL will expired at <b>{expiration.toUTCString()}</b>
+            URL will expire at <b>{expiration.toUTCString()}</b>
           </p>
           <div className="flex items-center justify-center gap-2">
             <span>Expires in (hours):</span>
