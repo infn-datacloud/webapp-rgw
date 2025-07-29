@@ -36,7 +36,7 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
       setPresignedUrl(url);
     };
     f();
-  }, [expiresInHours]);
+  }, [expiresInHours, bucket, object_key]);
 
   function copyToClipboard() {
     const type = "text/plain";
