@@ -40,7 +40,7 @@
 }
 
 @utility btn-secondary {
-  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary hover:text-secondary dark:text-secondary border bg-white dark:bg-transparent dark:hover:bg-slate-600;
+  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary/60 hover:text-secondary dark:text-secondary border bg-transparent dark:hover:bg-slate-600;
 }
 
 @utility btn-tertiary {

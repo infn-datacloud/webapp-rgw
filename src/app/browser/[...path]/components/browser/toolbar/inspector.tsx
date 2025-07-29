@@ -8,6 +8,7 @@ import { Inspector, InspectorProps } from "@/components/inspector";
 import { dateToHuman, getHumanSize } from "@/commons/utils";
 import DeleteButton from "./delete-button";
 import DownloadButton from "./download-button";
+import { ShareButton } from "./share-button";
 
 interface BucketInspectorProps extends InspectorProps {
   bucket: string;
@@ -83,6 +84,7 @@ export function BucketInspector(props: BucketInspectorProps) {
         </section>
         <section className="space-y-2 py-8">
           <DownloadButton bucket={bucket} objectsToDownloads={keys} />
+          <ShareButton bucket={bucket} objectsToDownloads={keys} />
           <DeleteButton
             bucket={bucket}
             objectsToDelete={objects}

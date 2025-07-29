@@ -322,14 +322,18 @@ export class S3Service {
     return this.client.send(cmd);
   }
 
-  async getPresignedUrl(bucket: string, key: string): Promise<string> {
+  async getPresignedUrl(
+    bucket: string,
+    key: string,
+    expiresIn: number = 60
+  ): Promise<string> {
     const cmdGetObj = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
       ResponseContentDisposition: `attachment; filename="${key}"`,
       ResponseContentType: "application/octet-stream",
     });
-    return await getSignedUrl(this.client, cmdGetObj, { expiresIn: 60 });
+    return await getSignedUrl(this.client, cmdGetObj, { expiresIn });
   }
 
   async uploadObject(

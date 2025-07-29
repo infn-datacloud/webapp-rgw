@@ -33,7 +33,7 @@ export function dateToHuman(date: Date): string {
   const now = Date.now();
   const delta = now - date.getTime();
   const sign = delta >= 0 ? -1 : 1;
-  
+
   if (delta >= 0 && delta < 86400000) {
     return "today";
   }
@@ -54,6 +54,9 @@ export function dateToHuman(date: Date): string {
   return formatter.format(sign * years, "year");
 }
 
+export function addHours(date: Date, hours: number) {
+  return new Date(date.getTime() + hours * 3600000);
+}
 
 export function dropDuplicates<T>(arr: T[]): T[] {
   return [...new Set(arr)];
