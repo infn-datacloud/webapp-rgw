@@ -52,6 +52,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV APP_ENV=${NODE_ENV}
 ENV PORT=80
+ENV HOSTNAME=0.0.0.0
 EXPOSE ${PORT}
 
 # server.js is created by next build from the standalone output
