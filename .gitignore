@@ -2,7 +2,7 @@
 venv/
 .DS_Store
 nginx/cert/
-*.env
+*.env*
 !example.env
 node_modules/
 app/node_modules/

@@ -7,7 +7,6 @@
 import { Button } from "@/components/buttons";
 import Form from "@/components/form";
 import Input from "@/components/inputs/input";
-import { toaster } from "@/components/toaster";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -31,11 +30,7 @@ export default function LoginForm() {
   const router = useRouter();
 
   useEffect(() => {
-    const error = searchParams.get("error");
     setLoading(false);
-    if (error) {
-      toaster.danger(error ?? "Unknown Error", "");
-    }
   }, [router, searchParams, setLoading]);
 
   useEffect(() => {

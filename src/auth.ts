@@ -9,6 +9,7 @@ import type { OIDCConfig } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { decodeJwtPayload } from "./commons/utils";
+import { S3Service } from "./services/s3";
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
@@ -85,7 +86,7 @@ export const authConfig: NextAuthConfig = {
   providers: [IamProvider, CredentialsProvider],
   pages: {
     signIn: "/login",
-    error: "/login",
+    error: "/error",
   },
   callbacks: {
     async jwt({ token, account, user }) {
@@ -98,14 +99,12 @@ export const authConfig: NextAuthConfig = {
           | string[]
           | undefined;
         try {
-          const response = await fetch(`${process.env.AUTH_URL}/api/auth/sts`, {
-            body: JSON.stringify({ access_token }),
-            method: "POST",
-          });
-          token.credentials = await response.json();
+          const credentials = await S3Service.loginWithSTS(access_token);
+          token.credentials = credentials
           token.groups = groups;
         } catch (err) {
           console.error("Cannot perform STS AssumeRoleWithWebIdentity:", err);
+          throw err;
         }
       } else if (user.credentials) {
         token.credentials = user.credentials;
