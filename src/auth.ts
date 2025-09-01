@@ -10,8 +10,6 @@ import Credentials from "next-auth/providers/credentials";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { decodeJwtPayload } from "./commons/utils";
 
-const BASE_URL = `127.0.0.1:${process.env.PORT}`;
-
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     credentials?: AwsCredentialIdentity;
@@ -100,7 +98,7 @@ export const authConfig: NextAuthConfig = {
           | string[]
           | undefined;
         try {
-          const response = await fetch(`${BASE_URL}/api/auth/sts`, {
+          const response = await fetch(`${process.env.AUTH_URL}/api/auth/sts`, {
             body: JSON.stringify({ access_token }),
             method: "POST",
           });
