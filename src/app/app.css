@@ -8,7 +8,6 @@
 
 @theme {
   --color-primary: #002a44;
-  /* --color-primary: var(--color-slate-700); */
   --color-light: var(--color-slate-600);
   --color-extralight: var(--color-slate-400);
   --color-secondary: #fefefe;
@@ -40,7 +39,7 @@
 }
 
 @utility btn-secondary {
-  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary/60 hover:text-secondary dark:text-secondary border bg-transparent dark:hover:bg-slate-600;
+  @apply btn dark:border-secondary text-primary border-primary hover:bg-primary hover:text-secondary dark:text-secondary border bg-transparent dark:hover:bg-slate-600;
 }
 
 @utility btn-tertiary {
