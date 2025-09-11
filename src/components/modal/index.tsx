@@ -35,7 +35,7 @@ export const ModalFooter = (props: { children?: ReactNode }) => {
   );
 };
 
-export default function Modal(props: ModalProps) {
+export default function Modal(props: Readonly<ModalProps>) {
   const { title, children, show, onClose } = props;
 
   return (
@@ -70,7 +70,7 @@ export default function Modal(props: ModalProps) {
               leaveFrom="opacity-100 transform-[scale(100%)]"
               leaveTo="opacity-0 transform-[scale(95%)]"
             >
-              <DialogPanel className="bg-secondary text-primary dark:text-secondary z-50 w-full max-w-lg divide-y rounded-lg p-4 dark:bg-slate-800">
+              <DialogPanel className="bg-secondary text-primary dark:text-secondary z-50 w-full max-w-xl divide-y rounded-lg p-4 dark:bg-slate-800">
                 <DialogTitle className="border-gray-200 pb-2 text-xl font-bold">
                   <div className="flex justify-between">
                     {title}

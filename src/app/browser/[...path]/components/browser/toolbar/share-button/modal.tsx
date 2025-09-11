@@ -54,14 +54,8 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
         <div className="space-y-4">
           <p>
             The following URL lets you to share this object without requiring
-            authentication.
-          </p>
-          <p>
-            It will automatically expires after your configured time (max 12
-            hours).
-          </p>
-          <p>
-            URL will expire at <b>{expiration.toUTCString()}</b>
+            authentication. It will automatically expires after your configured
+            time (max 12 hours).
           </p>
           <div className="flex items-center justify-center gap-2">
             <span>Expires in (hours):</span>
@@ -72,6 +66,9 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
               onChange={handleHoursChange}
             />
           </div>
+          <p className="text-center">
+            URL will expire at <b>{expiration.toUTCString()}</b>
+          </p>
           <div className="flex gap-2 rounded border border-gray-300 px-2">
             <input
               className="grow font-mono text-sm"
