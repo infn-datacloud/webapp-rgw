@@ -58,7 +58,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
 
   const [showInspector, setShowInspector] = useState(false);
 
-  const [foldersStates, setFolderStates] = useState(
+  const [folderStates, setFolderStates] = useState(
     initFolderStates(CommonPrefixes)
   );
   const [objectsStates, setObjectsStates] = useState(
@@ -72,8 +72,8 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     if (!showInspector) {
       openInspector();
     }
-    foldersStates[folderState.index].checked = value;
-    setFolderStates([...foldersStates]);
+    folderStates[folderState.index].checked = value;
+    setFolderStates([...folderStates]);
   };
 
   const handleSelectObject = (objectState: ObjectsState, value: boolean) => {
@@ -96,7 +96,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     .filter(state => state.checked)
     .map(state => state.underlying);
 
-  const selectedPrefixes = foldersStates
+  const selectedPrefixes = folderStates
     .filter(state => state.checked)
     .map(state => state.underlying);
 
@@ -113,7 +113,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
       <ObjectTable
         bucket={bucket}
         objectsStates={objectsStates}
-        foldersStates={foldersStates}
+        foldersStates={folderStates}
         onSelectFolder={handleSelectFolder}
         onSelectObject={handleSelectObject}
         nextContinuationToken={NextContinuationToken}
