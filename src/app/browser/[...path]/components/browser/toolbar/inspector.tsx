@@ -38,7 +38,8 @@ export function BucketInspector(props: BucketInspectorProps) {
           Key: `Multiple values (${objects.length})`,
           ETag: `Multiple values (${objects.length})`,
           Size: objects.reduce((acc: number, value: _Object) => {
-            return (acc += value.Size ?? 0);
+            acc += value.Size ?? 0;
+            return acc;
           }, 0),
         };
         title = `Multiple values (${objects.length})`;

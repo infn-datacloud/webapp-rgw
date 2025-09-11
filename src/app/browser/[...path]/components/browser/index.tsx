@@ -55,9 +55,7 @@ type FolderState = CheckboxState<CommonPrefix>;
 export function Browser(props: Readonly<BucketBrowserProps>) {
   const { bucket, filepath, prefix, listObjectOutput, showFullKeys } = props;
   const { Contents, CommonPrefixes, NextContinuationToken } = listObjectOutput;
-
   const [showInspector, setShowInspector] = useState(false);
-
   const [folderStates, setFolderStates] = useState(
     initFolderStates(CommonPrefixes)
   );
@@ -65,6 +63,8 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     initObjectStates(Contents)
   );
 
+  // we use this state as trick to delay checkbox deselection and prevent that
+  // all checkbox are unchecked before the inspector is fully closed
   const openInspector = () => setShowInspector(true);
   const closeInspector = async () => setShowInspector(false);
 
@@ -81,6 +81,9 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
       openInspector();
     }
     objectsStates[objectState.index].checked = value;
+    if (objectsStates.every(state => !state.checked)) {
+      closeInspector();
+    }
     setObjectsStates([...objectsStates]);
   };
 

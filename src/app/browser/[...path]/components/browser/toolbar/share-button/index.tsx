@@ -24,18 +24,20 @@ export function ShareButton(props: Readonly<ShareButtonProps>) {
       <Button
         title="Share file"
         className="btn-secondary w-full justify-center"
-        disabled={objectsToDownloads.length !== 1}
+        disabled={objectsToDownloads.length > 1}
         onClick={open}
       >
         <ShareIcon className="size-5" />
         Share file
       </Button>
-      <PresignedUrlModal
-        bucket={bucket}
-        object_key={objectsToDownloads[0]}
-        show={show}
-        onClose={close}
-      />
+      {objectsToDownloads.length === 1 && (
+        <PresignedUrlModal
+          bucket={bucket}
+          object_key={objectsToDownloads[0]}
+          show={show}
+          onClose={close}
+        />
+      )}
     </>
   );
 }
