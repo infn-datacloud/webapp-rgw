@@ -11,6 +11,8 @@ import { ObjectTable } from "./table";
 import { BucketInspector } from "./toolbar/inspector";
 import Toolbar from "./toolbar";
 
+const INSPECTOR_CLOSE_DELAY = 300;
+
 export type BucketBrowserProps = {
   bucket: string;
   filepath: string;
@@ -43,48 +45,57 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
 
   // we use this state as trick to delay checkbox deselection and prevent that
   // all checkbox are unchecked before the inspector is fully closed
-  const openInspector = () => setShowInspector(true);
-  const closeInspector = () => setShowInspector(false);
-
-  function handleSelectFolder(index: number, value: boolean) {
+  const openInspector = () => {
     if (!showInspector) {
-      openInspector();
+      setShowInspector(true);
     }
+  };
+
+  const closeInspector = () => {
+    setShowInspector(false);
+  };
+
+  function handleSelectFolder(index: number, checked: boolean) {
     const newSet = new Set(selectedFoldersIndexes);
-    if (value) {
-      newSet.add(index);
-    } else {
-      newSet.delete(index);
-    }
-    setSelectedFoldersIndexes(newSet);
-  }
-
-  function handleSelectObject(index: number, value: boolean) {
-    if (!showInspector) {
+    checked ? newSet.add(index) : newSet.delete(index);
+    if (newSet.size + selectedObjectsIndexes.size > 0) {
       openInspector();
-    }
-    const newSet = new Set(selectedObjectsIndexes);
-    if (value) {
-      newSet.add(index);
+      setSelectedFoldersIndexes(newSet);
     } else {
-      newSet.delete(index);
+      closeInspector();
+      setTimeout(
+        () => setSelectedFoldersIndexes(newSet),
+        INSPECTOR_CLOSE_DELAY
+      );
     }
-    setSelectedObjectsIndexes(newSet);
   }
 
-  function close() {
-    closeInspector();
-    setTimeout(() => {
-      setSelectedFoldersIndexes(new Set());
-      setSelectedObjectsIndexes(new Set());
-    }, 300);
+  function handleSelectObject(index: number, checked: boolean) {
+    const newSet = new Set(selectedObjectsIndexes);
+    checked ? newSet.add(index) : newSet.delete(index);
+    if (newSet.size + selectedFoldersIndexes.size > 0) {
+      openInspector();
+      setSelectedObjectsIndexes(newSet);
+    } else {
+      closeInspector();
+      setTimeout(
+        () => setSelectedObjectsIndexes(newSet),
+        INSPECTOR_CLOSE_DELAY
+      );
+    }
   }
 
-  function handleDelete() {
-    setSelectedFoldersIndexes(new Set());
-    setSelectedObjectsIndexes(new Set());
+  const deselectAll = () => {
     closeInspector();
-  }
+    setTimeout(
+      () => setSelectedFoldersIndexes(new Set()),
+      INSPECTOR_CLOSE_DELAY
+    );
+    setTimeout(
+      () => setSelectedObjectsIndexes(new Set()),
+      INSPECTOR_CLOSE_DELAY
+    );
+  };
 
   const selectedObjects =
     Array.from(selectedObjectsIndexes.values().map(i => objects[i])) ?? [];
@@ -104,8 +115,8 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         bucket={bucket}
         objects={selectedObjects}
         prefixes={selectedFolders}
-        onClose={close}
-        onDelete={handleDelete}
+        onClose={deselectAll}
+        onDelete={deselectAll}
       />
       <ObjectTable
         bucket={bucket}
