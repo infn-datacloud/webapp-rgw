@@ -4,6 +4,7 @@
 
 "use client";
 
+import { Checkbox } from "@/components/checkbox";
 import Paginator from "@/components/paginator";
 import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
 import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
@@ -18,8 +19,10 @@ type ObjectTableProps = {
   folders: CommonPrefix[];
   nextContinuationToken?: string;
   showFullKeys?: boolean;
+  selectedAll?: boolean;
   selectedFolders?: Set<number>;
   selectedObjects?: Set<number>;
+  onSelectAll?: (checked: boolean) => void;
   onSelectFolder?: (index: number, value: boolean) => void;
   onSelectObject?: (index: number, value: boolean) => void;
   onUpload?: (files: File[]) => void;
@@ -30,10 +33,12 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
     bucket,
     objects,
     folders,
+    selectedAll,
     selectedFolders,
     selectedObjects,
     onSelectFolder,
     onSelectObject,
+    onSelectAll,
     onUpload,
     nextContinuationToken,
     showFullKeys: showFullKey,
@@ -104,18 +109,29 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
     };
   }, [dragEnterHandler, dragLeaveHandler, dropHandler]);
 
+  const handleSelectAllChange = (checked: boolean) => {
+    onSelectAll?.(checked);
+  };
+
   return (
     <>
       <div
         className="text-primary dark:text-secondary relative rounded-xl bg-neutral-100 text-sm shadow-md outline-offset-8 outline-neutral-400 data-[dragging=true]:outline-dashed dark:bg-slate-700"
         data-dragging={dragging}
       >
-        <span
-          className="flex px-4 pt-8 pb-2 text-lg font-bold data-[dragging=true]:blur"
-          data-dragging={dragging}
-        >
-          Objects
-        </span>
+        <div className="flex items-center gap-2 p-4 pt-8 pb-2">
+          <Checkbox
+            title="Select all"
+            checked={selectedAll}
+            onChange={handleSelectAllChange}
+          />
+          <span
+            className="flex text-lg font-bold data-[dragging=true]:blur"
+            data-dragging={dragging}
+          >
+            Objects
+          </span>
+        </div>
         <ul
           className="bg-secondary data-[dragging=true]:blur"
           data-dragging={dragging}
@@ -142,7 +158,10 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
           ))}
         </ul>
         <div className="p-4 data-[dragging=true]:blur" data-dragging={dragging}>
-          <Paginator nextContinuationToken={nextContinuationToken} />
+          <Paginator
+            nextContinuationToken={nextContinuationToken}
+            onClick={() => onSelectAll?.(false)}
+          />
         </div>
         <div
           className="absolute inset-0 flex data-[dragging=false]:hidden"

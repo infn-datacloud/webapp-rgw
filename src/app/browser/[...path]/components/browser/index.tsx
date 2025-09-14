@@ -11,7 +11,7 @@ import { ObjectTable } from "./table";
 import { BucketInspector } from "./toolbar/inspector";
 import Toolbar from "./toolbar";
 
-const INSPECTOR_CLOSE_DELAY = 300;
+const INSPECTOR_CLOSE_DELAY = 200;
 
 export type BucketBrowserProps = {
   bucket: string;
@@ -26,6 +26,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
   const { NextContinuationToken } = listObjectOutput;
   const { upload } = useUploader();
   const [showInspector, setShowInspector] = useState(false);
+  const [selectedAll, setSelectedAll] = useState(false);
   const [selectedObjectsIndexes, setSelectedObjectsIndexes] = useState<
     Set<number>
   >(new Set());
@@ -85,17 +86,25 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     }
   }
 
+  const selectAll = () => {
+    openInspector();
+    setSelectedFoldersIndexes(new Set([...Array(folders.length).keys()]));
+    setSelectedObjectsIndexes(new Set([...Array(objects.length).keys()]));
+    setSelectedAll(true);
+  };
+
   const deselectAll = () => {
     closeInspector();
-    setTimeout(
-      () => setSelectedFoldersIndexes(new Set()),
-      INSPECTOR_CLOSE_DELAY
-    );
-    setTimeout(
-      () => setSelectedObjectsIndexes(new Set()),
-      INSPECTOR_CLOSE_DELAY
-    );
+    setTimeout(() => {
+      setSelectedAll(false);
+      setSelectedFoldersIndexes(new Set());
+      setSelectedObjectsIndexes(new Set());
+    }, INSPECTOR_CLOSE_DELAY);
   };
+
+  function handleOnSelectAll(checked: boolean) {
+    checked ? selectAll() : deselectAll();
+  }
 
   const selectedObjects =
     Array.from(selectedObjectsIndexes.values().map(i => objects[i])) ?? [];
@@ -123,6 +132,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         prefix={prefix}
         objects={objects}
         folders={folders}
+        selectedAll={selectedAll}
         selectedFolders={selectedFoldersIndexes}
         selectedObjects={selectedObjectsIndexes}
         onSelectFolder={handleSelectFolder}
@@ -130,6 +140,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         nextContinuationToken={NextContinuationToken}
         showFullKeys={showFullKeys}
         onUpload={file => upload(file, bucket, prefix ?? "")}
+        onSelectAll={handleOnSelectAll}
       />
     </div>
   );

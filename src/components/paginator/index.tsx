@@ -10,10 +10,11 @@ import Link from "next/link";
 
 type PaginatorProps = {
   nextContinuationToken?: string;
+  onClick?: () => void;
 };
 
 export default function Paginator(props: Readonly<PaginatorProps>) {
-  const { nextContinuationToken } = props;
+  const { nextContinuationToken, onClick } = props;
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,6 +22,7 @@ export default function Paginator(props: Readonly<PaginatorProps>) {
   const itemsPerPage = Number(searchParams.get("count")) || 10;
 
   const goBack = () => {
+    onClick?.();
     window.history.back();
   };
 
@@ -58,14 +60,16 @@ export default function Paginator(props: Readonly<PaginatorProps>) {
           className="group text-primary dark:text-secondary bg-secondary dark:bg-secondary/10 data-[disabled=false]:dark:hover:bg-secondary/20 data-[disabled=true]:dark:text-secondary/30 min-w-16 justify-end rounded-tr-lg rounded-br-lg border border-neutral-200 data-[disabled=false]:hover:bg-neutral-200 data-[disabled=true]:text-slate-400"
           data-disabled={!nextContinuationToken}
         >
-          <Link
-            title="Next Page"
-            className="flex justify-end p-1.5 group-data-[disabled=true]:cursor-default"
-            href={nextPage}
-          >
-            <span>Next</span>
-            <ChevronRightIcon className="size-5 h-[1lh]" />
-          </Link>
+          <button onClick={onClick} type="button">
+            <Link
+              title="Next Page"
+              className="flex justify-end p-1.5 group-data-[disabled=true]:cursor-default"
+              href={nextPage}
+            >
+              <span>Next</span>
+              <ChevronRightIcon className="size-5 h-[1lh]" />
+            </Link>
+          </button>
         </li>
       </ul>
       <div className="dark:text-secondary/60 flex items-center space-x-2 text-slate-500">

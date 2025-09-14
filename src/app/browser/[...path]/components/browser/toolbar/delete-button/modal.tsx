@@ -63,12 +63,12 @@ export function ConfirmationModal(props: Readonly<ConfirmationModalProps>) {
           Are you sure you want to delete the following file(s)?
           <ul className="p-4 font-mono">
             {objectsToDelete.map(o => (
-              <li className="list-disc" key={o.Key}>
-                {o.Key}
+              <li className="list-disc" key={o?.Key}>
+                {o?.Key}
               </li>
             ))}
             {foldersToDelete.map(f => (
-              <li className="list-disc" key={f.Prefix}>{`${f.Prefix}**/*`}</li>
+              <li className="list-disc" key={f?.Prefix}>{`${f?.Prefix}**/*`}</li>
             ))}
           </ul>
         </ModalBody>
