@@ -11,7 +11,6 @@ import NewPathButton from "./new-path-button";
 import PathViewer from "./path-viewer";
 import { SearchField } from "@/components/search-field";
 import { useRouter, useSearchParams } from "next/navigation";
-import { _Object } from "@aws-sdk/client-s3";
 import { useEffect } from "react";
 
 export default function Toolbar(
@@ -20,9 +19,10 @@ export default function Toolbar(
     currentPath: string;
     prefix?: string;
     onPathChange?: (newPath: string) => void;
+    onFilesReadyToUpload: (files: File[]) => void;
   }>
 ) {
-  const { bucket, currentPath, prefix, onPathChange } = props;
+  const { currentPath, onPathChange, onFilesReadyToUpload } = props;
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -49,7 +49,7 @@ export default function Toolbar(
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
         <HomeButton />
-        <UploadButton bucket={bucket} prefix={prefix} />
+        <UploadButton onChange={onFilesReadyToUpload} />
         <RefreshButton />
         <NewPathButton currentPath={currentPath} onPathChange={onPathChange} />
       </div>

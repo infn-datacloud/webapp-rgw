@@ -17,6 +17,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 export interface ModalProps {
   title?: string;
   children?: ReactNode;
+  backdropButtonDisabled?: boolean;
   show: boolean;
   onClose: () => void;
 }
@@ -36,14 +37,21 @@ export const ModalFooter = (props: { children?: ReactNode }) => {
 };
 
 export default function Modal(props: Readonly<ModalProps>) {
-  const { title, children, show, onClose } = props;
+  const { title, children, backdropButtonDisabled, show, onClose } = props;
+
+  function handleClose() {
+    if (backdropButtonDisabled) {
+      return;
+    }
+    onClose?.();
+  }
 
   return (
     <Transition appear show={show}>
       <Dialog
         as="div"
         className="relative z-40 focus:outline-none"
-        onClose={onClose}
+        onClose={handleClose}
       >
         <div className="fixed inset-0 z-40 w-screen overflow-y-auto">
           <div className="mt-16 flex min-h-32 justify-center p-4">
@@ -74,7 +82,7 @@ export default function Modal(props: Readonly<ModalProps>) {
                 <DialogTitle className="border-gray-200 pb-2 text-xl font-bold">
                   <div className="flex justify-between">
                     {title}
-                    <button onClick={onClose}>
+                    <button onClick={onClose} disabled={backdropButtonDisabled}>
                       <div
                         className="w-6 rounded-full bg-neutral-300 p-[3px] text-neutral-500 hover:bg-neutral-400"
                         aria-label="close"

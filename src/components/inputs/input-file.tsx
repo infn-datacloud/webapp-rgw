@@ -10,7 +10,8 @@ interface InputFileProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function InputFile({ onChange }: InputFileProps) {
+export default function InputFile(props: Readonly<InputFileProps>) {
+  const { onChange } = props;
   const openFileSelector = async () => {
     const fileSelector = document.getElementById("file-selector");
     if (fileSelector) {
@@ -25,7 +26,7 @@ export default function InputFile({ onChange }: InputFileProps) {
   };
 
   return (
-    <div className="">
+    <div>
       <input
         onChange={handleChange}
         className="hidden"

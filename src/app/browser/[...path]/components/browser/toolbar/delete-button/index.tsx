@@ -12,10 +12,11 @@ type DeleteButtonProps = {
   bucket: string;
   objectsToDelete: _Object[];
   foldersToDelete: CommonPrefix[];
+  onDelete?: () => void;
 };
 
 export default function DeleteButton(props: Readonly<DeleteButtonProps>) {
-  const { bucket, objectsToDelete, foldersToDelete } = props;
+  const { bucket, objectsToDelete, foldersToDelete, onDelete } = props;
   const [show, setShow] = useState(false);
 
   const open = () => setShow(true);
@@ -29,6 +30,7 @@ export default function DeleteButton(props: Readonly<DeleteButtonProps>) {
         objectsToDelete={objectsToDelete}
         foldersToDelete={foldersToDelete}
         onClose={close}
+        onDelete={onDelete}
       />
       <Button
         className="btn-danger w-full"

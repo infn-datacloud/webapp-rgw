@@ -5,6 +5,8 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import "@/app/app.css";
+import { SessionProvider } from "next-auth/react";
+import UploaderProvider from "@/components/uploader";
 
 export const metadata: Metadata = {
   title: "INFN Cloud Object Storage",
@@ -15,11 +17,15 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className="h-screen dark:bg-gray-800">
-        <main>{children}</main>
-        <Toaster position="top-right" />
-      </body>
-    </html>
+    <SessionProvider>
+      <UploaderProvider>
+        <html lang="en">
+          <body className="h-screen dark:bg-gray-800">
+            <main>{children}</main>
+            <Toaster position="top-right" />
+          </body>
+        </html>
+      </UploaderProvider>
+    </SessionProvider>
   );
 }

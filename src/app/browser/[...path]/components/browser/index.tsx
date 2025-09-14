@@ -4,42 +4,12 @@
 
 "use client";
 
+import { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
+import { useUploader } from "@/components/uploader";
+import { useMemo, useState } from "react";
 import { ObjectTable } from "./table";
-import Toolbar from "./toolbar";
 import { BucketInspector } from "./toolbar/inspector";
-import {
-  _Object,
-  CommonPrefix,
-  ListObjectsV2CommandOutput,
-} from "@aws-sdk/client-s3";
-import { CheckboxState } from "@/components/checkbox";
-import { useState } from "react";
-
-function initObjectStates(contents?: _Object[]) {
-  if (!contents) {
-    return [];
-  }
-  return contents.map((content, index) => {
-    return {
-      checked: false,
-      underlying: content,
-      index,
-    };
-  });
-}
-
-function initFolderStates(commonPrefixes?: CommonPrefix[]) {
-  if (!commonPrefixes) {
-    return [];
-  }
-  return commonPrefixes.map((commonPrefix, index) => {
-    return {
-      checked: false,
-      underlying: commonPrefix,
-      index,
-    };
-  });
-}
+import Toolbar from "./toolbar";
 
 export type BucketBrowserProps = {
   bucket: string;
@@ -49,78 +19,106 @@ export type BucketBrowserProps = {
   showFullKeys?: boolean;
 };
 
-type ObjectsState = CheckboxState<_Object>;
-type FolderState = CheckboxState<CommonPrefix>;
-
 export function Browser(props: Readonly<BucketBrowserProps>) {
   const { bucket, filepath, prefix, listObjectOutput, showFullKeys } = props;
-  const { Contents, CommonPrefixes, NextContinuationToken } = listObjectOutput;
+  const { NextContinuationToken } = listObjectOutput;
+  const { upload } = useUploader();
   const [showInspector, setShowInspector] = useState(false);
-  const [folderStates, setFolderStates] = useState(
-    initFolderStates(CommonPrefixes)
-  );
-  const [objectsStates, setObjectsStates] = useState(
-    initObjectStates(Contents)
-  );
+  const [selectedObjectsIndexes, setSelectedObjectsIndexes] = useState<
+    Set<number>
+  >(new Set());
+  const [selectedFoldersIndexes, setSelectedFoldersIndexes] = useState<
+    Set<number>
+  >(new Set());
+
+  const folders = useMemo(() => {
+    const { CommonPrefixes } = listObjectOutput;
+    return CommonPrefixes ?? [];
+  }, [listObjectOutput]);
+
+  const objects = useMemo(() => {
+    const { Contents } = listObjectOutput;
+    return Contents ?? [];
+  }, [listObjectOutput]);
 
   // we use this state as trick to delay checkbox deselection and prevent that
   // all checkbox are unchecked before the inspector is fully closed
   const openInspector = () => setShowInspector(true);
-  const closeInspector = async () => setShowInspector(false);
+  const closeInspector = () => setShowInspector(false);
 
-  const handleSelectFolder = (folderState: FolderState, value: boolean) => {
+  function handleSelectFolder(index: number, value: boolean) {
     if (!showInspector) {
       openInspector();
     }
-    folderStates[folderState.index].checked = value;
-    setFolderStates([...folderStates]);
-  };
+    const newSet = new Set(selectedFoldersIndexes);
+    if (value) {
+      newSet.add(index);
+    } else {
+      newSet.delete(index);
+    }
+    setSelectedFoldersIndexes(newSet);
+  }
 
-  const handleSelectObject = (objectState: ObjectsState, value: boolean) => {
+  function handleSelectObject(index: number, value: boolean) {
     if (!showInspector) {
       openInspector();
     }
-    objectsStates[objectState.index].checked = value;
-    if (objectsStates.every(state => !state.checked)) {
-      closeInspector();
+    const newSet = new Set(selectedObjectsIndexes);
+    if (value) {
+      newSet.add(index);
+    } else {
+      newSet.delete(index);
     }
-    setObjectsStates([...objectsStates]);
-  };
+    setSelectedObjectsIndexes(newSet);
+  }
 
-  const deselectAll = async () => {
+  function close() {
     closeInspector();
     setTimeout(() => {
-      setFolderStates(initFolderStates(listObjectOutput.CommonPrefixes));
-      setObjectsStates(initObjectStates(listObjectOutput.Contents));
+      setSelectedFoldersIndexes(new Set());
+      setSelectedObjectsIndexes(new Set());
     }, 300);
-  };
+  }
 
-  const selectedObjects = objectsStates
-    .filter(state => state.checked)
-    .map(state => state.underlying);
+  function handleDelete() {
+    setSelectedFoldersIndexes(new Set());
+    setSelectedObjectsIndexes(new Set());
+    closeInspector();
+  }
 
-  const selectedPrefixes = folderStates
-    .filter(state => state.checked)
-    .map(state => state.underlying);
+  const selectedObjects =
+    Array.from(selectedObjectsIndexes.values().map(i => objects[i])) ?? [];
+  const selectedFolders =
+    Array.from(selectedFoldersIndexes.values().map(i => folders[i])) ?? [];
 
   return (
     <div className="space-y-2">
-      <Toolbar bucket={bucket} currentPath={filepath} prefix={prefix} />
+      <Toolbar
+        bucket={bucket}
+        currentPath={filepath}
+        prefix={prefix}
+        onFilesReadyToUpload={file => upload(file, bucket, prefix ?? "")}
+      />
       <BucketInspector
         isOpen={showInspector}
         bucket={bucket}
         objects={selectedObjects}
-        prefixes={selectedPrefixes}
-        onClose={deselectAll}
+        prefixes={selectedFolders}
+        onClose={close}
+        onDelete={handleDelete}
       />
       <ObjectTable
         bucket={bucket}
-        objectsStates={objectsStates}
-        foldersStates={folderStates}
+        prefix={prefix}
+        objects={objects}
+        folders={folders}
+        selectedFolders={selectedFoldersIndexes}
+        selectedObjects={selectedObjectsIndexes}
         onSelectFolder={handleSelectFolder}
         onSelectObject={handleSelectObject}
         nextContinuationToken={NextContinuationToken}
         showFullKeys={showFullKeys}
+        onUpload={file => upload(file, bucket, prefix ?? "")}
       />
     </div>
   );

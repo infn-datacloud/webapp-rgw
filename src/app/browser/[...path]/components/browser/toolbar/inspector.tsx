@@ -10,44 +10,55 @@ import DeleteButton from "./delete-button";
 import DownloadButton from "./download-button";
 import { ShareButton } from "./share-button";
 
+function getTitles(objects?: _Object[]) {
+  if (!objects) {
+    return { object: { Key: "N/A" }, title: "N/A" };
+  }
+
+  switch (objects.length) {
+    case 0:
+      return { object: { Key: "N/A" }, title: "N/A" };
+    case 1:
+      return { object: objects[0], title: objects[0].Key ?? "N/A" };
+    default:
+      return {
+        object: {
+          Key: `Multiple values (${objects.length})`,
+          ETag: `Multiple values (${objects.length})`,
+          Size: objects.reduce((acc: number, value?: _Object) => {
+            acc += value?.Size ?? 0;
+            return acc;
+          }, 0),
+        },
+        title: `Multiple values (${objects.length})`,
+      };
+  }
+}
+
 interface BucketInspectorProps extends InspectorProps {
   bucket: string;
   objects: _Object[];
   prefixes: CommonPrefix[];
   onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
+  onDelete?: () => void;
 }
 
 export function BucketInspector(props: BucketInspectorProps) {
-  const { bucket, isOpen, objects, prefixes, onClose } = props;
-  const keys = objects.map(o => o.Key!);
+  const { bucket, isOpen, objects, prefixes, onClose, onDelete } = props;
+
+  const keys = objects.filter(o => o?.Key).map(o => o.Key!) ?? [];
   let object: _Object;
   let title: string;
 
   if (prefixes.length === 0) {
-    switch (objects.length) {
-      case 0:
-        object = { Key: "N/A" };
-        title = "N/A";
-        break;
-      case 1:
-        object = objects[0];
-        title = object.Key ?? "N/A";
-        break;
-      default:
-        object = {
-          Key: `Multiple values (${objects.length})`,
-          ETag: `Multiple values (${objects.length})`,
-          Size: objects.reduce((acc: number, value: _Object) => {
-            acc += value.Size ?? 0;
-            return acc;
-          }, 0),
-        };
-        title = `Multiple values (${objects.length})`;
-    }
+    const r = getTitles(objects);
+    object = r.object;
+    title = r.title;
   } else {
     object = { Key: "N/A" };
     title = `Multiple values (${prefixes.length + objects.length})`;
   }
+
   const lastModified = object.LastModified
     ? dateToHuman(object.LastModified)
     : "N/A";
@@ -90,6 +101,7 @@ export function BucketInspector(props: BucketInspectorProps) {
             bucket={bucket}
             objectsToDelete={objects}
             foldersToDelete={prefixes}
+            onDelete={onDelete}
           />
         </section>
       </div>

@@ -55,6 +55,7 @@ export class S3Service {
   client: S3Client;
   publisherBucket?: string;
   groups?: string[];
+  abortController: AbortController;
 
   constructor(
     config: S3ClientConfig,
@@ -64,6 +65,7 @@ export class S3Service {
     this.client = new S3Client(config);
     this.publisherBucket = publisherBucket;
     this.groups = groups;
+    this.abortController = new AbortController();
   }
 
   static async loginWithSTS(
@@ -221,7 +223,7 @@ export class S3Service {
             return this.listObjects(
               bucket,
               count,
-              `${prefix ? prefix : ""}${folder.Prefix}`
+              `${prefix || ""}${folder.Prefix}`
             );
           }) ?? [];
 
@@ -349,21 +351,28 @@ export class S3Service {
         Key: fileObject.object.Key,
         Body: fileObject.file,
       },
+      partSize: 1024 * 1024 * 5,
+      abortController: fileObject.abortController,
     });
+
+    fileObject.start(); // set internal state to "uploading"
+
     upload.on("httpUploadProgress", progress => {
       if (onChange) {
         let { loaded, total } = progress;
         loaded = loaded ?? 0;
         total = total ?? 1;
-        fileObject.setProgress(loaded / total);
+        fileObject.setSize(total);
+        fileObject.setLoaded(loaded);
         onChange();
       }
     });
-    upload.done().then(() => {
-      console.debug(`Object ${fileObject.object.Key} uploaded`);
-      if (onComplete) {
-        onComplete();
-      }
-    });
+
+    await upload.done();
+    fileObject.complete();
+    console.debug(`Object ${fileObject.object.Key} uploaded`);
+    if (onComplete) {
+      onComplete();
+    }
   }
 }

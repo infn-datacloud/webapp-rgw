@@ -28,5 +28,5 @@ export async function deleteAll(
   const s3 = await makeS3Client();
   const promises = await deleteFolders(s3, bucket, folders);
   promises.push(s3.deleteObjects(bucket, objects as ObjectIdentifier[]));
-  return Promise.all(promises);
+  return Promise.allSettled(promises);
 }

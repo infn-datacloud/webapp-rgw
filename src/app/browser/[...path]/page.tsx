@@ -8,6 +8,8 @@ import { makeS3Client } from "@/services/s3/actions";
 import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Suspense } from "react";
 import { Browser } from "./components";
+import UploaderProvider from "@/components/uploader";
+import { SessionProvider } from "next-auth/react";
 
 type AsyncBrowserProps = {
   params: Promise<{ path: [string] }>;
@@ -47,14 +49,8 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
           nextContinuationToken
         );
 
-    // this is a trick to force a remount of the Browser component for each
-    // request, thus invalidating its internal states and re-render it with the
-    // changed data
-    const key = response.$metadata.requestId;
-
     return (
       <Browser
-        key={key}
         bucket={bucket}
         filepath={filepath}
         prefix={prefix}
@@ -68,9 +64,7 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
         return (
           <div className="flex flex-col justify-center p-16 text-center">
             <h2 className="text-5xl font-medium">No such bucket :&#40;</h2>
-            <p className="p-2">
-              The bucket your are looking does not exists.
-            </p>
+            <p className="p-2">The bucket your are looking does not exists.</p>
           </div>
         );
       }
@@ -78,7 +72,9 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
         return (
           <div className="flex flex-col justify-center p-16 text-center">
             <h2 className="text-5xl font-medium">Access Denied</h2>
-            <p className="p-2">You don&apos;t have access to view this resource.</p>
+            <p className="p-2">
+              You don&apos;t have access to view this resource.
+            </p>
           </div>
         );
       }
@@ -92,9 +88,7 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
   }
 }
 
-type BrowserProps = AsyncBrowserProps;
-
-export default async function BrowserPage(props: BrowserProps) {
+export default async function BrowserPage(props: Readonly<AsyncBrowserProps>) {
   const { path } = await props.params;
   const bucket = path[0];
   return (

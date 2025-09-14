@@ -18,19 +18,30 @@ type ConfirmationModalProps = {
   objectsToDelete: _Object[];
   foldersToDelete: CommonPrefix[];
   onClose: () => void;
+  onDelete?: () => void;
 };
 
 export function ConfirmationModal(props: Readonly<ConfirmationModalProps>) {
-  const { show, onClose, bucket, objectsToDelete, foldersToDelete } = props;
+  const { show, onClose, onDelete, bucket, objectsToDelete, foldersToDelete } =
+    props;
   const [pending, setPending] = useState(false);
   const router = useRouter();
 
   const action = async () => {
     try {
       setPending(true);
-      await deleteAll(bucket, objectsToDelete, foldersToDelete);
-      toaster.success("Object(s) successfully deleted");
+      const results = await deleteAll(bucket, objectsToDelete, foldersToDelete);
+      const succeeded = results.findIndex(r => r.status === "fulfilled") > -1;
+      if (succeeded) {
+        toaster.success("Object(s) successfully deleted");
+      }
+      results
+        .filter(r => r.status === "rejected")
+        .forEach(r => {
+          toaster.success(`Cannot delete object`, r.reason);
+        });
       onClose?.();
+      onDelete?.();
       router.refresh();
     } catch (err) {
       const error = parseS3Error(err);
@@ -41,7 +52,12 @@ export function ConfirmationModal(props: Readonly<ConfirmationModalProps>) {
   };
 
   return (
-    <Modal title="Delete File(s)" show={show} onClose={onClose}>
+    <Modal
+      title="Delete File(s)"
+      show={show}
+      onClose={onClose}
+      backdropButtonDisabled={pending}
+    >
       <Form action={action} className="divide-y">
         <ModalBody>
           Are you sure you want to delete the following file(s)?

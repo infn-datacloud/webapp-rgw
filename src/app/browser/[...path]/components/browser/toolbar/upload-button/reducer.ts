@@ -53,7 +53,6 @@ export default function reducer(state: State, action: Action) {
         inProgress = 0;
         progressStates = new Map();
         allComplete = true;
-        showPopup = false;
       }
       return {
         inProgress,

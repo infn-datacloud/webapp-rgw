@@ -23,7 +23,7 @@ export function parseS3Error(err: unknown) {
       case "BucketNotEmpty":
         return "Bucket is not empty";
       default:
-        "Unknown Error";
+        return "Unknown Error";
     }
   }
   return "Unknown Error";

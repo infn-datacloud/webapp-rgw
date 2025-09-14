@@ -4,31 +4,33 @@
 
 "use client";
 
-import { Checkbox, CheckboxState } from "@/components/checkbox";
+import { Checkbox } from "@/components/checkbox";
 import { CommonPrefix } from "@aws-sdk/client-s3";
-import { FileIcon } from "./file-icon";
 import Link from "next/link";
+import { FileIcon } from "./file-icon";
 
 type FolderRowProps = {
   bucket: string;
-  state: CheckboxState<CommonPrefix>;
-  onChange?: (state: CheckboxState<CommonPrefix>, value: boolean) => void;
+  folder: CommonPrefix;
+  index: number;
+  checked: boolean;
+  onChange?: (index: number, value: boolean) => void;
 };
 
 export function FolderRow(props: Readonly<FolderRowProps>) {
-  const { bucket, state, onChange } = props;
-  const prefix = state.underlying;
-  const href = `/browser/${bucket}/${prefix.Prefix}`;
-  const path = prefix.Prefix?.split("/");
+  const { bucket, folder, index, checked, onChange } = props;
+  const href = `/browser/${bucket}/${folder.Prefix}`;
+  const path = folder.Prefix?.split("/");
   path?.pop();
   const folderName = path?.pop();
 
+  function handleChange(newValue: boolean) {
+    onChange?.(index, newValue);
+  }
+
   return (
     <li className="text-primary dark:text-secondary flex gap-2 border-b border-slate-200 bg-white p-4 hover:bg-slate-100 dark:border-white/30 dark:bg-slate-800 dark:hover:bg-slate-700">
-      <Checkbox
-        checked={state.checked}
-        onChange={newValue => onChange?.(state, newValue)}
-      />
+      <Checkbox checked={checked} onChange={handleChange} />
       <Link className="flex w-full" href={href}>
         <div className="min-w-8">
           <FileIcon extension="folder" />

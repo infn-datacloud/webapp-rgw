@@ -4,31 +4,31 @@
 
 "use client";
 
-import { getHumanSize } from "@/commons/utils";
+import { Checkbox } from "@/components/checkbox";
+import { dateToHuman, getHumanSize } from "@/commons/utils";
 import { _Object } from "@aws-sdk/client-s3";
-import { Checkbox, CheckboxState } from "@/components/checkbox";
-import { dateToHuman } from "@/commons/utils";
-import { FileIcon } from "./file-icon";
 import { ClockIcon } from "@heroicons/react/24/outline";
+import { FileIcon } from "./file-icon";
 
 type ObjectRowProps = {
-  state: CheckboxState<_Object>;
+  index: number;
   showFull?: boolean;
-  onChange?: (state: CheckboxState<_Object>, value: boolean) => void;
+  object: _Object;
+  checked: boolean;
+  onChange?: (index: number, state: boolean) => void;
 };
 
 export function ObjectRow(props: Readonly<ObjectRowProps>) {
-  const { state, showFull, onChange } = props;
-  const object = state.underlying;
-  const lastModified = object.LastModified
-    ? dateToHuman(object.LastModified)
-    : "N/A";
+  const { index, object, showFull, checked, onChange } = props;
   const fileName = showFull ? object.Key : object.Key?.split("/").splice(-1);
   const extension = object.Key?.split(".").slice(-1)[0];
   const size = object.Size ? getHumanSize(object.Size) : "N/A";
+  const lastModified = object.LastModified
+    ? dateToHuman(object.LastModified)
+    : "N/A";
 
   const toggle = () => {
-    onChange?.(state, !state.checked);
+    onChange?.(index, !checked);
   };
 
   return (
@@ -37,7 +37,7 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
         className="flex w-full items-center gap-2 px-4 py-2 text-left"
         onClick={toggle}
       >
-        <Checkbox checked={state.checked} />
+        <Checkbox checked={checked} />
         <div className="min-w-8">
           <FileIcon extension={extension} />
         </div>
