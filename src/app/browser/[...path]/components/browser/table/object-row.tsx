@@ -38,10 +38,7 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
         onClick={toggle}
       >
         <Checkbox checked={checked} />
-        <div className="min-w-8">
-          <FileIcon extension={extension} />
-        </div>
-
+        <FileIcon extension={extension} />
         <div className="flex w-full flex-col sm:flex-row">
           <div className="my-auto flex grow flex-row sm:flex-col">
             {fileName}
