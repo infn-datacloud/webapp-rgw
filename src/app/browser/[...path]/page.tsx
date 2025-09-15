@@ -8,8 +8,6 @@ import { makeS3Client } from "@/services/s3/actions";
 import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Suspense } from "react";
 import { Browser } from "./components";
-import UploaderProvider from "@/components/uploader";
-import { SessionProvider } from "next-auth/react";
 
 type AsyncBrowserProps = {
   params: Promise<{ path: [string] }>;
