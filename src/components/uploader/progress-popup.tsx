@@ -49,7 +49,7 @@ export function ProgressPopup(props: Readonly<ProgressPopupProps>) {
     <>
       <Disclosure
         as="div"
-        className="text-primary dark:text-secondary dark:border-secondary/10 fixed right-4 bottom-4 z-30 w-lg rounded bg-white p-4 shadow-lg transition ease-in-out data-[closed=true]:scale-0 data-[closed=true]:opacity-0 dark:border dark:bg-slate-800"
+        className="text-primary dark:text-secondary dark:border-secondary/10 fixed right-4 bottom-4 left-4 z-30 rounded bg-white p-4 shadow-lg transition ease-in-out data-[closed=true]:scale-0 data-[closed=true]:opacity-0 sm:w-80 sm:left-auto dark:border dark:bg-slate-800"
         defaultOpen={true}
         data-closed={!show}
       >
