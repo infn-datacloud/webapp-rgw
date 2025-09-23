@@ -7,9 +7,11 @@ import { HomeIcon } from "@heroicons/react/24/outline";
 
 export default function HomeButton() {
   return (
-    <Link href="/" className="btn-secondary">
-      <HomeIcon className="size-5" />
-      Home
+    <Link href="/">
+      <button className="btn-secondary">
+        <HomeIcon className="size-5" />
+        Home
+      </button>
     </Link>
   );
 }
