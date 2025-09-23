@@ -47,7 +47,7 @@ export default function ProgressBar(props: Readonly<ProgressBarProps>) {
 
   return (
     <div className="py-2">
-      <p className="text-base">{file.object.Key}</p>
+      <p className="truncate text-base">{file.object.Key}</p>
       <div className="flex flex-row items-center">
         <div className="grow">
           <div
