@@ -37,7 +37,6 @@ export default function InputFile(props: Readonly<InputFileProps>) {
       <Button
         className="btn-secondary items-center"
         title="Upload File"
-        color="primary-outline"
         onClick={openFileSelector}
       >
         <ArrowUpOnSquareIcon className="size-5" />
