@@ -10,6 +10,9 @@ const nextConfig = {
       },
     ];
   },
+  images: {
+    remotePatterns: [new URL("https://gravatar.com/avatar/*?r=g&d=identicon")],
+  },
   serverRuntimeConfig: {
     appVersion: process.env.npm_package_version || "",
   },

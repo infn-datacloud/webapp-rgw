@@ -16,11 +16,13 @@ export async function Layout(props: Readonly<LayoutProps>) {
   const { serverRuntimeConfig = {} } = getConfig() || {};
   const session = await auth();
   const username = session?.user?.name;
+  const email = session?.user?.email;
 
   return (
     <div className="mt-16 p-4 lg:mt-0 lg:ml-80">
       <Sidebar
         username={username}
+        email={email}
         appVersion={serverRuntimeConfig.appVersion}
       />
       <h1 className="text-primary dark:text-secondary">{title}</h1>
