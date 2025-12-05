@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import getConfig from "next/config";
-import { Sidebar } from "@/app/components/sidebar";
 import { auth } from "@/auth";
+import { Sidebar } from "@/app/components/sidebar";
+import { settings } from "@/config";
 
 type LayoutProps = {
   title?: string;
@@ -13,7 +13,6 @@ type LayoutProps = {
 
 export async function Layout(props: Readonly<LayoutProps>) {
   const { title, children } = props;
-  const { serverRuntimeConfig = {} } = getConfig() || {};
   const session = await auth();
   const username = session?.user?.name;
   const email = session?.user?.email;
@@ -23,7 +22,7 @@ export async function Layout(props: Readonly<LayoutProps>) {
       <Sidebar
         username={username}
         email={email}
-        appVersion={serverRuntimeConfig.appVersion}
+        appVersion={settings.appVersion}
       />
       <h1 className="text-primary dark:text-secondary">{title}</h1>
       <hr className="mt-2 mb-8 h-px w-full border-0 bg-gray-200" />
