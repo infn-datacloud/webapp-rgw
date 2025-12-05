@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
+import packageInfo from "../package.json";
+
 if (
   process.env.NEXT_PHASE !== "phase-production-build" &&
   !process.env.AUTH_URL
@@ -19,7 +21,7 @@ const otelExportOtlpEndpoint =
   process.env.OTEL_EXPORTER_OTLP_ENDPOINT ??
   "https://otello.cloud.cnaf.infn.it:8443/collector/v1/traces";
 
-const appVersion = process.env.npm_package_version ?? "0.0.0";
+const appVersion = packageInfo.version ?? "0.0.0";
 
 export const settings = {
   otelServiceName,
