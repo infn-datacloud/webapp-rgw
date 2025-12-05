@@ -49,6 +49,9 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: indigopaas/webapp-rgw
+          tags: |
+            type=sha
+            type=ref,event=tag
 
       - name: Build and push to Docker Hub
         uses: docker/build-push-action@v6
