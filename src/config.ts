@@ -11,7 +11,7 @@ if (
   throw Error("AUTH_URL environment variable not set");
 }
 
-const authUrl = process.env.authUrl ?? "http://webapp-rgw.test.example";
+const authUrl = process.env.AUTH_URL ?? "http://webapp-rgw.test.example";
 
 const otelServiceName = "s3webui";
 
