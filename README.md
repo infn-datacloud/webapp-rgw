@@ -59,8 +59,8 @@ Finally, in the **Crypto** section enable PKCE with SHA-256 has algorithm.
 Before start the application, an environment file is needed. An example can be
 found at [envs/example.env](envs/example.env).
 
-- `AUTH_URL`: hostname of your deployment, for example `htts://s3webui.cloud.infn.it`
-  or `http://localhost:8080`
+- `AUTH_URL`: hostname of your deployment, for example
+  `https://s3webui.cloud.infn.it` or `http://localhost:8080`
 - `AUTH_SECRET`: secret to encrypt session cookies (see below)
 - `IAM_AUTHORITY_URL`: INDIGO IAM endpoint
 - `IAM_CLIENT_ID`: INDIGO IAM client ID
