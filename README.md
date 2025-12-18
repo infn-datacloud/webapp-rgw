@@ -11,11 +11,10 @@ The OAuth2 support is provided by the [Auth.js](https://authjs.dev) framework,
 while all S3 operations are implemented using the official
 [AWS SDK for javascript](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/).
 
-
 ## IAM Client Configuration
 
 The webapp acts as client for IAM backend and thus, registering the client is
-required. This step is required the first time only (or whenever the local 
+required. This step is required the first time only (or whenever the local
 database volume is deleted/recreated).
 
 To register a new client, go to the chosen IAM instance, login as admin,
@@ -31,6 +30,7 @@ hosting the application.
 It is possible to configure more than one redirect URI.
 
 For development:
+
 ```shell
 http://localhost:300/api/auth/callback/indigo-iam
 ```
@@ -43,7 +43,7 @@ https://s3webui.cloud.infn.it/api/auth/callback/indigo-iam
 
 ### Scopes
 
-In the *Scopes* tab, assure that the following scopes are enabled
+In the _Scopes_ tab, assure that the following scopes are enabled
 
 - `email`
 - `openid`
@@ -51,15 +51,13 @@ In the *Scopes* tab, assure that the following scopes are enabled
 
 ### Grant Types
 
-In the *Grant Types* tab, enable `authorization_code`.
+In the _Grant Types_ tab, enable `authorization_code`.
 Finally, in the **Crypto** section enable PKCE with SHA-256 has algorithm.
-
 
 ## Configuration
 
 Before start the application, an environment file is needed. An example can be
 found at [envs/example.env](envs/example.env).
-
 
 - `AUTH_URL`: hostname of your deployment, for example `htts://s3webui.cloud.infn.it`
   or `http://localhost:8080`
@@ -78,14 +76,13 @@ found at [envs/example.env](envs/example.env).
 
 The application needs a secret to encrypt/decrypt session cookies.
 
-> **N.B.**: This is a *real* secret and must be kept secure.
+> **N.B.**: This is a _real_ secret and must be kept secure.
 
 You can generate an `AUTH_SECRET` with the following command:
 
 ```shell
-openssl rand -base64 32 
+openssl rand -base64 32
 ```
-
 
 #### Multi-replicas
 
@@ -93,18 +90,16 @@ If you are are going to the deploy in high availability, thus in manifold
 replicas, use the same `AUTH_SECRET` for each replica. In this way, sessions
 started from a replica can be maintained also with the other replicas.
 
-
 ## Deployment
 
 This project is configured with a CI/CD pipeline which builds Docker images
 for development and production releases. The images are stored
-[here](https://baltig.infn.it/infn-cloud/webapp-rgw/container_registry).
+[here](https://hub.docker.com/r/indigopaas/webapp-rgw).
 
 To start the application run
 
 ```shell
-docker run --rm --name s3webui -p 8080:80 --env-file .env \
-  baltig.infn.it:4567/infn-cloud/webapp-rgw
+docker run --rm --name s3webui -p 8080:80 --env-file .env indigopaas/webapp-rgw
 ```
 
 If you have trouble in reaching the Rados Gateway endpoint from within the
@@ -120,8 +115,9 @@ docker run \
   --add-host s3webui.cloud.infn.it=10.200.0.18 \
   -p 127.0.0.1:8080:80 \
   --env-file .env \
-  baltig.infn.it:4567/infn-cloud/webapp-rgw
+  indigopaas/webapp-rgw
 ```
+
 ## Telemetry
 
 The application supports Opentelemetry instrumentation and INFN-CNAF Otello
@@ -133,6 +129,6 @@ It is possible to change the OTLP collector endpoint setting the
 
 To disable telemetry export the following environment variable
 
-```
+```shell
 OTEL_DISABLE_TELEMETRY=1
 ```
