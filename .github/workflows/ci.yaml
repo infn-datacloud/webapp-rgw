@@ -61,3 +61,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
+      
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          if: ${{ github.event_name != 'pull_request' }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: peterevans/dockerhub-description
