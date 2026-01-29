@@ -25,12 +25,12 @@ jobs:
   main:
     name: Release
     runs-on: ubuntu-latest
-    services:
-      docker:
-        image: docker:20.10-dind
-        options: --privileged --mtu=1400
-
     steps:
+      - name: Set up Docker MTU
+        run: |
+          echo '{ "mtu": 1400 }' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
       - name: Checkout
         uses: actions/checkout@v4
 
