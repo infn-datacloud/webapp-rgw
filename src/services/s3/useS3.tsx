@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 "use client";
+
 import { s3ClientConfig } from "@/services/s3/actions";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";

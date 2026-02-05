@@ -2,30 +2,29 @@
 
 This project consists in a web application to easily access file objects stored
 within Ceph Object Storage/RADOS Gateway, using the AWS S3 protocol for object
-handling, and the OAuth2/OpenID Connect for authorization and authentication
-with Indigo IAM.
+handling, and the OAuth2/OpenID Connect for authorization and authentication via
+the Secure Token Service (STS).
 
 The webapp is implemented using the React, Next.js, TypeScript and TailwindCSS,
 as core frameworks.
-The OAuth2 support is provided by the [Auth.js](https://authjs.dev) framework,
-while all S3 operations are implemented using the official
+The OAuth2 support is provided by the [Auth.js](https://authjs.dev) framework.
+All S3 operations are implemented using the official
 [AWS SDK for javascript](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/).
 
-## IAM Client Configuration
+## OpenID/OAuth2 Client Configuration
 
-The webapp acts as client for IAM backend and thus, registering the client is
-required. This step is required the first time only (or whenever the local
-database volume is deleted/recreated).
+The webapp acts as client OpenID Conenct/OAuth2 client and thus, registering the
+client is required.
 
-To register a new client, go to the chosen IAM instance, login as admin,
-register a new client and configure it as described in the following sections.
+The following sections describe how to configure an OpenID Connect/OAuth2
+client.
 
 ### Redirect URIs
 
-In the client main page, add all needed redirect uris, in the form of
-`<WEBAPP_URL>/api/auth/callback/indigo-iam`
-(without the trailing `/`), where `<WEBAPP_URL>` is the hostname of the machine
-hosting the application.
+Redirect URIs must be in the form of
+`<WEBAPP_RGW_BASE_URL>/api/auth/callback/indigo-iam`
+(without the trailing `/`), where `<WEBAPP_RGW_BASE_URL>` is the
+hostname of the machine hosting the application.
 
 It is possible to configure more than one redirect URI.
 
@@ -43,34 +42,33 @@ https://s3webui.cloud.infn.it/api/auth/callback/indigo-iam
 
 ### Scopes
 
-In the _Scopes_ tab, assure that the following scopes are enabled
+Enable the following scopes
 
 - `email`
 - `openid`
 - `profile`
 
-### Grant Types
+### Grant Types and Crypto
 
-In the _Grant Types_ tab, enable `authorization_code`.
-Finally, in the **Crypto** section enable PKCE with SHA-256 has algorithm.
+The `authorization_code` grant type is required.
+Enable the PKCE crypto feature with SHA-256 has algorithm.
 
 ## Configuration
 
 Before start the application, an environment file is needed. An example can be
 found at [envs/example.env](envs/example.env).
 
-- `AUTH_URL`: hostname of your deployment, for example
-  `https://s3webui.cloud.infn.it` or `http://localhost:8080`
-- `AUTH_SECRET`: secret to encrypt session cookies (see below)
-- `IAM_AUTHORITY_URL`: INDIGO IAM endpoint
-- `IAM_CLIENT_ID`: INDIGO IAM client ID
-- `IAM_CLIENT_SECRET`: INDIGO IAM client secret
-- `IAM_AUDIENCE`: INDIGO IAM audience for Rados Gateway
-- `IAM_SCOPE`: must be exactly `openid email profile`
-- `S3_ENDPOINT`: endpoint of Rados Gateway
-- `S3_REGION`: Rados Gateway region
-- `S3_ROLE_ARN`: Rados Gateway role ARN
-- `S3_ROLE_DURATION_SECONDS`: duration of the Role (1h: 3600)
+- `WEBAPP_RGW_BASE_URL`: hostname of your deployment, for example
+  https://s3webui.cloud.infn.it or http://localhost:3000
+- `WEBAPP_RGW_AUTH_SECRET`: secret to encrypt session cookies (see below)
+- `WEBAPP_RGW_OIDC_ISSUER`: OpenID Connect Issuer
+- `WEBAPP_RGW_OIDC_CLIENT_ID`: OpenID Connect Client ID
+- `WEBAPP_RGW_OIDC_CLIENT_SECRET` OpenID Connect Client Secret
+- `WEBAPP_RGW_OIDC_AUDIENCE`: OpenID Connect Audience
+- `WEBAPP_RGW_S3_ENDPOINT`: Rados Gateway/S3 API Endpoint
+- `WEBAPP_RGW_S3_REGION`: Rados Gateway/S3 Region Name
+- `WEBAPP_RGW_S3_ROLE_ARN`: Rados Gateway Role/S3 ARN
+- `WEBAPP_RGW_S3_ROLE_DURATION_SECONDS`: Rados Gateway/S3 Role duration in seconds
 
 ### Auth Secret
 
@@ -78,7 +76,7 @@ The application needs a secret to encrypt/decrypt session cookies.
 
 > **N.B.**: This is a _real_ secret and must be kept secure.
 
-You can generate an `AUTH_SECRET` with the following command:
+You can generate an `WEBAPP_RGW_AUTH_SECRET` with the following command:
 
 ```shell
 openssl rand -base64 32
@@ -87,8 +85,8 @@ openssl rand -base64 32
 #### Multi-replicas
 
 If you are are going to the deploy in high availability, thus in manifold
-replicas, use the same `AUTH_SECRET` for each replica. In this way, sessions
-started from a replica can be maintained also with the other replicas.
+replicas, use the same `WEBAPP_RGW_AUTH_SECRET` for each replica. In this way,
+sessions started from a replica can be maintained also with the other replicas.
 
 ## Deployment
 
@@ -124,11 +122,14 @@ The application supports Opentelemetry instrumentation and INFN-CNAF Otello
 service. Telemetry is enabled by default and sends traces to
 https://otello.cloud.cnaf.infn.it/collector/v1/traces.
 
-It is possible to change the OTLP collector endpoint setting the
-`OTEL_EXPORTER_OTLP_ENDPOINT` variable.
+To change the OpenTelemetry OTLP collector endpoint set the environment variable
 
-To disable telemetry export the following environment variable
+```
+WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT=https://otello.cloud.cnaf.infn.it/collector/v1/traces
+```
+
+To completely disable telemetry set the following environment variable
 
 ```shell
-OTEL_DISABLE_TELEMETRY=1
+WEBAPP_RGW_OTEL_DISABLE_TELEMETRY=1
 ```

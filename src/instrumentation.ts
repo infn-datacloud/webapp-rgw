@@ -5,25 +5,33 @@
 import { OTLPHttpJsonTraceExporter, registerOTel } from "@vercel/otel";
 import { settings } from "@/config";
 
+const {
+  WEBAPP_RGW_OTEL_DISABLE_TELEMETRY,
+  WEBAPP_RGW_OTEL_SERVICE_NAME,
+  WEBAPP_RGW_OTEL_SERVICE_NAMESPACE,
+  WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT,
+} = settings;
+
 export async function register() {
-  if (process.env.OTEL_DISABLE_TELEMETRY) {
+  if (WEBAPP_RGW_OTEL_DISABLE_TELEMETRY) {
     return;
   }
 
   console.log(
-    `Telemetry enabled: sending data to ${settings.otelExportOtlpEndpoint}. To disable telemetry export the OTEL_DISABLE_TELEMETRY environment variable.`
+    `Telemetry enabled: sending data to ${WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT}. ` +
+      "To disable telemetry export the WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT=1 environment variable."
   );
 
   if (process.env.NEXT_RUNTIME === "nodejs") {
     await import("./instrumentation.node.ts");
   }
   registerOTel({
-    serviceName: settings.otelServiceName,
+    serviceName: WEBAPP_RGW_OTEL_SERVICE_NAME,
     traceExporter: new OTLPHttpJsonTraceExporter({
-      url: settings.otelExportOtlpEndpoint,
+      url: WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT,
     }),
     attributes: {
-      "service.namespace": settings.otelServiceNamespace,
+      "service.namespace": WEBAPP_RGW_OTEL_SERVICE_NAMESPACE,
     },
   });
 }

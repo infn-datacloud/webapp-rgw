@@ -8,7 +8,24 @@ import type { DefaultJWT } from "next-auth/jwt";
 import type { OIDCConfig } from "next-auth/providers";
 import Credentials from "next-auth/providers/credentials";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
-import { decodeJwtPayload } from "./commons/utils";
+import { decodeJwtPayload } from "@/commons/utils";
+import { settings } from "@/config";
+import { loginWithSTS } from "./services/s3/actions";
+
+const {
+  WEBAPP_RGW_BASE_URL,
+  WEBAPP_RGW_AUTH_SECRET,
+  WEBAPP_RGW_OIDC_ISSUER,
+  WEBAPP_RGW_OIDC_CLIENT_ID,
+  WEBAPP_RGW_OIDC_CLIENT_SECRET,
+  WEBAPP_RGW_OIDC_SCOPE,
+  WEBAPP_RGW_OIDC_AUDIENCE,
+  WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
+} = settings;
+
+// temporary workaround before better-auth
+process.env["AUTH_URL"] = WEBAPP_RGW_BASE_URL;
+process.env["AUTH_SECRET"] = WEBAPP_RGW_AUTH_SECRET;
 
 declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
@@ -34,13 +51,13 @@ const IamProvider: OIDCConfig<Profile> = {
   id: "indigo-iam",
   name: "Indigo-IAM",
   type: "oidc",
-  issuer: process.env.IAM_AUTHORITY_URL,
-  clientId: process.env.IAM_CLIENT_ID,
-  clientSecret: process.env.IAM_CLIENT_SECRET,
+  issuer: WEBAPP_RGW_OIDC_ISSUER,
+  clientId: WEBAPP_RGW_OIDC_CLIENT_ID,
+  clientSecret: WEBAPP_RGW_OIDC_CLIENT_SECRET,
   authorization: {
     params: {
-      scope: process.env.IAM_SCOPE,
-      audience: process.env.IAM_AUDIENCE,
+      scope: WEBAPP_RGW_OIDC_SCOPE,
+      audience: WEBAPP_RGW_OIDC_AUDIENCE,
     },
   },
   checks: ["pkce", "state"],
@@ -69,9 +86,7 @@ const CredentialsProvider = Credentials({
       throw Error("Credentials not found");
     }
 
-    const expires_in = process.env.S3_ROLE_DURATION_SECONDS
-      ? parseInt(process.env.S3_ROLE_DURATION_SECONDS)
-      : 600;
+    const expires_in = parseInt(WEBAPP_RGW_S3_ROLE_DURATION_SECONDS);
     const expiration = new Date(Date.now() + expires_in * 1000);
 
     return {
@@ -98,11 +113,7 @@ export const authConfig: NextAuthConfig = {
           | string[]
           | undefined;
         try {
-          const response = await fetch(`${process.env.AUTH_URL}/api/auth/sts`, {
-            body: JSON.stringify({ access_token }),
-            method: "POST",
-          });
-          token.credentials = await response.json();
+          token.credentials = await loginWithSTS(access_token);
           token.groups = groups;
         } catch (err) {
           console.error("Cannot perform STS AssumeRoleWithWebIdentity:", err);
