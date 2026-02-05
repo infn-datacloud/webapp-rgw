@@ -15,3 +15,6 @@ docker-compose.*.yaml
 !docker-compose.yaml
 next-env.d.ts
 .next
+codebook.toml
+.codebook.toml
+.zed
