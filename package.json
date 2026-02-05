@@ -20,7 +20,7 @@
     "@opentelemetry/instrumentation-aws-sdk": "^0.61.2",
     "@opentelemetry/sdk-node": "^0.205.0",
     "@vercel/otel": "^2",
-    "next": "^15",
+    "next": "^16",
     "next-auth": "^5.0.0-beta",
     "react": "^19",
     "react-dom": "^19",
