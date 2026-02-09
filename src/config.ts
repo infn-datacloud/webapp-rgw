@@ -65,7 +65,9 @@ function loadS3RoleArn() {
 }
 
 function loadS3RoleDurationSeconds() {
-  return loadEnvVariable("WEBAPP_RGW_S3_ROLE_DURATION_SECONDS", "600");
+  return parseInt(
+    loadEnvVariable("WEBAPP_RGW_S3_ROLE_DURATION_SECONDS", "600")
+  );
 }
 
 function loadOtelServiceName() {

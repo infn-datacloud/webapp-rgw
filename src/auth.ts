@@ -2,14 +2,13 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import type { Profile, User, Awaitable, TokenSet } from "@auth/core/types";
-import NextAuth, { type NextAuthConfig } from "next-auth";
-import type { DefaultJWT } from "next-auth/jwt";
-import type { OIDCConfig } from "next-auth/providers";
-import Credentials from "next-auth/providers/credentials";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
-import { decodeJwtPayload } from "@/commons/utils";
-import { settings } from "@/config";
+import { betterAuth } from "better-auth";
+import { settings } from "./config";
+import { genericOAuth } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { decodeJwtPayload } from "./commons/utils";
 import { loginWithSTS } from "./services/s3/actions";
 
 const {
@@ -23,120 +22,148 @@ const {
   WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
 } = settings;
 
-// temporary workaround before better-auth
-process.env["AUTH_URL"] = WEBAPP_RGW_BASE_URL;
-process.env["AUTH_SECRET"] = WEBAPP_RGW_AUTH_SECRET;
+const oAuth = genericOAuth({
+  config: [
+    {
+      providerId: "indigo-iam",
+      discoveryUrl: `${WEBAPP_RGW_OIDC_ISSUER}/.well-known/openid-configuration`,
+      clientId: WEBAPP_RGW_OIDC_CLIENT_ID,
+      clientSecret: WEBAPP_RGW_OIDC_CLIENT_SECRET,
+      scopes: WEBAPP_RGW_OIDC_SCOPE.split(" "),
+      pkce: true,
+      authorizationUrlParams: {
+        aud: WEBAPP_RGW_OIDC_AUDIENCE,
+      },
+      getUserInfo: async ({ idToken, accessToken }) => {
+        try {
+          if (!idToken || !accessToken) {
+            // returning null will raise an exception during the login flow
+            return null;
+          }
+          const profile = decodeJwtPayload(accessToken);
+          const groups = profile["groups"] as string[] | undefined;
+          const credentials = await loginWithSTS(accessToken);
+          const { accessKeyId, secretAccessKey, sessionToken } = credentials;
+          if (!(accessKeyId && secretAccessKey && sessionToken)) {
+            throw new Error("Failed to get AWS Credentials");
+          }
+          return {
+            id: profile.sub,
+            emailVerified: profile.email_verified ?? false,
+            name: profile.name,
+            email: profile.email,
+            sub: profile.sub,
+            groups: groups ? groups.join(" ") : "",
+            ...credentials,
+          };
+        } catch (err) {
+          if (err instanceof Error) {
+            console.error(
+              "An error occurred during STS token exchange:\n",
+              JSON.stringify(err, null, 2)
+            );
+          } else {
+            console.error("Uncaught exception during STS token exchange");
+          }
+          return null;
+        }
+      },
+    },
+  ],
+});
 
-declare module "next-auth/jwt" {
-  interface JWT extends DefaultJWT {
-    credentials?: AwsCredentialIdentity;
-    groups?: string[];
-  }
-}
-
-declare module "@auth/core/types" {
-  interface User {
-    credentials?: AwsCredentialIdentity;
-  }
-
-  interface Session {
-    access_token?: string & DefaultSession["user"];
-    credentials?: AwsCredentialIdentity;
-    groups?: string[];
-    error?: string;
-  }
-}
-
-const IamProvider: OIDCConfig<Profile> = {
-  id: "indigo-iam",
-  name: "Indigo-IAM",
-  type: "oidc",
-  issuer: WEBAPP_RGW_OIDC_ISSUER,
-  clientId: WEBAPP_RGW_OIDC_CLIENT_ID,
-  clientSecret: WEBAPP_RGW_OIDC_CLIENT_SECRET,
-  authorization: {
-    params: {
-      scope: WEBAPP_RGW_OIDC_SCOPE,
-      audience: WEBAPP_RGW_OIDC_AUDIENCE,
+export const auth = betterAuth({
+  baseURL: `${WEBAPP_RGW_BASE_URL}/api/auth`,
+  secret: WEBAPP_RGW_AUTH_SECRET,
+  user: {
+    additionalFields: {
+      accessKeyId: {
+        type: "string",
+        required: true,
+        defaultValue: false,
+        input: false,
+      },
+      secretAccessKey: {
+        type: "string",
+        required: true,
+        input: false,
+      },
+      sessionToken: {
+        type: "string",
+        required: true,
+        input: false,
+        defaultValue: undefined,
+      },
+      expiration: {
+        type: "string",
+        required: false,
+        input: false,
+        defaultValue: undefined,
+      },
+      groups: {
+        type: "string",
+        required: true,
+        input: false,
+        defaultValue: "",
+      },
     },
   },
-  checks: ["pkce", "state"],
-  profile: (profile: Profile, _: TokenSet): Awaitable<User> => {
-    const user: User = {
-      id: profile.sub ?? undefined,
-      name: profile.name ?? undefined,
-      email: profile.email ?? undefined,
-      image: profile.picture ?? undefined,
-    };
-    return user;
+  plugins: [oAuth, nextCookies()],
+  session: {
+    expiresIn: WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
+    disableSessionRefresh: true,
+    cookieCache: {
+      strategy: "jwe",
+      enabled: true,
+      maxAge: 3600,
+    },
   },
-};
-
-const CredentialsProvider = Credentials({
-  id: "credentials",
-  credentials: {
-    accessKeyId: { label: "Access Key Id" },
-    secretAccessKey: { label: "Secret Access Key", type: "password" },
-  },
-  async authorize(credentials) {
-    const accessKeyId = credentials.accessKeyId as string | undefined;
-    const secretAccessKey = credentials.secretAccessKey as string | undefined;
-
-    if (!accessKeyId || !secretAccessKey) {
-      throw Error("Credentials not found");
-    }
-
-    const expires_in = parseInt(WEBAPP_RGW_S3_ROLE_DURATION_SECONDS);
-    const expiration = new Date(Date.now() + expires_in * 1000);
-
-    return {
-      id: accessKeyId,
-      credentials: { accessKeyId, secretAccessKey, expiration },
-    };
+  account: {
+    storeStateStrategy: "cookie",
+    storeAccountCookie: true, // Store account data after OAuth flow in a cookie (useful for database-less flows)
+    updateAccountOnSignIn: true,
   },
 });
 
-export const authConfig: NextAuthConfig = {
-  providers: [IamProvider, CredentialsProvider],
-  pages: {
-    signIn: "/login",
-    error: "/error",
-  },
-  callbacks: {
-    async jwt({ token, account, user }) {
-      if (!account) {
-        return token;
-      }
-      const { access_token } = account;
-      if (access_token) {
-        const groups = decodeJwtPayload(access_token)["groups"] as
-          | string[]
-          | undefined;
-        try {
-          token.credentials = await loginWithSTS(access_token);
-          token.groups = groups;
-        } catch (err) {
-          console.error("Cannot perform STS AssumeRoleWithWebIdentity:", err);
-          throw err;
-        }
-      } else if (user.credentials) {
-        token.credentials = user.credentials;
-      }
-      return token;
-    },
-    authorized({ auth }) {
-      const expiration = new Date(auth?.credentials?.expiration ?? 0);
-      const now = new Date();
-      const sessionExpired = expiration < now;
-      return !!auth && !sessionExpired;
-    },
-    async session({ session, token }) {
-      const { credentials, groups } = token;
-      session.credentials = credentials;
-      session.groups = groups;
-      return session;
-    },
-  },
-};
+export type User = typeof auth.$Infer.Session.user;
+export type Session = typeof auth.$Infer.Session;
 
-export const { auth, handlers, signIn, signOut } = NextAuth(authConfig);
+export async function signIn() {
+  const { url } = await auth.api.signInWithOAuth2({
+    body: {
+      providerId: "indigo-iam",
+      callbackURL: WEBAPP_RGW_BASE_URL,
+    },
+  });
+  redirect(url);
+}
+
+export async function signOut() {
+  await auth.api.signOut({ headers: await headers() });
+}
+
+export async function getSession() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user.expiration) {
+    return;
+  }
+  // Be pedantic with STS credentials expire date.
+  // Since both user session and STS role have same duration in seconds,
+  // STS role should not expire before user session (with temporal resolution
+  // in seconds)
+  if (new Date(session.user.expiration) < new Date()) {
+    return;
+  }
+  return session;
+}
+
+export async function getAccessToken() {
+  return await auth.api.getAccessToken({
+    body: {
+      providerId: "indigo-iam",
+    },
+    headers: await headers(),
+  });
+}

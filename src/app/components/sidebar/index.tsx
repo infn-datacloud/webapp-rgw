@@ -15,7 +15,7 @@ type UserViewProps = {
 function UserView(props: Readonly<UserViewProps>) {
   const { username, email } = props;
   return (
-    <div className="border-secondary flex w-full justify-between border-t p-4">
+    <div className="border-secondary flex w-full items-center justify-between border-t p-4">
       {username ? (
         <div className="flex">
           <Gravatar email={email} />

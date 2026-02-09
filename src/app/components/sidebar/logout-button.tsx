@@ -2,18 +2,22 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-"use client";
-
 import { ArrowLeftStartOnRectangleIcon } from "@heroicons/react/24/outline";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/auth";
 
 export function LogoutButton() {
+  async function logout() {
+    "use server";
+    await signOut();
+  }
   return (
-    <button
-      className="text-secondary hover:bg-light active:bg-primary-200 my-auto rounded-full p-2 transition"
-      onClick={() => signOut()}
-    >
-      <ArrowLeftStartOnRectangleIcon className="w-5" />
-    </button>
+    <form action={logout}>
+      <button
+        className="text-secondary hover:bg-light active:bg-primary-200 rounded-full p-2 transition"
+        type="submit"
+      >
+        <ArrowLeftStartOnRectangleIcon className="w-5" />
+      </button>
+    </form>
   );
 }

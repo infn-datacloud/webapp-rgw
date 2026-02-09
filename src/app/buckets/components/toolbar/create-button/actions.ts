@@ -4,7 +4,8 @@
 
 "use server";
 import { parseS3Error } from "@/commons/utils";
-import { makeS3Client } from "@/services/s3/actions";
+import { S3Service } from "@/services/s3";
+import { getS3ServiceConfig } from "@/services/s3/actions";
 import { revalidatePath } from "next/cache";
 
 export async function createBucket(formData: FormData) {
@@ -15,7 +16,8 @@ export async function createBucket(formData: FormData) {
   if (!bucketName) {
     throw Error("bucket name is null");
   }
-  const s3 = await makeS3Client();
+  const s3Config = await getS3ServiceConfig();
+  const s3 = new S3Service(s3Config);
   try {
     await s3.createBucket({ bucketName, objectLockEnabled, versioningEnabled });
     revalidatePath("/buckets");

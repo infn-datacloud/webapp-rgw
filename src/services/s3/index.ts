@@ -21,7 +21,6 @@ import {
   PutBucketVersioningCommand,
   PutObjectLockConfigurationCommand,
   S3Client,
-  S3ClientConfig,
   VersioningConfiguration,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -29,8 +28,7 @@ import { trace } from "@opentelemetry/api";
 import { FileObjectWithProgress } from "@/models/bucket";
 import { Upload } from "@aws-sdk/lib-storage";
 import { dropDuplicates } from "@/commons/utils";
-import { CreateBucketArgs } from "./types";
-
+import { CreateBucketArgs, S3ServiceConfig } from "./types";
 
 const tracer = trace.getTracer("s3webui");
 
@@ -40,14 +38,11 @@ export class S3Service {
   groups?: string[];
   abortController: AbortController;
 
-  constructor(
-    config: S3ClientConfig,
-    publisherBucket?: string,
-    groups?: string[]
-  ) {
-    this.client = new S3Client(config);
+  constructor(config: S3ServiceConfig) {
+    const { s3ClientConfig, publisherBucket, groups } = config;
+    this.client = new S3Client(s3ClientConfig);
     this.publisherBucket = publisherBucket;
-    this.groups = groups;
+    this.groups = groups?.split(" ");
     this.abortController = new AbortController();
   }
 

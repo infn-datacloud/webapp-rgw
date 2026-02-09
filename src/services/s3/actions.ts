@@ -4,17 +4,16 @@
 
 "use server";
 
-import { auth } from "@/auth";
+import { getSession, Session } from "@/auth";
 import { settings } from "@/config";
-import { S3ClientConfig } from "@aws-sdk/client-s3";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
-import { AWSConfig } from "./types";
+import { AWSConfig, S3ServiceConfig } from "./types";
 import {
   AssumeRoleWithWebIdentityCommand,
   STSClient,
 } from "@aws-sdk/client-sts";
 import { trace } from "@opentelemetry/api";
-import { S3Service } from ".";
+import { redirect } from "next/navigation";
 
 const {
   WEBAPP_RGW_S3_ENDPOINT,
@@ -32,7 +31,7 @@ export async function loginWithSTS(
     endpoint: WEBAPP_RGW_S3_ENDPOINT,
     region: WEBAPP_RGW_S3_REGION,
     roleArn: WEBAPP_RGW_S3_ROLE_ARN,
-    roleSessionDurationSeconds: parseInt(WEBAPP_RGW_S3_ROLE_DURATION_SECONDS),
+    roleSessionDurationSeconds: WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
   };
   const sts = new STSClient({ ...config });
   const command = new AssumeRoleWithWebIdentityCommand({
@@ -57,34 +56,31 @@ export async function loginWithSTS(
   });
 }
 
-export async function s3ClientConfig(
-  credentials: AwsCredentialIdentity
-): Promise<S3ClientConfig> {
-  let { expiration } = credentials;
-  if (expiration && !(expiration instanceof Date)) {
-    expiration = new Date(expiration);
-  }
-
-  const creds = { ...credentials, expiration };
-
-  return {
-    endpoint: WEBAPP_RGW_S3_ENDPOINT,
-    region: WEBAPP_RGW_S3_REGION,
-    credentials: creds,
-    forcePathStyle: true,
-  };
-}
-
-export async function makeS3Client() {
-  const session = await auth();
-  if (!session) {
+export async function getS3ServiceConfig(
+  session?: Session
+): Promise<S3ServiceConfig> {
+  // optimization to avoid calling getSession() twice from SSR pages
+  const _session = session ?? (await getSession());
+  if (!_session) {
     throw Error("Session is not available");
   }
-  const { credentials, groups } = session;
-  if (!credentials) {
-    throw new Error("Cannot find credentials");
-  }
+  // prettier-ignore
+  const {
+    accessKeyId,
+    secretAccessKey,
+    sessionToken,
+    groups,
+  } = _session.user;
 
-  const s3Config = await s3ClientConfig(credentials);
-  return new S3Service(s3Config, "bucket-policy", groups);
+  const credentials = { accessKeyId, secretAccessKey, sessionToken };
+  return {
+    s3ClientConfig: {
+      endpoint: WEBAPP_RGW_S3_ENDPOINT,
+      region: WEBAPP_RGW_S3_REGION,
+      forcePathStyle: true,
+      credentials,
+    },
+    publisherBucket: "bucket-policy",
+    groups,
+  };
 }
