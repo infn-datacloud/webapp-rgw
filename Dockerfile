@@ -32,8 +32,6 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-COPY --from=builder /app/public ./public
-
 # Set the correct permission for prerender cache
 RUN apk add curl openssl && \
   addgroup --system --gid 1001 nodejs && \
