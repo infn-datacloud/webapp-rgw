@@ -10,7 +10,7 @@ type GravatarProps = {
   email: string | undefined | null;
 };
 function FallbackImage() {
-  return <UserCircleIcon className="size-12" />;
+  return <UserCircleIcon className="text-secondary size-12" />;
 }
 
 export async function Gravatar(props: Readonly<GravatarProps>) {

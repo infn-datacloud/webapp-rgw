@@ -2,14 +2,18 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import { betterAuth } from "better-auth";
-import { settings } from "./config";
-import { genericOAuth } from "better-auth/plugins";
+import { betterAuth, BetterAuthPlugin } from "better-auth";
+import { ERROR_CODES, genericOAuth } from "better-auth/plugins";
+import { APIError } from "better-auth/api";
+import { createAuthEndpoint } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { settings } from "@/config";
 import { decodeJwtPayload } from "./commons/utils";
-import { loginWithSTS } from "./services/s3/actions";
+import { listBuckets, loginWithSTS } from "./services/s3/actions";
+import { setSessionCookie } from "better-auth/cookies";
+import z from "zod";
 
 const {
   WEBAPP_RGW_BASE_URL,
@@ -21,6 +25,85 @@ const {
   WEBAPP_RGW_OIDC_AUDIENCE,
   WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
 } = settings;
+
+// https://github.com/better-auth/better-auth/blob/dfeefc4f58ee24f1ee6cdbe22d5e720b2ba621b8/packages/better-auth/src/plugins/username/index.ts#L98
+const accessKeysSchema = z.object({
+  accessKeyId: z.string().meta({ description: "Access Key Id" }),
+  secretAccessKey: z.string().meta({ description: "Secret Access Key" }),
+});
+
+function plainCredentials() {
+  return {
+    id: "credentials",
+    schema: {
+      credentials: {
+        fields: {
+          accessKeyId: {
+            type: "string",
+          },
+          secretAccessKey: {
+            type: "string",
+          },
+        },
+      },
+    },
+    endpoints: {
+      signInCredentials: createAuthEndpoint(
+        "/sign-in/credentials",
+        {
+          method: "POST",
+          body: accessKeysSchema,
+        },
+        async ctx => {
+          const { accessKeyId, secretAccessKey } = ctx.body;
+          if (!accessKeyId || !secretAccessKey) {
+            throw new APIError("UNAUTHORIZED", {
+              message: ERROR_CODES.INVALID_API_KEY,
+            });
+          }
+          try {
+            await listBuckets({ accessKeyId, secretAccessKey });
+          } catch (err) {
+            if (err instanceof Error) {
+              if (err.name === "AccessDenied") {
+                throw new APIError("FORBIDDEN", {
+                  message: ERROR_CODES.UNAUTHORIZED_SESSION,
+                });
+              }
+              throw err;
+            } else {
+              throw new Error(`Unknown error: ${err}`);
+            }
+          }
+          const session = await ctx.context.internalAdapter.createSession(
+            accessKeyId,
+            false
+          );
+          const expiration = new Date();
+          expiration.setSeconds(
+            expiration.getSeconds() + WEBAPP_RGW_S3_ROLE_DURATION_SECONDS
+          );
+          const user = {
+            id: accessKeyId,
+            name: accessKeyId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            expiration: expiration,
+            emailVerified: false,
+            email: "",
+            accessKeyId,
+            secretAccessKey,
+          };
+          await setSessionCookie(ctx, { session, user });
+          return ctx.json({
+            token: session.token,
+            user,
+          });
+        }
+      ),
+    },
+  } satisfies BetterAuthPlugin;
+}
 
 const oAuth = genericOAuth({
   config: [
@@ -108,7 +191,7 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [oAuth, nextCookies()],
+  plugins: [oAuth, plainCredentials(), nextCookies()],
   session: {
     expiresIn: WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
     disableSessionRefresh: true,
@@ -127,6 +210,23 @@ export const auth = betterAuth({
 
 export type User = typeof auth.$Infer.Session.user;
 export type Session = typeof auth.$Infer.Session;
+
+export async function signInCredentials(
+  accessKeyId: string,
+  secretAccessKey: string
+) {
+  try {
+    await auth.api.signInCredentials({
+      body: { accessKeyId, secretAccessKey },
+    });
+    redirect("/");
+  } catch (err) {
+    if (err instanceof APIError) {
+      redirect(`/login?error=${err.status}`);
+    }
+    throw err;
+  }
+}
 
 export async function signIn() {
   const { url } = await auth.api.signInWithOAuth2({

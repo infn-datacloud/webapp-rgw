@@ -6,6 +6,7 @@
 
 import { getSession, Session } from "@/auth";
 import { settings } from "@/config";
+import { redirect } from "next/navigation";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { AWSConfig, S3ServiceConfig } from "./types";
 import {
@@ -13,7 +14,7 @@ import {
   STSClient,
 } from "@aws-sdk/client-sts";
 import { trace } from "@opentelemetry/api";
-import { redirect } from "next/navigation";
+import { S3Service } from ".";
 
 const {
   WEBAPP_RGW_S3_ENDPOINT,
@@ -23,6 +24,21 @@ const {
 } = settings;
 
 const tracer = trace.getTracer("s3webui");
+
+export async function listBuckets(credentials: {
+  accessKeyId: string;
+  secretAccessKey: string;
+}) {
+  const s3 = new S3Service({
+    s3ClientConfig: {
+      endpoint: WEBAPP_RGW_S3_ENDPOINT,
+      region: WEBAPP_RGW_S3_REGION,
+      forcePathStyle: true,
+      credentials,
+    },
+  });
+  return await s3.fetchPrivateBuckets();
+}
 
 export async function loginWithSTS(
   access_token: string
@@ -62,7 +78,7 @@ export async function getS3ServiceConfig(
   // optimization to avoid calling getSession() twice from SSR pages
   const _session = session ?? (await getSession());
   if (!_session) {
-    throw Error("Cannot get S3 configuration: session not available");
+    redirect("/login");
   }
   // prettier-ignore
   const {

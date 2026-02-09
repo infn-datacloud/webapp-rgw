@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import { getSession, signIn } from "@/auth";
+import { getSession, signIn, signInCredentials } from "@/auth";
 import logo from "@/imgs/logo-ceph.png";
 import Spinner from "@/components/spinner";
 import { Button } from "@/components/buttons";
@@ -23,14 +23,29 @@ function Loading() {
   );
 }
 
-export default async function Login() {
+function ForbiddenError() {
+  return <p className="text-danger/75 text-center font-light">Access denied</p>;
+}
+
+type LoginProps = {
+  searchParams?: Promise<{
+    error?: string;
+  }>;
+};
+export default async function Login(props: Readonly<LoginProps>) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
+  const forbidden = searchParams?.error === "FORBIDDEN";
+
   if (session) {
     redirect("/");
   }
 
-  async function loginWithCredentials() {
+  async function loginWithCredentials(formData: FormData) {
     "use server";
+    const accessKeyId = formData.get("accessKeyId") as string;
+    const secretAccessKey = formData.get("secretAccessKey") as string;
+    await signInCredentials(accessKeyId, secretAccessKey);
   }
 
   async function loginWithOAuth2() {
@@ -60,6 +75,7 @@ export default async function Login() {
                 type="password"
                 required
               />
+              {forbidden && <ForbiddenError />}
               <Button
                 className="btn-primary block w-full text-center"
                 title="Login with local credentials"
