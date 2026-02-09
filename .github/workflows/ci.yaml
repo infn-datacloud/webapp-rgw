@@ -7,16 +7,6 @@ name: ci
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-    tags:
-      - "v*"
-    paths-ignore:
-      - README.md
-      - LICENSES
-  pull_request:
-    branches:
-      - "master"
     paths-ignore:
       - README.md
       - LICENSES

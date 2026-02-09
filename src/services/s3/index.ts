@@ -3,11 +3,6 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 import {
-  AssumeRoleWithWebIdentityCommand,
-  STSClient,
-} from "@aws-sdk/client-sts";
-import { AWSConfig, CreateBucketArgs } from "./types";
-import {
   _Object,
   Bucket,
   CommonPrefix,
@@ -26,30 +21,16 @@ import {
   PutBucketVersioningCommand,
   PutObjectLockConfigurationCommand,
   S3Client,
-  S3ClientConfig,
   VersioningConfiguration,
 } from "@aws-sdk/client-s3";
-import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { dropDuplicates } from "@/commons/utils";
 import { trace } from "@opentelemetry/api";
 import { FileObjectWithProgress } from "@/models/bucket";
 import { Upload } from "@aws-sdk/lib-storage";
+import { dropDuplicates } from "@/commons/utils";
+import { CreateBucketArgs, S3ServiceConfig } from "./types";
 
 const tracer = trace.getTracer("s3webui");
-
-if (process.env.APP_ENV === "production") {
-  console.debug = () => {};
-  console.log = () => {};
-  console.warn = () => {};
-}
-
-const awsConfig: AWSConfig = {
-  endpoint: process.env.S3_ENDPOINT!,
-  region: process.env.S3_REGION!,
-  roleArn: process.env.S3_ROLE_ARN!,
-  roleSessionDurationSeconds: parseInt(process.env.S3_ROLE_DURATION_SECONDS!),
-};
 
 export class S3Service {
   client: S3Client;
@@ -57,42 +38,12 @@ export class S3Service {
   groups?: string[];
   abortController: AbortController;
 
-  constructor(
-    config: S3ClientConfig,
-    publisherBucket?: string,
-    groups?: string[]
-  ) {
-    this.client = new S3Client(config);
+  constructor(config: S3ServiceConfig) {
+    const { s3ClientConfig, publisherBucket, groups } = config;
+    this.client = new S3Client(s3ClientConfig);
     this.publisherBucket = publisherBucket;
-    this.groups = groups;
+    this.groups = groups?.split(" ");
     this.abortController = new AbortController();
-  }
-
-  static async loginWithSTS(
-    access_token: string
-  ): Promise<AwsCredentialIdentity> {
-    const config = awsConfig;
-    const sts = new STSClient({ ...config });
-    const command = new AssumeRoleWithWebIdentityCommand({
-      DurationSeconds: config.roleSessionDurationSeconds,
-      RoleArn: config.roleArn,
-      RoleSessionName: crypto.randomUUID(),
-      WebIdentityToken: access_token,
-    });
-    return await tracer.startActiveSpan("loginWithSTS", async span => {
-      try {
-        const response = await sts.send(command);
-        const credentials = response.Credentials!;
-        return {
-          accessKeyId: credentials.AccessKeyId!,
-          secretAccessKey: credentials.SecretAccessKey!,
-          sessionToken: credentials.SessionToken!,
-          expiration: credentials.Expiration,
-        };
-      } finally {
-        span.end();
-      }
-    });
   }
 
   async fetchPublicBuckets() {

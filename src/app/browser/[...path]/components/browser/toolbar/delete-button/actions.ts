@@ -5,7 +5,7 @@
 "use server";
 
 import { S3Service } from "@/services/s3";
-import { makeS3Client } from "@/services/s3/actions";
+import { getS3ServiceConfig } from "@/services/s3/actions";
 import { _Object, CommonPrefix, ObjectIdentifier } from "@aws-sdk/client-s3";
 
 export async function deleteFolders(
@@ -25,7 +25,8 @@ export async function deleteAll(
   objects: _Object[],
   folders: CommonPrefix[]
 ) {
-  const s3 = await makeS3Client();
+  const s3Config = await getS3ServiceConfig();
+  const s3 = new S3Service(s3Config);
   const promises = await deleteFolders(s3, bucket, folders);
   promises.push(s3.deleteObjects(bucket, objects as ObjectIdentifier[]));
   return Promise.allSettled(promises);

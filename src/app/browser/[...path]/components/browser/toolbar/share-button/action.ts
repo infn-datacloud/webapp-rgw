@@ -4,13 +4,15 @@
 
 "use server";
 
-import { makeS3Client } from "@/services/s3/actions";
+import { S3Service } from "@/services/s3";
+import { getS3ServiceConfig } from "@/services/s3/actions";
 
 export async function getPresignedUrl(
   bucket: string,
   key: string,
   expiresIn: number
 ) {
-  const s3 = await makeS3Client();
+  const s3Config = await getS3ServiceConfig();
+  const s3 = new S3Service(s3Config);
   return await s3.getPresignedUrl(bucket, key, expiresIn);
 }

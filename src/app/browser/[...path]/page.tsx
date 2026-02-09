@@ -4,7 +4,8 @@
 
 import { Layout } from "@/app/components/layout";
 import { LoadingBar } from "@/components/loading";
-import { makeS3Client } from "@/services/s3/actions";
+import { getS3ServiceConfig } from "@/services/s3/actions";
+import { S3Service } from "@/services/s3";
 import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Suspense } from "react";
 import { Browser } from "./components";
@@ -36,7 +37,8 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
   }
 
   try {
-    const s3 = await makeS3Client();
+    const s3Config = await getS3ServiceConfig();
+    const s3 = new S3Service(s3Config);
     const response = searchParams?.q
       ? await s3.searchObjects(bucket, prefix, searchParams.q)
       : await s3.listObjects(

@@ -3,27 +3,21 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 "use client";
-import { s3ClientConfig } from "@/services/s3/actions";
+
+import { getS3ServiceConfig } from "@/services/s3/actions";
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { S3Service } from ".";
 
 export function useS3() {
-  const { status, data } = useSession();
   const [service, setService] = useState<S3Service>();
 
   useEffect(() => {
     async function connect() {
-      if (status === "authenticated") {
-        if (!data?.credentials) {
-          throw new Error("Session not found");
-        }
-        const config = await s3ClientConfig(data.credentials);
-        setService(new S3Service(config));
-      }
+      const s3Config = await getS3ServiceConfig();
+      setService(new S3Service(s3Config));
     }
     connect();
-  }, [status, data]);
+  }, []);
 
   return service;
 }

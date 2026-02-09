@@ -3,13 +3,16 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 "use server";
+
 import { BucketConfiguration } from "@/models/bucket";
-import { makeS3Client } from "@/services/s3/actions";
+import { S3Service } from "@/services/s3";
+import { getS3ServiceConfig } from "@/services/s3/actions";
 
 export async function getBucketConfiguration(
   bucket: string
 ): Promise<BucketConfiguration> {
-  const s3 = await makeS3Client();
+  const s3Config = await getS3ServiceConfig();
+  const s3 = new S3Service(s3Config);
   const [versioningOutput] = await Promise.all([
     s3.getBucketVersioning(bucket),
     // s3.getBucketObjectLock(bucket),

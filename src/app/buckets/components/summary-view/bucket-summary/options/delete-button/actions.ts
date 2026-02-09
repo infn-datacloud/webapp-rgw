@@ -5,12 +5,14 @@
 "use server";
 
 import { parseS3Error } from "@/commons/utils";
-import { makeS3Client } from "@/services/s3/actions";
+import { S3Service } from "@/services/s3";
+import { getS3ServiceConfig } from "@/services/s3/actions";
 import { revalidatePath } from "next/cache";
 
 export async function deleteBucket(bucket: string) {
   try {
-    const s3 = await makeS3Client();
+    const s3Config = await getS3ServiceConfig();
+    const s3 = new S3Service(s3Config);
     await s3.deleteBucket(bucket);
     revalidatePath("/buckets");
   } catch (err) {

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 import { dateToHuman } from "@/commons/utils";
+import UploaderProvider from "@/components/uploader";
 import { Bucket } from "@aws-sdk/client-s3";
 import { ClockIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -13,15 +14,17 @@ function BucketLink(props: Readonly<{ bucket: Bucket }>) {
     ? dateToHuman(bucket.CreationDate)
     : "N/A";
   return (
-    <li className="text-primary dark:text-secondary gap-2 border-b border-slate-200 bg-white p-4 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700">
-      <Link className="flex flex-col" href={`/browser/${bucket.Name}`}>
-        <span className="grow text-base font-bold">{bucket.Name}</span>
-        <span className="dark:text-secondary/60 flex min-w-36 items-center gap-1 text-sm text-gray-400">
-          <ClockIcon className=" size-4 h-[1lh]" />
-          <span>Created {creationDate}</span>
-        </span>
-      </Link>
-    </li>
+    <UploaderProvider>
+      <li className="text-primary dark:text-secondary gap-2 border-b border-slate-200 bg-white p-4 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700">
+        <Link className="flex flex-col" href={`/browser/${bucket.Name}`}>
+          <span className="grow text-base font-bold">{bucket.Name}</span>
+          <span className="dark:text-secondary/60 flex min-w-36 items-center gap-1 text-sm text-gray-400">
+            <ClockIcon className="size-4 h-lh" />
+            <span>Created {creationDate}</span>
+          </span>
+        </Link>
+      </li>
+    </UploaderProvider>
   );
 }
 
