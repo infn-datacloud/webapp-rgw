@@ -5,12 +5,16 @@
 import UploaderProvider from "@/components/uploader";
 
 type BrowserLayoutProps = {
-  children: React.ReactElement;
+  children: React.ReactNode;
 };
 
 export default async function BrowserLayout(
   props: Readonly<BrowserLayoutProps>
 ) {
   const { children } = props;
-  return <UploaderProvider>{children}</UploaderProvider>;
+  return (
+    <UploaderProvider>
+      <>{children}</>
+    </UploaderProvider>
+  );
 }
