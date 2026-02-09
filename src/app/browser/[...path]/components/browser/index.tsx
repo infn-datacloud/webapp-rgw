@@ -11,7 +11,7 @@ import { ObjectTable } from "./table";
 import { BucketInspector } from "./toolbar/inspector";
 import Toolbar from "./toolbar";
 
-const INSPECTOR_CLOSE_DELAY = 200;
+const INSPECTOR_CLOSE_DELAY = 300;
 
 export type BucketBrowserProps = {
   bucket: string;
@@ -27,12 +27,13 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
   const { upload } = useUploader();
   const [showInspector, setShowInspector] = useState(false);
   const [selectedAll, setSelectedAll] = useState(false);
-  const [selectedObjectsIndexes, setSelectedObjectsIndexes] = useState<
-    Set<number>
-  >(new Set());
-  const [selectedFoldersIndexes, setSelectedFoldersIndexes] = useState<
-    Set<number>
-  >(new Set());
+  const [selectedIndexes, setSelectedIndexes] = useState<{
+    objects: Set<number>;
+    folders: Set<number>;
+  }>({
+    objects: new Set(),
+    folders: new Set(),
+  });
 
   const folders = useMemo(() => {
     const { CommonPrefixes } = listObjectOutput;
@@ -56,31 +57,37 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     setShowInspector(false);
   };
 
+  function totalItems(items: { objects: Set<number>; folders: Set<number> }) {
+    return items.objects.size + items.folders.size;
+  }
+
   function handleSelectFolder(index: number, checked: boolean) {
-    const newSet = new Set(selectedFoldersIndexes);
-    checked ? newSet.add(index) : newSet.delete(index);
-    if (newSet.size + selectedObjectsIndexes.size > 0) {
+    const folders = new Set(selectedIndexes.folders);
+    checked ? folders.add(index) : folders.delete(index);
+    const _selected = { ...selectedIndexes, folders };
+    if (totalItems(_selected) > 0) {
       openInspector();
-      setSelectedFoldersIndexes(newSet);
+      setSelectedIndexes(_selected);
     } else {
       closeInspector();
       setTimeout(
-        () => setSelectedFoldersIndexes(newSet),
+        () => setSelectedIndexes({ ...selectedIndexes, folders }),
         INSPECTOR_CLOSE_DELAY
       );
     }
   }
 
   function handleSelectObject(index: number, checked: boolean) {
-    const newSet = new Set(selectedObjectsIndexes);
-    checked ? newSet.add(index) : newSet.delete(index);
-    if (newSet.size + selectedFoldersIndexes.size > 0) {
+    const objects = new Set(selectedIndexes.objects);
+    checked ? objects.add(index) : objects.delete(index);
+    const _selected = { ...selectedIndexes, objects };
+    if (totalItems(_selected)) {
       openInspector();
-      setSelectedObjectsIndexes(newSet);
+      setSelectedIndexes({ ...selectedIndexes, objects });
     } else {
       closeInspector();
       setTimeout(
-        () => setSelectedObjectsIndexes(newSet),
+        () => setSelectedIndexes({ ...selectedIndexes, objects }),
         INSPECTOR_CLOSE_DELAY
       );
     }
@@ -88,8 +95,10 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
 
   const selectAll = () => {
     openInspector();
-    setSelectedFoldersIndexes(new Set([...Array(folders.length).keys()]));
-    setSelectedObjectsIndexes(new Set([...Array(objects.length).keys()]));
+    setSelectedIndexes({
+      folders: new Set([...Array(folders.length).keys()]),
+      objects: new Set([...Array(objects.length).keys()]),
+    });
     setSelectedAll(true);
   };
 
@@ -97,8 +106,10 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     closeInspector();
     setTimeout(() => {
       setSelectedAll(false);
-      setSelectedFoldersIndexes(new Set());
-      setSelectedObjectsIndexes(new Set());
+      setSelectedIndexes({
+        folders: new Set(),
+        objects: new Set(),
+      });
     }, INSPECTOR_CLOSE_DELAY);
   };
 
@@ -106,10 +117,12 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
     checked ? selectAll() : deselectAll();
   }
 
-  const selectedObjects =
-    Array.from(selectedObjectsIndexes.values().map(i => objects[i])) ?? [];
-  const selectedFolders =
-    Array.from(selectedFoldersIndexes.values().map(i => folders[i])) ?? [];
+  const selectedItems = {
+    folders:
+      Array.from(selectedIndexes.folders.values().map(i => folders[i])) ?? [],
+    objects:
+      Array.from(selectedIndexes.objects.values().map(i => objects[i])) ?? [],
+  };
 
   return (
     <div className="space-y-2">
@@ -122,8 +135,8 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
       <BucketInspector
         isOpen={showInspector}
         bucket={bucket}
-        objects={selectedObjects}
-        prefixes={selectedFolders}
+        objects={selectedItems.objects}
+        prefixes={selectedItems.folders}
         onClose={deselectAll}
         onDelete={deselectAll}
       />
@@ -133,8 +146,8 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         objects={objects}
         folders={folders}
         selectedAll={selectedAll}
-        selectedFolders={selectedFoldersIndexes}
-        selectedObjects={selectedObjectsIndexes}
+        selectedFolders={selectedIndexes.folders}
+        selectedObjects={selectedIndexes.objects}
         onSelectFolder={handleSelectFolder}
         onSelectObject={handleSelectObject}
         nextContinuationToken={NextContinuationToken}

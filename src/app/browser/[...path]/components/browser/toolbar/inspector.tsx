@@ -19,7 +19,7 @@ function getTitles(objects?: _Object[]) {
     case 0:
       return { object: { Key: "N/A" }, title: "N/A" };
     case 1:
-      return { object: objects[0], title: objects[0].Key ?? "N/A" };
+      return { object: objects[0], title: objects[0]?.Key ?? "N/A" };
     default:
       return {
         object: {
@@ -37,15 +37,15 @@ function getTitles(objects?: _Object[]) {
 
 interface BucketInspectorProps extends InspectorProps {
   bucket: string;
-  objects: _Object[];
+  objects?: _Object[];
   prefixes: CommonPrefix[];
   onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
   onDelete?: () => void;
 }
 
 export function BucketInspector(props: BucketInspectorProps) {
-  const { bucket, isOpen, objects, prefixes, onClose, onDelete } = props;
-
+  const { bucket, isOpen, prefixes, onClose, onDelete } = props;
+  const objects = props.objects ?? [];
   const keys = objects.filter(o => o?.Key).map(o => o.Key!) ?? [];
   let object: _Object;
   let title: string;
@@ -59,7 +59,7 @@ export function BucketInspector(props: BucketInspectorProps) {
     title = `Multiple values (${prefixes.length + objects.length})`;
   }
 
-  const lastModified = object.LastModified
+  const lastModified = object?.LastModified
     ? dateToHuman(object.LastModified)
     : "N/A";
 
@@ -68,7 +68,7 @@ export function BucketInspector(props: BucketInspectorProps) {
       <div className="flex justify-between border-b border-gray-300 bg-gray-100 p-4 dark:border-white/30 dark:bg-slate-600">
         <div className="text-lg font-semibold">{title}</div>
         <button onClick={onClose} className="mr-0">
-          <div className="w-6 rounded-full bg-neutral-300 p-[3px] text-neutral-500 hover:bg-neutral-400">
+          <div className="w-6 rounded-full bg-neutral-300 p-0.75 text-neutral-500 hover:bg-neutral-400">
             <XMarkIcon />
           </div>
         </button>
@@ -79,7 +79,7 @@ export function BucketInspector(props: BucketInspectorProps) {
             <span className="dark:text-secondary/60 text-sm font-light text-slate-500">
               Etag
             </span>
-            {object.ETag?.replaceAll('"', "")}
+            {object?.ETag?.replaceAll('"', "")}
           </div>
           <div className="flex flex-col break-all">
             <span className="dark:text-secondary/60 text-sm font-light text-slate-500">
@@ -91,7 +91,7 @@ export function BucketInspector(props: BucketInspectorProps) {
             <span className="dark:text-secondary/60 text-sm font-light text-slate-500">
               Size
             </span>
-            {object.Size ? getHumanSize(object.Size) : "N/A"}
+            {object?.Size ? getHumanSize(object.Size) : "N/A"}
           </div>
         </section>
         <section className="space-y-2 py-8">

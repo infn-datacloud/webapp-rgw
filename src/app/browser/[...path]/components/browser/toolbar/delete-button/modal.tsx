@@ -50,7 +50,6 @@ export function ConfirmationModal(props: Readonly<ConfirmationModalProps>) {
       setPending(false);
     }
   };
-
   return (
     <Modal
       title="Delete File(s)"
@@ -62,13 +61,16 @@ export function ConfirmationModal(props: Readonly<ConfirmationModalProps>) {
         <ModalBody>
           Are you sure you want to delete the following file(s)?
           <ul className="p-4 font-mono">
-            {objectsToDelete.map(o => (
-              <li className="list-disc" key={o?.Key}>
+            {objectsToDelete.map((o, i) => (
+              <li className="list-disc" key={`${i}_${o?.Key}`}>
                 {o?.Key}
               </li>
             ))}
-            {foldersToDelete.map(f => (
-              <li className="list-disc" key={f?.Prefix}>{`${f?.Prefix}**/*`}</li>
+            {foldersToDelete.map((f, i) => (
+              <li
+                className="list-disc"
+                key={`${i}_${f?.Prefix}`}
+              >{`${f?.Prefix}**/*`}</li>
             ))}
           </ul>
         </ModalBody>
