@@ -62,7 +62,7 @@ export async function getS3ServiceConfig(
   // optimization to avoid calling getSession() twice from SSR pages
   const _session = session ?? (await getSession());
   if (!_session) {
-    throw Error("Session is not available");
+    throw Error("Cannot get S3 configuration: session not available");
   }
   // prettier-ignore
   const {
