@@ -22,7 +22,7 @@ client.
 ### Redirect URIs
 
 Redirect URIs must be in the form of
-`<WEBAPP_RGW_BASE_URL>/api/auth/callback/indigo-iam`
+`<WEBAPP_RGW_BASE_URL>/api/auth/oauth2/callback/indigo-iam`
 (without the trailing `/`), where `<WEBAPP_RGW_BASE_URL>` is the
 hostname of the machine hosting the application.
 
@@ -31,13 +31,13 @@ It is possible to configure more than one redirect URI.
 For development:
 
 ```shell
-http://localhost:300/api/auth/callback/indigo-iam
+http://localhost:300/api/auth/oauth2/callback/indigo-iam
 ```
 
 For a production deployment, the redirect uri will be, for example:
 
 ```shell
-https://s3webui.cloud.infn.it/api/auth/callback/indigo-iam
+https://s3webui.cloud.infn.it/api/auth/oauth2/callback/indigo-iam
 ```
 
 ### Scopes
