@@ -7,7 +7,6 @@
 import { getHumanSize } from "@/commons/utils";
 import { FileObjectWithProgress } from "@/models/bucket";
 import { XCircleIcon } from "@heroicons/react/24/outline";
-import { useMemo, useRef } from "react";
 
 interface ProgressBarProps {
   file: FileObjectWithProgress;
@@ -20,26 +19,12 @@ export default function ProgressBar(props: Readonly<ProgressBarProps>) {
   const { file, onAbort } = props;
   const progress = `${Math.round(Math.max(0.02, file.progress()) * 100)}%`;
   const loadedBytes = file.loaded();
-  const loaded = getHumanSize(loadedBytes);
+  const chunk = file.lastUploadedChunk();
   const total = getHumanSize(file.size());
   const aborted = file.aborted();
   const completed = file.state() === "complete";
-  const lastLoaded = useRef<number>(0);
-  const lastTime = useRef<number>(Date.now()); // milliseconds
 
-  const speed = useMemo(() => {
-    const now = Date.now();
-    let delta = now - lastTime.current;
-    if (delta !== 0) {
-      delta /= 1000;
-      const deltaB = loadedBytes - lastLoaded.current;
-      const speed = deltaB / delta;
-      lastLoaded.current = loadedBytes;
-      lastTime.current = now;
-      return speed;
-    }
-    return 0;
-  }, [loadedBytes]);
+  const speed = chunk.interval > 0 ? chunk.bytes / (chunk.interval / 1000) : 0;
 
   function abort() {
     onAbort?.(file);
@@ -78,7 +63,8 @@ export default function ProgressBar(props: Readonly<ProgressBarProps>) {
           <p className="text-xs">Uploaded {total}</p>
         ) : (
           <p className="text-xs">
-            {loaded} of {total} - <span>{getHumanSize(speed)}/s</span>
+            {getHumanSize(loadedBytes)} of {total} -{" "}
+            <span>{getHumanSize(speed)}/s</span>
           </p>
         )}
       </div>
