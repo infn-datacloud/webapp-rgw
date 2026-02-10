@@ -5,8 +5,9 @@
 "use client";
 
 import { toaster } from "@/components/toaster";
+import { getS3ServiceConfig } from "@/services/s3/actions";
+import { S3Service } from "@/services/s3";
 import { FileObjectWithProgress } from "@/models/bucket";
-import { useS3 } from "@/services/s3/useS3";
 import { useRouter } from "next/navigation";
 import { ProgressPopup } from "./progress-popup";
 import {
@@ -16,12 +17,14 @@ import {
   useEffect,
   useMemo,
   useReducer,
-  useState,
 } from "react";
 import reducer, { defaultState } from "./reducer";
 
 export interface UploaderContextProps {
-  upload: (files: File[], bucket: string, prefix: string) => void;
+  upload: (
+    file: FileObjectWithProgress,
+    bucket: string,
+  ) => void;
   onComplete?: () => void;
   children?: React.ReactNode;
 }
@@ -38,80 +41,49 @@ export default function UploaderProvider(
 ) {
   const { onComplete, children } = props;
   const [state, dispatch] = useReducer(reducer, defaultState);
-  const [filesToUpload, setFilesToUpload] = useState<{
-    files: File[];
-    bucket: string;
-    prefix: string;
-  }>();
   const router = useRouter();
-  const s3 = useS3();
-
-  function handleUploadsUpdates(object: FileObjectWithProgress) {
-    dispatch({ type: "ON_UPDATE", object });
-  }
-
-  const handleUploadComplete = useCallback(() => {
-    dispatch({ type: "ON_COMPLETE" });
-    router.refresh();
-  }, [router]);
-
-  const uploadFiles = useCallback(
-    async (data: { files: File[]; bucket: string; prefix: string }) => {
-      if (!s3) {
-        return;
-      }
-      const { files, bucket, prefix } = data;
-      const toUpload = files?.map(file => {
-        const Key = `${prefix ?? ""}${file.name}`;
-        return new FileObjectWithProgress({ Key }, file);
-      });
-      try {
-        const promises = toUpload
-          .filter(f => f.state() === "pending")
-          .map(file => {
-            state.progressStates.set(file.id, file);
-            const onUpdate = () => handleUploadsUpdates(file);
-            const onComplete = () => handleUploadComplete();
-            return s3.uploadObject(bucket, file, onUpdate, onComplete);
-          });
-        dispatch({ type: "START_UPLOADS", objects: toUpload });
-        await Promise.allSettled(promises);
-      } catch (err) {
-        let message = "Unknown Error";
-        if (err instanceof Error && err.message === "AccessDenied") {
-          message = "Access Denied";
-        }
-        toaster.danger("Cannot upload file(s)", message);
-      }
-    },
-    [s3, handleUploadComplete, state.progressStates]
+  const allCompleted = useMemo(
+    () => state.inProgress.size === 0,
+    [state.inProgress]
   );
 
-  useEffect(() => {
-    if (filesToUpload && filesToUpload.files.length > 0) {
-      uploadFiles(filesToUpload);
-      setFilesToUpload(undefined);
-    }
-  }, [s3, filesToUpload, uploadFiles]);
+  function handleUploadsUpdates(fileObject: FileObjectWithProgress) {
+    dispatch({ type: "ON_UPDATE", fileObject });
+  }
 
-  async function upload(files: File[], bucket: string, prefix: string) {
-    setFilesToUpload({ files, bucket, prefix });
+  const handleUploadComplete = useCallback(
+    (fileObject: FileObjectWithProgress) => {
+      dispatch({ type: "ON_COMPLETE", fileObject });
+      router.refresh();
+    },
+    [router]
+  );
+
+  async function upload(fileObject: FileObjectWithProgress, bucket: string) {
+    if (!state.inProgress.has(fileObject.id)) {
+      const config = await getS3ServiceConfig();
+      const s3 = new S3Service(config);
+      const onUpdate = () => handleUploadsUpdates(fileObject);
+      const onComplete = () => handleUploadComplete(fileObject);
+      dispatch({ type: "START_UPLOAD", fileObject });
+      s3.uploadObject(bucket, fileObject, onUpdate, onComplete);
+    }
   }
 
   useEffect(() => {
-    if (state.allComplete) {
+    if (allCompleted) {
       toaster.info("Uploading complete");
       onComplete?.();
     }
-  }, [state.allComplete, onComplete]);
+  }, [allCompleted, onComplete]);
 
   function closeUploader() {
     dispatch({ type: "CLOSE" });
   }
 
-  function abort(file: FileObjectWithProgress) {
-    dispatch({ type: "ABORT", object: file });
-    toaster.danger("Upload aborted", file.object.Key);
+  function abort(fileObject: FileObjectWithProgress) {
+    dispatch({ type: "ABORT", fileObject });
+    toaster.danger("Upload aborted", fileObject.object.Key);
   }
 
   function abortAllUploads() {
@@ -119,18 +91,11 @@ export default function UploaderProvider(
   }
 
   const progresses = useMemo(() => {
-    return [...state.progressStates.values()];
-  }, [state.progressStates]);
-
-  const value = useMemo(
-    () => ({
-      upload,
-    }),
-    []
-  );
+    return [...state.inProgress.values(), ...state.completed.values()];
+  }, [state]);
 
   return (
-    <UploaderContext.Provider value={value}>
+    <UploaderContext.Provider value={{ upload }}>
       <>
         {children}
         <ProgressPopup
@@ -138,7 +103,7 @@ export default function UploaderProvider(
           show={state.show}
           onClose={closeUploader}
           progressList={progresses}
-          allCompleted={state.allComplete}
+          allCompleted={allCompleted}
           onAbort={abort}
           onAbortAll={abortAllUploads}
         />

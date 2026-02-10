@@ -5,7 +5,6 @@
 "use client";
 
 import { ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
-import { useUploader } from "@/components/uploader";
 import { useMemo, useState } from "react";
 import { ObjectTable } from "./table";
 import { BucketInspector } from "./toolbar/inspector";
@@ -24,7 +23,6 @@ export type BucketBrowserProps = {
 export function Browser(props: Readonly<BucketBrowserProps>) {
   const { bucket, filepath, prefix, listObjectOutput, showFullKeys } = props;
   const { NextContinuationToken } = listObjectOutput;
-  const { upload } = useUploader();
   const [showInspector, setShowInspector] = useState(false);
   const [selectedAll, setSelectedAll] = useState(false);
   const [selectedIndexes, setSelectedIndexes] = useState<{
@@ -126,12 +124,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
 
   return (
     <div className="space-y-2">
-      <Toolbar
-        bucket={bucket}
-        currentPath={filepath}
-        prefix={prefix}
-        onFilesReadyToUpload={file => upload(file, bucket, prefix ?? "")}
-      />
+      <Toolbar bucket={bucket} currentPath={filepath} prefix={prefix} />
       <BucketInspector
         isOpen={showInspector}
         bucket={bucket}
@@ -152,7 +145,6 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
         onSelectObject={handleSelectObject}
         nextContinuationToken={NextContinuationToken}
         showFullKeys={showFullKeys}
-        onUpload={file => upload(file, bucket, prefix ?? "")}
         onSelectAll={handleOnSelectAll}
       />
     </div>
