@@ -11,42 +11,50 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 
-const CustomToast = (props: {
+type ToastType = "info" | "success" | "warning" | "danger";
+
+type IconProps = {
+  type: ToastType;
+};
+
+function Icon(props: Readonly<IconProps>) {
+  const { type } = props;
+  switch (type) {
+    case "info":
+      return (
+        <InformationCircleIcon key="circle-icon" className="text-primary" />
+      );
+    case "success":
+      return <CheckCircleIcon key="check-icon" className="text-success" />;
+    case "warning":
+      return (
+        <ExclamationTriangleIcon key="danger-icon" className="text-warning" />
+      );
+    case "danger":
+      return (
+        <ExclamationCircleIcon
+          key="danger-circle-icon"
+          className="text-danger"
+        />
+      );
+  }
+}
+
+type CustomToastProps = {
   title: string;
   subtitle?: string;
   dismiss: () => void;
   type: "info" | "success" | "warning" | "danger";
-}) => {
+};
+
+const CustomToast = (props: Readonly<CustomToastProps>) => {
   const { title, subtitle, dismiss, type } = props;
-
-  let Icon = () => {
-    switch (type) {
-      case "info":
-        return (
-          <InformationCircleIcon key="circle-icon" className="text-primary" />
-        );
-      case "success":
-        return <CheckCircleIcon key="check-icon" className="text-success" />;
-      case "warning":
-        return (
-          <ExclamationTriangleIcon key="danger-icon" className="text-warning" />
-        );
-      case "danger":
-        return (
-          <ExclamationCircleIcon
-            key="danger-circle-icon"
-            className="text-danger"
-          />
-        );
-    }
-  };
-
   return (
     <div className={"flex w-96"}>
       <div className="text:primary dark:text-secondary w-full rounded-lg border border-gray-300 bg-white p-3 shadow-lg dark:border-gray-800 dark:bg-slate-800">
         <div className="flex w-full items-center">
           <div className="mr-4 w-5">
-            <Icon />
+            <Icon type={type} />
           </div>
           <div className="mr-6 ml-2">
             <span className="font-semibold">{title}</span>
