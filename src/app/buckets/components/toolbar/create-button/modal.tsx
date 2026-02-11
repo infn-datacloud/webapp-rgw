@@ -3,14 +3,15 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 "use client";
-import { createBucket } from "./actions";
-import Modal, { ModalBody, ModalFooter } from "@/components/modal";
-import Form from "@/components/form";
-import Input from "@/components/inputs/input";
-import { useState } from "react";
+
 import { Button, ToggleSwitch } from "@/components/buttons";
-import { useRouter } from "next/navigation";
+import Form from "@/components/form";
+import Modal, { ModalBody, ModalFooter } from "@/components/modal";
+import Input from "@/components/inputs/input";
 import { toaster } from "@/components/toaster";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createBucket } from "./actions";
 
 const bucketValidator = new RegExp(
   "(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]$"
@@ -61,27 +62,30 @@ function NewBucketNameInput() {
   );
 }
 
-export default function CreateBucketModal(props: {
+function BucketFeatures() {
+  return (
+    <div className="mt-4 space-y-2">
+      <p className="font-bold">Features</p>
+      <div className="flex justify-between">
+        <p>Versioning</p>
+        <ToggleSwitch name="versioning-switch" />
+      </div>
+      <div className="flex justify-between">
+        <p>Object Lock</p>
+        <ToggleSwitch name="objectlock-switch" />
+      </div>
+    </div>
+  );
+}
+
+type CreateBucketModal = {
   show: boolean;
   onClose: () => void;
-}) {
+};
+
+export default function CreateBucketModal(props: Readonly<CreateBucketModal>) {
   const { show, onClose } = props;
   const router = useRouter();
-  const BucketFeatures = () => {
-    return (
-      <div className="mt-4 space-y-2">
-        <p className="font-bold">Features</p>
-        <div className="flex justify-between">
-          <p>Versioning</p>
-          <ToggleSwitch name="versioning-switch" />
-        </div>
-        <div className="flex justify-between">
-          <p>Object Lock</p>
-          <ToggleSwitch name="objectlock-switch" />
-        </div>
-      </div>
-    );
-  };
 
   const action = (formData: FormData) => {
     const submit = async () => {

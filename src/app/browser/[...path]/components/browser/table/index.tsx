@@ -6,6 +6,8 @@
 
 import { Checkbox } from "@/components/checkbox";
 import Paginator from "@/components/paginator";
+import { useUploader } from "@/components/uploader";
+import { FileObjectWithProgress } from "@/models/bucket";
 import { _Object, CommonPrefix } from "@aws-sdk/client-s3";
 import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useState } from "react";
@@ -25,12 +27,12 @@ type ObjectTableProps = {
   onSelectAll?: (checked: boolean) => void;
   onSelectFolder?: (index: number, value: boolean) => void;
   onSelectObject?: (index: number, value: boolean) => void;
-  onUpload?: (files: File[]) => void;
 };
 
 export function ObjectTable(props: Readonly<ObjectTableProps>) {
   const {
     bucket,
+    prefix,
     objects,
     folders,
     selectedAll,
@@ -39,12 +41,12 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
     onSelectFolder,
     onSelectObject,
     onSelectAll,
-    onUpload,
     nextContinuationToken,
     showFullKeys: showFullKey,
   } = props;
 
   const [dragging, setDragging] = useState(false);
+  const { upload } = useUploader();
 
   const dragEnterHandler = useCallback(
     (event: DragEvent) => {
@@ -72,21 +74,21 @@ export function ObjectTable(props: Readonly<ObjectTableProps>) {
   const dropHandler = useCallback(
     (event: DragEvent) => {
       event.preventDefault();
-      if (event.dataTransfer && onUpload) {
-        const files = [];
+      if (event.dataTransfer) {
         for (const item of event.dataTransfer.items) {
           if (item.kind === "file") {
             const file = item.getAsFile();
             if (file) {
-              files.push(file);
+              const Key = `${prefix ?? ""}${file.name}`;
+              const fo = new FileObjectWithProgress({ Key }, file);
+              upload(fo, bucket);
             }
           }
-          onUpload(files);
         }
       }
       setDragging(false);
     },
-    [onUpload, setDragging]
+    [setDragging, bucket, prefix, upload]
   );
 
   useEffect(() => {

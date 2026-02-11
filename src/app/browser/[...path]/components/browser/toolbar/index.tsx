@@ -10,6 +10,8 @@ import RefreshButton from "./refresh-button";
 import NewPathButton from "./new-path-button";
 import PathViewer from "./path-viewer";
 import { SearchField } from "@/components/search-field";
+import { useUploader } from "@/components/uploader";
+import { FileObjectWithProgress } from "@/models/bucket";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
@@ -19,13 +21,12 @@ export default function Toolbar(
     currentPath: string;
     prefix?: string;
     onPathChange?: (newPath: string) => void;
-    onFilesReadyToUpload: (files: File[]) => void;
   }>
 ) {
-  const { currentPath, onPathChange, onFilesReadyToUpload } = props;
-
+  const { bucket, prefix, currentPath, onPathChange } = props;
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { upload } = useUploader();
 
   const handleQueryChanged = (query: string) => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -45,11 +46,19 @@ export default function Toolbar(
     }
   }, [searchParams]);
 
+  function startUploads(files: File[]) {
+    files.forEach(file => {
+      const Key = `${prefix ?? ""}${file.name}`;
+      const fo = new FileObjectWithProgress({ Key }, file);
+      upload(fo, bucket);
+    });
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
         <HomeButton />
-        <UploadButton onChange={onFilesReadyToUpload} />
+        <UploadButton onChange={startUploads} />
         <RefreshButton />
         <NewPathButton currentPath={currentPath} onPathChange={onPathChange} />
       </div>

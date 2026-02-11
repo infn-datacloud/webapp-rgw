@@ -4,6 +4,11 @@
 
 import { _Object } from "@aws-sdk/client-s3";
 
+export type UploadedChunkMetadata = {
+  bytes: number; // bytes
+  interval: number; // milliseconds
+};
+
 export class FileObjectWithProgress {
   id: string;
   object: _Object;
@@ -12,6 +17,8 @@ export class FileObjectWithProgress {
   #loaded: number;
   #size: number;
   #state: "pending" | "uploading" | "complete" | "aborted";
+  #lastUpdate: number;
+  #lastUploadedChunk: UploadedChunkMetadata;
 
   constructor(object: _Object, file: File) {
     this.id = self.crypto.randomUUID();
@@ -21,9 +28,16 @@ export class FileObjectWithProgress {
     this.#size = 0;
     this.abortController = new AbortController();
     this.#state = "pending";
+    this.#lastUpdate = 0;
+    this.#lastUploadedChunk = { bytes: 0, interval: 0 };
   }
 
   setLoaded(value: number) {
+    const now = Date.now();
+    const interval = now - this.#lastUpdate;
+    const bytes = value - this.#loaded;
+    this.#lastUploadedChunk = { bytes, interval };
+    this.#lastUpdate = now;
     this.#loaded = value;
   }
 
@@ -44,6 +58,10 @@ export class FileObjectWithProgress {
       return 0;
     }
     return this.#loaded / this.#size;
+  }
+
+  lastUploadedChunk() {
+    return this.#lastUploadedChunk;
   }
 
   abort() {
