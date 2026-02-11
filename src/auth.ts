@@ -254,6 +254,7 @@ export async function getSession() {
   // STS role should not expire before user session (with temporal resolution
   // in seconds)
   if (new Date(session.user.expiration) < new Date()) {
+    signOut();
     return;
   }
   return session;
