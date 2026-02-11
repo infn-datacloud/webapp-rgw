@@ -62,7 +62,7 @@ const CustomToast = (props: Readonly<CustomToastProps>) => {
           </div>
           <div className="m-auto mr-0">
             <button
-              className="hover:bg-secondary dark:hover:bg-light w-8 rounded-full p-[5px] text-neutral-500"
+              className="hover:bg-secondary dark:hover:bg-light w-8 rounded-full p-1.25 text-neutral-500"
               onClick={dismiss}
             >
               <XCircleIcon />
