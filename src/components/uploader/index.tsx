@@ -21,10 +21,7 @@ import {
 import reducer, { defaultState } from "./reducer";
 
 export interface UploaderContextProps {
-  upload: (
-    file: FileObjectWithProgress,
-    bucket: string,
-  ) => void;
+  upload: (file: FileObjectWithProgress, bucket: string) => void;
   onComplete?: () => void;
   children?: React.ReactNode;
 }
@@ -55,8 +52,12 @@ export default function UploaderProvider(
     (fileObject: FileObjectWithProgress) => {
       dispatch({ type: "ON_COMPLETE", fileObject });
       router.refresh();
+      if (state.inProgress.size === 0) {
+        toaster.info("Uploading complete");
+        onComplete?.();
+      }
     },
-    [router]
+    [router, state.inProgress, onComplete]
   );
 
   async function upload(fileObject: FileObjectWithProgress, bucket: string) {
@@ -69,13 +70,6 @@ export default function UploaderProvider(
       s3.uploadObject(bucket, fileObject, onUpdate, onComplete);
     }
   }
-
-  useEffect(() => {
-    if (allCompleted) {
-      toaster.info("Uploading complete");
-      onComplete?.();
-    }
-  }, [allCompleted, onComplete]);
 
   function closeUploader() {
     dispatch({ type: "CLOSE" });
