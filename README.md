@@ -13,7 +13,7 @@ All S3 operations are implemented using the official
 
 ## OpenID/OAuth2 Client Configuration
 
-The webapp acts as client OpenID Conenct/OAuth2 client and thus, registering the
+The webapp acts as client OpenID Connect/OAuth2 client and thus, registering the
 client is required.
 
 The following sections describe how to configure an OpenID Connect/OAuth2
@@ -116,6 +116,30 @@ docker run \
   indigopaas/webapp-rgw
 ```
 
+### NGINX proxy buffers
+
+Since the usage of encrypted JWT by Better-Auth, NGINX may fail to process
+larger headers returning error 502. In such case, add to your NGINX server
+configuration:
+
+```nginx
+proxy_buffers           8 8k;
+proxy_buffer_size       8k;
+```
+
+For Kubernetes Ingress Controller, set the following annotations:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: s3webui-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-buffers: "8 8k"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
+```
+
 ## Telemetry
 
 The application supports Opentelemetry instrumentation and INFN-CNAF Otello
@@ -124,12 +148,12 @@ https://otello.cloud.cnaf.infn.it/collector/v1/traces.
 
 To change the OpenTelemetry OTLP collector endpoint set the environment variable
 
-```
+```bash
 WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT=https://otello.cloud.cnaf.infn.it/collector/v1/traces
 ```
 
 To completely disable telemetry set the following environment variable
 
-```shell
+```bash
 WEBAPP_RGW_OTEL_DISABLE_TELEMETRY=1
 ```
