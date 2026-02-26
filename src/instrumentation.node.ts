@@ -10,6 +10,7 @@ import { AwsInstrumentation } from "@opentelemetry/instrumentation-aws-sdk";
 import { settings } from "@/config";
 
 const {
+  WEBAPP_RGW_VERSION,
   WEBAPP_RGW_OTEL_SERVICE_NAME,
   WEBAPP_RGW_OTEL_SERVICE_NAMESPACE,
   WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT,
@@ -19,6 +20,7 @@ const sdk = new NodeSDK({
   resource: resourceFromAttributes({
     "service.name": WEBAPP_RGW_OTEL_SERVICE_NAME,
     "service.namespace": WEBAPP_RGW_OTEL_SERVICE_NAMESPACE,
+    "service.version": WEBAPP_RGW_VERSION,
   }),
   instrumentations: [new AwsInstrumentation()],
   spanProcessor: new BatchSpanProcessor(

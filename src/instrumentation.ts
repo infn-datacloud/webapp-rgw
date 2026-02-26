@@ -10,6 +10,7 @@ import { settings } from "@/config";
 import { authConfig } from "./auth.ts";
 
 const {
+  WEBAPP_RGW_VERSION,
   WEBAPP_RGW_OTEL_DISABLE_TELEMETRY,
   WEBAPP_RGW_OTEL_SERVICE_NAME,
   WEBAPP_RGW_OTEL_SERVICE_NAMESPACE,
@@ -58,7 +59,9 @@ Export 'WEBAPP_RGW_OTEL_DISABLE_TELEMETRY=1' to disable telemetry.`;
       url: WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT,
     }),
     attributes: {
+      "service.name": WEBAPP_RGW_OTEL_SERVICE_NAME,
       "service.namespace": WEBAPP_RGW_OTEL_SERVICE_NAMESPACE,
+      "service.version": WEBAPP_RGW_VERSION,
     },
   });
 }
