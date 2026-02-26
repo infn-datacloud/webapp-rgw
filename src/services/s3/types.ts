@@ -20,5 +20,5 @@ export interface CreateBucketArgs {
 export interface S3ServiceConfig {
   s3ClientConfig: S3ClientConfig;
   publisherBucket?: string;
-  groups?: string;
+  groups?: string[];
 }
