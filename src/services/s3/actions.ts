@@ -86,7 +86,7 @@ export async function getS3ServiceConfig(
     secretAccessKey,
     sessionToken,
     groups,
-  } = _session.user;
+  } = _session.session;
 
   const credentials = { accessKeyId, secretAccessKey, sessionToken };
   return {

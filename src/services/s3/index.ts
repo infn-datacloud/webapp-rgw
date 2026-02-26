@@ -42,7 +42,7 @@ export class S3Service {
     const { s3ClientConfig, publisherBucket, groups } = config;
     this.client = new S3Client(s3ClientConfig);
     this.publisherBucket = publisherBucket;
-    this.groups = groups?.split(" ");
+    this.groups = groups;
     this.abortController = new AbortController();
   }
 

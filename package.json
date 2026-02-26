@@ -21,6 +21,7 @@
     "@opentelemetry/sdk-node": "^0.205.0",
     "@vercel/otel": "^2",
     "better-auth": "^1.4",
+    "better-sqlite3": "^12",
     "next": "^16",
     "react": "^19",
     "react-dom": "^19",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@aws-sdk/types": "^3",
     "@tailwindcss/postcss": "^4.1",
+    "@types/better-sqlite3": "^7.6",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -15,6 +15,10 @@ const {
   WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT,
 } = settings;
 
+export function print(s: string) {
+  process.stdout.write(s);
+}
+
 const sdk = new NodeSDK({
   resource: resourceFromAttributes({
     "service.name": WEBAPP_RGW_OTEL_SERVICE_NAME,

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import { betterAuth, BetterAuthPlugin } from "better-auth";
+import { betterAuth, BetterAuthOptions, BetterAuthPlugin } from "better-auth";
 import { ERROR_CODES, genericOAuth } from "better-auth/plugins";
 import { APIError } from "better-auth/api";
 import { createAuthEndpoint } from "better-auth/api";
@@ -13,6 +13,7 @@ import { settings } from "@/config";
 import { decodeJwtPayload } from "./commons/utils";
 import { listBuckets, loginWithSTS } from "./services/s3/actions";
 import { setSessionCookie } from "better-auth/cookies";
+import { Database } from "better-sqlite3";
 import z from "zod";
 
 const {
@@ -61,39 +62,23 @@ function plainCredentials() {
               message: ERROR_CODES.INVALID_API_KEY,
             });
           }
-          try {
-            await listBuckets({ accessKeyId, secretAccessKey });
-          } catch (err) {
-            if (err instanceof Error) {
-              if (err.name === "AccessDenied") {
-                throw new APIError("FORBIDDEN", {
-                  message: ERROR_CODES.UNAUTHORIZED_SESSION,
-                });
-              }
-              throw err;
-            } else {
-              throw new Error(`Unknown error: ${err}`);
-            }
-          }
+          const maybeUser =
+            await ctx.context.internalAdapter.findUserById(accessKeyId);
+
+          const user =
+            maybeUser ??
+            (await ctx.context.internalAdapter.createUser({
+              id: accessKeyId,
+              name: accessKeyId,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              emailVerified: false,
+              email: accessKeyId,
+            }));
           const session = await ctx.context.internalAdapter.createSession(
             accessKeyId,
             false
           );
-          const expiration = new Date();
-          expiration.setSeconds(
-            expiration.getSeconds() + WEBAPP_RGW_S3_ROLE_DURATION_SECONDS
-          );
-          const user = {
-            id: accessKeyId,
-            name: accessKeyId,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            expiration: expiration,
-            emailVerified: false,
-            email: "",
-            accessKeyId,
-            secretAccessKey,
-          };
           await setSessionCookie(ctx, { session, user });
           return ctx.json({
             token: session.token,
@@ -105,109 +90,127 @@ function plainCredentials() {
   } satisfies BetterAuthPlugin;
 }
 
-const oAuth = genericOAuth({
-  config: [
-    {
-      providerId: "indigo-iam",
-      discoveryUrl: `${WEBAPP_RGW_OIDC_ISSUER}/.well-known/openid-configuration`,
-      clientId: WEBAPP_RGW_OIDC_CLIENT_ID,
-      clientSecret: WEBAPP_RGW_OIDC_CLIENT_SECRET,
-      scopes: WEBAPP_RGW_OIDC_SCOPE.split(" "),
-      pkce: true,
-      authorizationUrlParams: {
-        aud: WEBAPP_RGW_OIDC_AUDIENCE,
+const oAuth = () =>
+  genericOAuth({
+    config: [
+      {
+        providerId: "indigo-iam",
+        discoveryUrl: `${WEBAPP_RGW_OIDC_ISSUER}/.well-known/openid-configuration`,
+        clientId: WEBAPP_RGW_OIDC_CLIENT_ID,
+        clientSecret: WEBAPP_RGW_OIDC_CLIENT_SECRET,
+        scopes: WEBAPP_RGW_OIDC_SCOPE.split(" "),
+        pkce: true,
+        authorizationUrlParams: {
+          aud: WEBAPP_RGW_OIDC_AUDIENCE,
+        },
       },
-      getUserInfo: async ({ idToken, accessToken }) => {
-        try {
-          if (!idToken || !accessToken) {
-            // returning null will raise an exception during the login flow
-            return null;
-          }
-          const profile = decodeJwtPayload(accessToken);
-          const groups = profile["groups"] as string[] | undefined;
-          const credentials = await loginWithSTS(accessToken);
-          const { accessKeyId, secretAccessKey, sessionToken } = credentials;
-          if (!(accessKeyId && secretAccessKey && sessionToken)) {
-            throw new Error("Failed to get AWS Credentials");
-          }
-          return {
-            id: profile.sub,
-            emailVerified: profile.email_verified ?? false,
-            name: profile.name,
-            email: profile.email,
-            sub: profile.sub,
-            groups: groups ? groups.join(" ") : "",
-            ...credentials,
-          };
-        } catch (err) {
-          if (err instanceof Error) {
-            console.error(
-              "An error occurred during STS token exchange:\n",
-              JSON.stringify(err, null, 2)
-            );
-          } else {
-            console.error("Uncaught exception during STS token exchange");
-          }
-          return null;
-        }
-      },
-    },
-  ],
-});
+    ],
+  });
 
-export const auth = betterAuth({
-  baseURL: `${WEBAPP_RGW_BASE_URL}/api/auth`,
-  secret: WEBAPP_RGW_AUTH_SECRET,
-  user: {
-    additionalFields: {
-      accessKeyId: {
-        type: "string",
-        required: true,
-        defaultValue: false,
-        input: false,
-      },
-      secretAccessKey: {
-        type: "string",
-        required: true,
-        input: false,
-      },
-      sessionToken: {
-        type: "string",
-        required: true,
-        input: false,
-        defaultValue: undefined,
-      },
-      expiration: {
-        type: "string",
-        required: false,
-        input: false,
-        defaultValue: undefined,
-      },
-      groups: {
-        type: "string",
-        required: true,
-        input: false,
-        defaultValue: "",
+export const authConfig = (db: Database) => {
+  return {
+    baseURL: `${WEBAPP_RGW_BASE_URL}/api/auth`,
+    secret: WEBAPP_RGW_AUTH_SECRET,
+    database: db,
+    session: {
+      // expire 1 seconds before aws credentials
+      expiresIn: WEBAPP_RGW_S3_ROLE_DURATION_SECONDS - 1,
+      disableSessionRefresh: true,
+      additionalFields: {
+        accessKeyId: {
+          type: "string",
+        },
+        secretAccessKey: {
+          type: "string",
+        },
+        sessionToken: {
+          type: "string",
+          defaultValue: null,
+        },
+        groups: {
+          type: "string[]",
+        },
       },
     },
-  },
-  plugins: [oAuth, plainCredentials(), nextCookies()],
-  session: {
-    expiresIn: WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
-    disableSessionRefresh: true,
-    cookieCache: {
-      strategy: "jwe",
-      enabled: true,
-      maxAge: 3600,
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (sessionData, ctx) => {
+            if (!ctx) {
+              throw new APIError("UNAUTHORIZED", {
+                message: ERROR_CODES.UNAUTHORIZED_SESSION,
+              });
+            }
+            if (ctx.path === "/oauth2/callback/:providerId") {
+              const { userId } = sessionData;
+              // prettier-ignore
+              const [account] = await ctx.context
+                                         .internalAdapter
+                                         .findAccountByUserId(userId);
+              const { accessToken } = account;
+              if (!accessToken) {
+                throw new Error("cannot perform STS: access token not found");
+              }
+              const profile = decodeJwtPayload(accessToken);
+              const credentials = await loginWithSTS(accessToken);
+              // prettier-ignore
+              const {
+                  accessKeyId,
+                  secretAccessKey,
+                  sessionToken,
+                } = credentials;
+              if (!(accessKeyId && secretAccessKey && sessionToken)) {
+                throw new Error("Failed to get AWS Credentials");
+              }
+              const groups = profile["groups"] ?? [];
+              return {
+                data: {
+                  ...sessionData,
+                  accessKeyId,
+                  secretAccessKey,
+                  sessionToken,
+                  groups,
+                },
+              };
+            } else if (ctx.path === "/sign-in/credentials") {
+              const { accessKeyId, secretAccessKey } = ctx.body;
+              try {
+                await listBuckets({ accessKeyId, secretAccessKey });
+              } catch (err) {
+                if (err instanceof Error) {
+                  if (err.name === "AccessDenied") {
+                    throw new APIError("FORBIDDEN", {
+                      message: ERROR_CODES.UNAUTHORIZED_SESSION,
+                    });
+                  }
+                  throw err;
+                } else {
+                  throw new Error(`Unknown error: ${err}`);
+                }
+              }
+              return {
+                data: {
+                  ...sessionData,
+                  accessKeyId,
+                  secretAccessKey,
+                  sessionToken: "",
+                  groups: [],
+                },
+              };
+            }
+            return { data: { ...sessionData } };
+          },
+        },
+      },
     },
-  },
-  account: {
-    storeStateStrategy: "cookie",
-    storeAccountCookie: true, // Store account data after OAuth flow in a cookie (useful for database-less flows)
-    updateAccountOnSignIn: true,
-  },
-});
+    account: {
+      updateAccountOnSignIn: true,
+    },
+    plugins: [oAuth(), plainCredentials(), nextCookies()],
+  } satisfies BetterAuthOptions;
+};
 
+export const auth = betterAuth(authConfig(globalThis.db));
 export type User = typeof auth.$Infer.Session.user;
 export type Session = typeof auth.$Infer.Session;
 
@@ -246,17 +249,6 @@ export async function getSession() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  if (!session?.user.expiration) {
-    return;
-  }
-  // Be pedantic with STS credentials expire date.
-  // Since both user session and STS role have same duration in seconds,
-  // STS role should not expire before user session (with temporal resolution
-  // in seconds)
-  if (new Date(session.user.expiration) < new Date()) {
-    signOut();
-    return;
-  }
   return session;
 }
 
