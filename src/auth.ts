@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 import { betterAuth, BetterAuthOptions, BetterAuthPlugin } from "better-auth";
-import { ERROR_CODES, genericOAuth } from "better-auth/plugins";
+import { genericOAuth } from "better-auth/plugins";
 import { APIError } from "better-auth/api";
 import { createAuthEndpoint } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
@@ -59,7 +59,7 @@ function plainCredentials() {
           const { accessKeyId, secretAccessKey } = ctx.body;
           if (!accessKeyId || !secretAccessKey) {
             throw new APIError("UNAUTHORIZED", {
-              message: ERROR_CODES.INVALID_API_KEY,
+              message: "Access Key Id or Secret Access Key not found",
             });
           }
           const maybeUser =
@@ -138,7 +138,7 @@ export const authConfig = (db: Database) => {
           before: async (sessionData, ctx) => {
             if (!ctx) {
               throw new APIError("UNAUTHORIZED", {
-                message: ERROR_CODES.UNAUTHORIZED_SESSION,
+                message: "Context session not found",
               });
             }
             if (ctx.path === "/oauth2/callback/:providerId") {
@@ -180,7 +180,7 @@ export const authConfig = (db: Database) => {
                 if (err instanceof Error) {
                   if (err.name === "AccessDenied") {
                     throw new APIError("FORBIDDEN", {
-                      message: ERROR_CODES.UNAUTHORIZED_SESSION,
+                      message: "Access Denied",
                     });
                   }
                   throw err;

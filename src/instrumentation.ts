@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 import { OTLPHttpJsonTraceExporter, registerOTel } from "@vercel/otel";
-import { getMigrations } from "better-auth/db";
+import { getMigrations } from "better-auth/db/migration";
 import Database from "better-sqlite3";
 
 import { settings } from "@/config";
