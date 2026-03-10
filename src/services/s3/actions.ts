@@ -78,7 +78,7 @@ export async function getS3ServiceConfig(
   // optimization to avoid calling getSession() twice from SSR pages
   const _session = session ?? (await getSession());
   if (!_session) {
-    redirect("/login");
+    throw new Error("session not found");
   }
   // prettier-ignore
   const {
