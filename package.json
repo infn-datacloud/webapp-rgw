@@ -36,7 +36,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "^16",
     "lightningcss": "^1",
     "prettier": "^3",
