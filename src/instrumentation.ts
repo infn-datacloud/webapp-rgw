@@ -7,7 +7,6 @@ import { getMigrations } from "better-auth/db/migration";
 import Database from "better-sqlite3";
 
 import { settings } from "@/config";
-import { authConfig } from "./auth.ts";
 
 const {
   WEBAPP_RGW_VERSION,
@@ -23,9 +22,14 @@ declare global {
 
 const isNodeRuntime = process.env.NEXT_RUNTIME === "nodejs";
 
-async function registerDatabase() {
+async function registerDatabase() { 
+  if (!isNodeRuntime) {
+    return;
+  }
+  // this must be imported after registering the telemetry, but don't know way
+  const auth = await import("@/auth.ts");
   globalThis.db = new Database(":memory:");
-  const migrations = await getMigrations(authConfig(db));
+  const migrations = await getMigrations(auth.authConfig(globalThis.db));
   const { toBeCreated, toBeAdded, runMigrations } = migrations;
   if (toBeCreated.length + toBeAdded.length > 0) {
     try {
@@ -67,6 +71,8 @@ Export 'WEBAPP_RGW_OTEL_DISABLE_TELEMETRY=1' to disable telemetry.`;
 }
 
 export async function register() {
-  await registerDatabase();
+  // for a completely unknown reason, telemetry must be registered first,
+  // otherwise AWS instrumentation won't work.
   await registerTelemetry();
+  await registerDatabase();
 }
