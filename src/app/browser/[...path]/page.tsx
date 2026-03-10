@@ -2,13 +2,16 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
+import { getSession } from "@/auth";
 import { Layout } from "@/app/components/layout";
 import { LoadingBar } from "@/components/loading";
 import { getS3ServiceConfig } from "@/services/s3/actions";
 import { S3Service } from "@/services/s3";
+import { Browser } from "./components";
+
 import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Suspense } from "react";
-import { Browser } from "./components";
+import { redirect } from "next/navigation";
 
 type AsyncBrowserProps = {
   params: Promise<{ path: [string] }>;
@@ -79,6 +82,7 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
         );
       }
     }
+    console.error(e);
     return (
       <div className="flex flex-col justify-center p-16 text-center">
         <h2 className="text-5xl font-medium">Oops! :&#40;</h2>
@@ -89,6 +93,10 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
 }
 
 export default async function BrowserPage(props: Readonly<AsyncBrowserProps>) {
+  const session = await getSession();
+  if (!session) {
+    redirect("/login");
+  }
   const { path } = await props.params;
   const bucket = path[0];
   return (
