@@ -7,7 +7,8 @@ the Secure Token Service (STS).
 
 The webapp is implemented using the React, Next.js, TypeScript and TailwindCSS,
 as core frameworks.
-The OAuth2 support is provided by the [Auth.js](https://authjs.dev) framework.
+The OAuth2 support is provided by the [Better Auth.js](https://better-auth.com)
+framework.
 All S3 operations are implemented using the official
 [AWS SDK for javascript](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/).
 
