@@ -82,12 +82,6 @@ You can generate an `WEBAPP_RGW_AUTH_SECRET` with the following command:
 openssl rand -base64 32
 ```
 
-#### Multi-replicas
-
-If you are are going to the deploy in high availability, thus in manifold
-replicas, use the same `WEBAPP_RGW_AUTH_SECRET` for each replica. In this way,
-sessions started from a replica can be maintained also with the other replicas.
-
 ## Deployment
 
 This project is configured with a CI/CD pipeline which builds Docker images
@@ -114,30 +108,6 @@ docker run \
   -p 127.0.0.1:8080:80 \
   --env-file .env \
   indigopaas/webapp-rgw
-```
-
-### NGINX proxy buffers
-
-Since the usage of encrypted JWT by Better-Auth, NGINX may fail to process
-larger headers returning error 502. In such case, add to your NGINX server
-configuration:
-
-```nginx
-proxy_buffers           8 8k;
-proxy_buffer_size       8k;
-```
-
-For Kubernetes Ingress Controller, set the following annotations:
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: s3webui-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-buffers: "8 8k"
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
 ```
 
 ## Telemetry
