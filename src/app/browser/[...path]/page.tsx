@@ -13,6 +13,37 @@ import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
+async function fetchObjects(
+  bucket: string,
+  prefix?: string,
+  count?: number,
+  nextContinuationToken?: string,
+  query?: string
+) {
+  const delimiter = "/";
+  const s3Config = await getS3ServiceConfig();
+  const s3 = new S3Service(s3Config);
+  try {
+    const response = query
+      ? await s3.searchObjects(bucket, prefix, query)
+      : await s3.listObjects(
+          bucket,
+          count,
+          prefix,
+          delimiter,
+          nextContinuationToken
+        );
+    return { response, error: undefined };
+  } catch (e) {
+    if (e instanceof S3ServiceException) {
+      return { error: e.name };
+    } else {
+      console.error(e);
+      return { error: "UnknownError" };
+    }
+  }
+}
+
 type AsyncBrowserProps = {
   params: Promise<{ path: [string] }>;
   searchParams?: Promise<{
@@ -33,25 +64,20 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
   const bucket = path[0];
   let prefix = folder ? `${folder}/` : undefined;
   const filepath = `${bucket}/${folder}`;
-  const delimiter = "/";
 
   if (!bucket) {
     return <p>Bucket not found</p>;
   }
 
-  try {
-    const s3Config = await getS3ServiceConfig();
-    const s3 = new S3Service(s3Config);
-    const response = searchParams?.q
-      ? await s3.searchObjects(bucket, prefix, searchParams.q)
-      : await s3.listObjects(
-          bucket,
-          count,
-          prefix,
-          delimiter,
-          nextContinuationToken
-        );
+  const { response, error } = await fetchObjects(
+    bucket,
+    prefix,
+    count,
+    nextContinuationToken,
+    searchParams?.q
+  );
 
+  if (response) {
     return (
       <Browser
         bucket={bucket}
@@ -61,35 +87,33 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
         listObjectOutput={response}
       />
     );
-  } catch (e) {
-    if (e instanceof S3ServiceException) {
-      if (e.name === "NoSuchBucket") {
-        return (
-          <div className="flex flex-col justify-center p-16 text-center">
-            <h2 className="text-5xl font-medium">No such bucket :&#40;</h2>
-            <p className="p-2">The bucket your are looking does not exists.</p>
-          </div>
-        );
-      }
-      if (e.name === "AccessDenied") {
-        return (
-          <div className="flex flex-col justify-center p-16 text-center">
-            <h2 className="text-5xl font-medium">Access Denied</h2>
-            <p className="p-2">
-              You don&apos;t have access to view this resource.
-            </p>
-          </div>
-        );
-      }
-    }
-    console.error(e);
-    return (
-      <div className="flex flex-col justify-center p-16 text-center">
-        <h2 className="text-5xl font-medium">Oops! :&#40;</h2>
-        <p className="p-2">Something went wrong...</p>
-      </div>
-    );
   }
+
+  if (error) {
+    if (error === "NoSuchBucket") {
+      return (
+        <div className="flex flex-col justify-center p-16 text-center">
+          <h2 className="text-5xl font-medium">No such bucket :&#40;</h2>
+          <p className="p-2">The bucket your are looking does not exists.</p>
+        </div>
+      );
+    } else if (error === "AccessDenied") {
+      return (
+        <div className="flex flex-col justify-center p-16 text-center">
+          <h2 className="text-5xl font-medium">Access Denied</h2>
+          <p className="p-2">
+            You don&apos;t have access to view this resource.
+          </p>
+        </div>
+      );
+    }
+  }
+  return (
+    <div className="flex flex-col justify-center p-16 text-center">
+      <h2 className="text-5xl font-medium">Oops! :&#40;</h2>
+      <p className="p-2">Something went wrong...</p>
+    </div>
+  );
 }
 
 export default async function BrowserPage(props: Readonly<AsyncBrowserProps>) {
