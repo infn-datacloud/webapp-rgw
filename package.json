@@ -1,6 +1,6 @@
 {
   "name": "webapp-rgw",
-  "version": "1.3.1-rc.2",
+  "version": "1.3.1-rc.3",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -47,7 +47,7 @@
     "@aws-sdk/client-s3": {
       "@smithy/smithy-client": "4.12.13"
     },
-    "@aws-sdk/client-sts":    {
+    "@aws-sdk/client-sts": {
       "@smithy/smithy-client": "4.12.13"
     }
   }
