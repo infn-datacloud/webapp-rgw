@@ -10,10 +10,10 @@
     "lint": "npx eslint ."
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3",
-    "@aws-sdk/client-sts": "^3",
-    "@aws-sdk/lib-storage": "^3",
-    "@aws-sdk/s3-request-presigner": "^3",
+    "@aws-sdk/client-s3": "3.982.0",
+    "@aws-sdk/client-sts": "3.982.0",
+    "@aws-sdk/lib-storage": "3.982.0",
+    "@aws-sdk/s3-request-presigner": "3.982.0",
     "@headlessui/react": "^2",
     "@heroicons/react": "^2",
     "@opentelemetry/instrumentation": "^0",
@@ -42,5 +42,13 @@
     "prettier-plugin-tailwindcss": "^0",
     "tailwindcss": "^4",
     "typescript": "^6"
+  },
+  "overrides": {
+    "@aws-sdk/client-s3": {
+      "@smithy/smithy-client": "4.12.13"
+    },
+    "@aws-sdk/client-sts":    {
+      "@smithy/smithy-client": "4.12.13"
+    }
   }
 }
