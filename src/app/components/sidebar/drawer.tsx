@@ -9,7 +9,6 @@ import { useState } from "react";
 import { Transition } from "@headlessui/react";
 import { Bars3Icon } from "@heroicons/react/24/solid";
 import { Button } from "@/components/buttons";
-import { settings } from "@/config";
 import logo from "@/imgs/infn-cloud.png";
 
 type DrawerProps = {
