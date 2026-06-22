@@ -4,11 +4,15 @@
 
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+import { settings } from "@/config";
 import "@/app/app.css";
 
+const { WEBAPP_RGW_APPLICATION_TITLE, WEBAPP_RGW_APPLICATION_DESCRIPTION } =
+  settings;
+
 export const metadata: Metadata = {
-  title: "INFN Cloud Object Storage",
-  description: "INFN Cloud Object Storage",
+  title: WEBAPP_RGW_APPLICATION_TITLE,
+  description: WEBAPP_RGW_APPLICATION_DESCRIPTION,
 };
 
 export default async function RootLayout({

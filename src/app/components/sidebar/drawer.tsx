@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-
 "use client";
 
 import Image from "next/image";
@@ -10,14 +9,16 @@ import { useState } from "react";
 import { Transition } from "@headlessui/react";
 import { Bars3Icon } from "@heroicons/react/24/solid";
 import { Button } from "@/components/buttons";
+import { settings } from "@/config";
 import logo from "@/imgs/infn-cloud.png";
 
 type DrawerProps = {
+  appTitle?: string | null;
   children?: React.ReactNode;
 };
 
 export function Drawer(props: Readonly<DrawerProps>) {
-  const { children } = props;
+  const { appTitle, children } = props;
   const [show, setShow] = useState(false);
   const toggle = () => setShow(!show);
   return (
@@ -27,7 +28,7 @@ export function Drawer(props: Readonly<DrawerProps>) {
           <div className="flex py-2">
             <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
             <h2 className="text-secondary mt-auto mr-4 truncate text-nowrap">
-              Object Storage
+              {appTitle}
             </h2>
           </div>
           <button
@@ -46,7 +47,7 @@ export function Drawer(props: Readonly<DrawerProps>) {
         />
       </Transition>
       <aside
-        className="dark:bg-primary-dark bg-primary easy-in-out fixed top-16 bottom-0 left-0 z-30 w-80 transition-transform duration-200 data-[closed=true]:-translate-x-full lg:!translate-x-0"
+        className="dark:bg-primary-dark bg-primary easy-in-out fixed top-16 bottom-0 left-0 z-30 w-80 transition-transform duration-200 data-[closed=true]:-translate-x-full lg:translate-x-0!"
         aria-label="Sidebar"
         data-closed={!show}
       >
