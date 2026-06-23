@@ -20,7 +20,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-const { WEBAPP_RGW_OIDC_BUTTON_TITLE } = settings;
+const { WEBAPP_RGW_APPLICATION_TITLE, WEBAPP_RGW_OIDC_BUTTON_TITLE } = settings;
 
 function Loading() {
   return (
@@ -65,8 +65,8 @@ export default async function Login(props: Readonly<LoginProps>) {
 
   return (
     <div className="bg-primary dark:bg-primary-dark inset-0 flex h-screen items-center p-4 xl:items-start">
-      <div className="bg-secondary text-primary dark:text-secondary mx-auto rounded-xl p-8 shadow-2xl sm:max-w-96 dark:bg-slate-800">
-        <h1 className="mx-auto text-center">INFN Cloud Object Storage</h1>
+      <div className="bg-secondary text-primary dark:text-secondary mx-auto rounded-xl p-8 shadow-2xl min-w-xl dark:bg-slate-800">
+        <h1 className="mx-auto text-center">{WEBAPP_RGW_APPLICATION_TITLE}</h1>
         <Image
           src={logo}
           className="mx-auto p-4"
