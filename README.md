@@ -70,6 +70,7 @@ found at [envs/example.env](envs/example.env).
 - `WEBAPP_RGW_S3_REGION`: Rados Gateway/S3 Region Name
 - `WEBAPP_RGW_S3_ROLE_ARN`: Rados Gateway Role/S3 ARN
 - `WEBAPP_RGW_S3_ROLE_DURATION_SECONDS`: Rados Gateway/S3 Role duration in seconds
+- `WEBAPP_RGW_LOGO`, optional base64 png logo. Must start with `=data:image/png;base64,`
 
 ### Auth Secret
 

@@ -94,6 +94,18 @@ function loadOtelDisableTelemetry() {
   return maybeDisabled === "true" || maybeDisabled === "1";
 }
 
+function loadLogoImage() {
+  const uri = loadEnvVariable("WEBAPP_RGW_LOGO", "");
+  if (uri) {
+    if (uri.startsWith("data:image/png;base64,")) {
+      return uri;
+    } else {
+      throw new Error("WEBAPP_RGW_LOGO is not a valid base64 png image");
+    }
+  }
+  return null;
+}
+
 export const settings = {
   WEBAPP_RGW_VERSION: loadAppVersion(),
   WEBAPP_RGW_BASE_URL: loadBaseUrl(),
@@ -112,4 +124,5 @@ export const settings = {
   WEBAPP_RGW_OTEL_SERVICE_NAMESPACE: loadOtelServiceNamespace(),
   WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT: loadOtelExporterOtlpEndpoint(),
   WEBAPP_RGW_OTEL_DISABLE_TELEMETRY: loadOtelDisableTelemetry(),
+  WEBAPP_RGW_LOGO: loadLogoImage(),
 };
