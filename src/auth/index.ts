@@ -18,7 +18,11 @@ import {
 
 export { oAuth2ProviderEnabled, credentialsProviderEnabled };
 
-if (!oAuth2ProviderEnabled && !credentialsProviderEnabled) {
+if (
+  !oAuth2ProviderEnabled &&
+  !credentialsProviderEnabled &&
+  process.env.NEXT_PHASE !== "phase-production-build"
+) {
   throw new Error(
     "None of OAuth2 provider or credentials provider is enabled. Please review your configuration."
   );
