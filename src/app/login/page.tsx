@@ -14,9 +14,13 @@ import Spinner from "@/components/spinner";
 import { Button } from "@/components/buttons";
 import Form from "@/components/form";
 import { Input } from "@/components/inputs";
+import { settings } from "@/config";
+
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+
+const { WEBAPP_RGW_OIDC_BUTTON_TITLE } = settings;
 
 function Loading() {
   return (
@@ -100,10 +104,9 @@ export default async function Login(props: Readonly<LoginProps>) {
               <Form action={loginWithOAuth2}>
                 <Button
                   className="btn-primary mx-auto block w-full"
-                  title="Login with INDIGO IAM"
                   type="submit"
                 >
-                  Login with INDIGO IAM
+                  {WEBAPP_RGW_OIDC_BUTTON_TITLE}
                 </Button>
               </Form>
             )}

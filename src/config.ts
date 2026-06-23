@@ -52,6 +52,20 @@ function loadOidcAudience() {
   return loadEnvVariable("WEBAPP_RGW_OIDC_AUDIENCE", "");
 }
 
+function loadOidcButtonTitle() {
+  const title = loadEnvVariable(
+    "WEBAPP_RGW_OIDC_BUTTON_TITLE",
+    "Login with INDIGO IAM"
+  );
+  const pattern = /^[a-zA-Z0-9-_ ]+$/;
+  if (!pattern.test(title)) {
+    throw new Error(
+      "WEBAPP_RGW_OIDC_BUTTON_TITLE is not valid. It must contains character 'a-z', 'A-Z', '0-9', '-' and '_'"
+    );
+  }
+  return title;
+}
+
 function loadS3Endpoint() {
   return loadEnvVariable("WEBAPP_RGW_S3_ENDPOINT");
 }
@@ -140,6 +154,7 @@ export const settings = {
   WEBAPP_RGW_OIDC_CLIENT_SECRET: loadOidcClientSecret(),
   WEBAPP_RGW_OIDC_SCOPE: loadOidcScope(),
   WEBAPP_RGW_OIDC_AUDIENCE: loadOidcAudience(),
+  WEBAPP_RGW_OIDC_BUTTON_TITLE: loadOidcButtonTitle(),
   WEBAPP_RGW_ENABLE_CREDENTIALS: loadEnableCredentials(),
   WEBAPP_RGW_S3_ENDPOINT: loadS3Endpoint(),
   WEBAPP_RGW_S3_REGION: loadS3Region(),

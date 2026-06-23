@@ -72,6 +72,7 @@ found at [envs/example.env](envs/example.env).
 - `WEBAPP_RGW_OIDC_CLIENT_ID`: OpenID Connect Client ID (optional)
 - `WEBAPP_RGW_OIDC_CLIENT_SECRET` OpenID Connect Client Secret (optional)
 - `WEBAPP_RGW_OIDC_AUDIENCE`: OpenID Connect Audience (optional)
+- `WEBAPP_RGW_OIDC_BUTTON_TITLE`: title to display on the OIDC login button (optional)
 - `WEBAPP_RGW_ENABLE_CREDENTIALS`: Enable login with plain credentials (optional)
 - `WEBAPP_RGW_S3_ENDPOINT`: Rados Gateway/S3 API Endpoint
 - `WEBAPP_RGW_S3_REGION`: Rados Gateway/S3 Region Name
