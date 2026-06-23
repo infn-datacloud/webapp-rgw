@@ -118,7 +118,9 @@ function loadLogoImage() {
     if (uri.startsWith("data:image/png;base64,")) {
       return uri;
     } else {
-      throw new Error("WEBAPP_RGW_LOGO is not a valid base64 png image");
+      throw new Error(
+        "WEBAPP_RGW_LOGO is not a valid base64 png image. It must start with 'data:image/png;base64,'"
+      );
     }
   }
   return null;
