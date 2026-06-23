@@ -22,12 +22,12 @@ declare global {
 
 const isNodeRuntime = process.env.NEXT_RUNTIME === "nodejs";
 
-async function registerDatabase() { 
+async function registerDatabase() {
   if (!isNodeRuntime) {
     return;
   }
   // this must be imported after registering the telemetry, but don't know way
-  const auth = await import("@/auth.ts");
+  const auth = await import("@/auth/index.ts");
   globalThis.db = new Database(":memory:");
   const migrations = await getMigrations(auth.authConfig(globalThis.db));
   const { toBeCreated, toBeAdded, runMigrations } = migrations;

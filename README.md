@@ -12,10 +12,16 @@ framework.
 All S3 operations are implemented using the official
 [AWS SDK for javascript](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/).
 
+## Plain credentials
+
+To enable login with plain credentials, expose the environment variable
+`WEBAPP_RGW_ENABLE_CREDENTIALS=true` (or `1`). See paragraph below for
+configuration.
+
 ## OpenID/OAuth2 Client Configuration
 
 The webapp acts as client OpenID Connect/OAuth2 client and thus, registering the
-client is required.
+client is required to enable login with Simple Token Service (STS).
 
 The following sections describe how to configure an OpenID Connect/OAuth2
 client.
@@ -32,7 +38,7 @@ It is possible to configure more than one redirect URI.
 For development:
 
 ```shell
-http://localhost:300/api/auth/oauth2/callback/indigo-iam
+http://localhost:3000/api/auth/oauth2/callback/indigo-iam
 ```
 
 For a production deployment, the redirect uri will be, for example:
@@ -62,18 +68,39 @@ found at [envs/example.env](envs/example.env).
 - `WEBAPP_RGW_BASE_URL`: hostname of your deployment, for example
   https://s3webui.cloud.infn.it or http://localhost:3000
 - `WEBAPP_RGW_AUTH_SECRET`: secret to encrypt session cookies (see below)
-- `WEBAPP_RGW_OIDC_ISSUER`: OpenID Connect Issuer
-- `WEBAPP_RGW_OIDC_CLIENT_ID`: OpenID Connect Client ID
-- `WEBAPP_RGW_OIDC_CLIENT_SECRET` OpenID Connect Client Secret
-- `WEBAPP_RGW_OIDC_AUDIENCE`: OpenID Connect Audience
+- `WEBAPP_RGW_OIDC_ISSUER`: OpenID Connect Issuer (optional)
+- `WEBAPP_RGW_OIDC_CLIENT_ID`: OpenID Connect Client ID (optional)
+- `WEBAPP_RGW_OIDC_CLIENT_SECRET` OpenID Connect Client Secret (optional)
+- `WEBAPP_RGW_OIDC_AUDIENCE`: OpenID Connect Audience (optional)
+- `WEBAPP_RGW_OIDC_BUTTON_TITLE`: title to display on the OIDC login button (optional)
+- `WEBAPP_RGW_ENABLE_CREDENTIALS`: Enable login with plain credentials (optional, default 1)
 - `WEBAPP_RGW_S3_ENDPOINT`: Rados Gateway/S3 API Endpoint
 - `WEBAPP_RGW_S3_REGION`: Rados Gateway/S3 Region Name
 - `WEBAPP_RGW_S3_ROLE_ARN`: Rados Gateway Role/S3 ARN
 - `WEBAPP_RGW_S3_ROLE_DURATION_SECONDS`: Rados Gateway/S3 Role duration in seconds
-- `WEBAPP_RGW_LOGO`, optional base64 png logo. Must start with `=data:image/png;base64,`
-- `WEBAPP_RGW_HEADER_TITLE`: default "Object Store"
-- `WEBAPP_RGW_APPLICATION_TITLE`: default "INFN DataCloud Object Store"
-- `WEBAPP_RGW_APPLICATION_DESCRIPTION`: default "INFN DataCloud Object Store"
+- `WEBAPP_RGW_LOGO`, base64 png logo. Must start with `=data:image/png;base64,` (optional)
+- `WEBAPP_RGW_HEADER_TITLE`: default "Object Store" (optional)
+- `WEBAPP_RGW_APPLICATION_TITLE`: default "INFN DataCloud Object Store" (optional)
+- `WEBAPP_RGW_APPLICATION_DESCRIPTION`: default "INFN DataCloud Object Store" (optional)
+
+To enable login with OIDC/OAuth2, all the `WEBAPP_RGW_OIDC_ISSUER`,
+`WEBAPP_RGW_OIDC_CLIENT_ID` and`WEBAPP_RGW_OIDC_CLIENT_SECRET`variables must be
+configured. The following message will be displayed after starting the
+application:
+
+```shell
+OAuth2 provider enabled.
+```
+
+To enable plain credentials, set `WEBAPP_RGW_ENABLE_CREDENTIALS` to `true` or
+`1`. The following message is displayed:
+
+```shell
+Credentials provider enabled.
+```
+
+> **Note**: at least one among OAuth2 provider o credentials provider must be
+> set before starting the application.
 
 ### Auth Secret
 
