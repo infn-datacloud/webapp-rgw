@@ -141,7 +141,7 @@ function loadLogoImage() {
 }
 
 function loadEnableCredentials() {
-  const value = loadEnvVariable("WEBAPP_RGW_ENABLE_CREDENTIALS", "0");
+  const value = loadEnvVariable("WEBAPP_RGW_ENABLE_CREDENTIALS", "1");
   return value === "1" || value === "true" || value === "TRUE";
 }
 
