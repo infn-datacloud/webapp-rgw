@@ -2,7 +2,13 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import { getSession, signIn, signInCredentials } from "@/auth";
+import {
+  credentialsProviderEnabled,
+  getSession,
+  oAuth2ProviderEnabled,
+  signIn,
+  signInCredentials,
+} from "@/auth";
 import logo from "@/imgs/logo-ceph.png";
 import Spinner from "@/components/spinner";
 import { Button } from "@/components/buttons";
@@ -67,32 +73,40 @@ export default async function Login(props: Readonly<LoginProps>) {
         <h2 className="mx-auto text-center">Welcome</h2>
         <div className="mx-auto mt-8 flex max-w-54 flex-col space-y-2">
           <Suspense fallback={<Loading />}>
-            <Form action={loginWithCredentials} className="space-y-2">
-              <Input name="accessKeyId" placeholder="Access Key Id" required />
-              <Input
-                name="secretAccessKey"
-                placeholder="Secret Access Key"
-                type="password"
-                required
-              />
-              {forbidden && <ForbiddenError />}
-              <Button
-                className="btn-primary block w-full text-center"
-                title="Login with local credentials"
-                type="submit"
-              >
-                Login with local credentials
-              </Button>
-            </Form>
-            <Form action={loginWithOAuth2}>
-              <Button
-                className="btn-primary mx-auto block w-full"
-                title="Login with INDIGO IAM"
-                type="submit"
-              >
-                Login with INDIGO IAM
-              </Button>
-            </Form>
+            {credentialsProviderEnabled && (
+              <Form action={loginWithCredentials} className="space-y-2">
+                <Input
+                  name="accessKeyId"
+                  placeholder="Access Key Id"
+                  required
+                />
+                <Input
+                  name="secretAccessKey"
+                  placeholder="Secret Access Key"
+                  type="password"
+                  required
+                />
+                {forbidden && <ForbiddenError />}
+                <Button
+                  className="btn-primary block w-full text-center"
+                  title="Login with local credentials"
+                  type="submit"
+                >
+                  Login with local credentials
+                </Button>
+              </Form>
+            )}
+            {oAuth2ProviderEnabled && (
+              <Form action={loginWithOAuth2}>
+                <Button
+                  className="btn-primary mx-auto block w-full"
+                  title="Login with INDIGO IAM"
+                  type="submit"
+                >
+                  Login with INDIGO IAM
+                </Button>
+              </Form>
+            )}
           </Suspense>
         </div>
       </div>

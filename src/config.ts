@@ -33,15 +33,15 @@ function loadAuthSecret() {
 }
 
 function loadOidcIssuer() {
-  return loadEnvVariable("WEBAPP_RGW_OIDC_ISSUER");
+  return loadEnvVariable("WEBAPP_RGW_OIDC_ISSUER", "");
 }
 
 function loadOidcClientId() {
-  return loadEnvVariable("WEBAPP_RGW_OIDC_CLIENT_ID");
+  return loadEnvVariable("WEBAPP_RGW_OIDC_CLIENT_ID", "");
 }
 
 function loadOidcClientSecret() {
-  return loadEnvVariable("WEBAPP_RGW_OIDC_CLIENT_SECRET");
+  return loadEnvVariable("WEBAPP_RGW_OIDC_CLIENT_SECRET", "");
 }
 
 function loadOidcScope() {
@@ -126,6 +126,11 @@ function loadLogoImage() {
   return null;
 }
 
+function loadEnableCredentials() {
+  const value = loadEnvVariable("WEBAPP_RGW_ENABLE_CREDENTIALS", "0");
+  return value === "1" || value === "true" || value === "TRUE";
+}
+
 export const settings = {
   WEBAPP_RGW_VERSION: loadAppVersion(),
   WEBAPP_RGW_BASE_URL: loadBaseUrl(),
@@ -135,6 +140,7 @@ export const settings = {
   WEBAPP_RGW_OIDC_CLIENT_SECRET: loadOidcClientSecret(),
   WEBAPP_RGW_OIDC_SCOPE: loadOidcScope(),
   WEBAPP_RGW_OIDC_AUDIENCE: loadOidcAudience(),
+  WEBAPP_RGW_ENABLE_CREDENTIALS: loadEnableCredentials(),
   WEBAPP_RGW_S3_ENDPOINT: loadS3Endpoint(),
   WEBAPP_RGW_S3_REGION: loadS3Region(),
   WEBAPP_RGW_S3_ROLE_ARN: loadS3RoleArn(),

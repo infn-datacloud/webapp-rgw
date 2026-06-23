@@ -9,8 +9,20 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { settings } from "@/config";
 import { Database } from "better-sqlite3";
-import { getOAuth2Session, oAuth } from "./oidc";
-import { getCredentialsSession, plainCredentials } from "./plain-credentials";
+import { oAuth2ProviderEnabled, getOAuth2Session, oAuthProvider } from "./oidc";
+import {
+  getCredentialsSession,
+  credentialsProvider,
+  credentialsProviderEnabled,
+} from "./plain-credentials";
+
+export { oAuth2ProviderEnabled, credentialsProviderEnabled };
+
+if (!oAuth2ProviderEnabled && !credentialsProviderEnabled) {
+  throw new Error(
+    "None of OAuth2 provider or credentials provider is enabled. Please review your configuration."
+  );
+}
 
 const {
   WEBAPP_RGW_BASE_URL,
@@ -67,7 +79,7 @@ export const authConfig = (db: Database) => {
     account: {
       updateAccountOnSignIn: true,
     },
-    plugins: [oAuth(), plainCredentials(), nextCookies()],
+    plugins: [oAuthProvider(), credentialsProvider(), nextCookies()],
   } satisfies BetterAuthOptions;
 };
 
@@ -79,6 +91,9 @@ export async function signInCredentials(
   accessKeyId: string,
   secretAccessKey: string
 ) {
+  if (!credentialsProviderEnabled) {
+    return;
+  }
   try {
     await auth.api.signInCredentials({
       body: { accessKeyId, secretAccessKey },
@@ -93,6 +108,9 @@ export async function signInCredentials(
 }
 
 export async function signIn() {
+  if (!oAuth2ProviderEnabled) {
+    return;
+  }
   const { url } = await auth.api.signInWithOAuth2({
     body: {
       providerId: "indigo-iam",

@@ -3,17 +3,26 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 import { listBuckets } from "@/services/s3/actions";
+import { settings } from "@/config";
 import { BetterAuthPlugin, GenericEndpointContext } from "better-auth";
 import { createAuthEndpoint, APIError } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
 import z from "zod";
+
+const { WEBAPP_RGW_ENABLE_CREDENTIALS } = settings;
+
+export const credentialsProviderEnabled = WEBAPP_RGW_ENABLE_CREDENTIALS;
+
+if (credentialsProviderEnabled) {
+  console.log("Credentials provider enabled.");
+}
 
 const accessKeysSchema = z.object({
   accessKeyId: z.string().meta({ description: "Access Key Id" }),
   secretAccessKey: z.string().meta({ description: "Secret Access Key" }),
 });
 
-export function plainCredentials() {
+export function credentialsProvider() {
   return {
     id: "credentials",
     schema: {

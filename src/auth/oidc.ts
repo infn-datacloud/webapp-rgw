@@ -16,7 +16,18 @@ const {
   WEBAPP_RGW_OIDC_AUDIENCE,
 } = settings;
 
-export function oAuth() {
+export const oAuth2ProviderEnabled =
+  WEBAPP_RGW_OIDC_ISSUER &&
+  WEBAPP_RGW_OIDC_CLIENT_ID &&
+  WEBAPP_RGW_OIDC_CLIENT_SECRET &&
+  WEBAPP_RGW_OIDC_SCOPE &&
+  WEBAPP_RGW_OIDC_AUDIENCE;
+
+if (oAuth2ProviderEnabled) {
+  console.log("OAuth2 provider enabled.");
+}
+
+export function oAuthProvider() {
   return genericOAuth({
     config: [
       {
