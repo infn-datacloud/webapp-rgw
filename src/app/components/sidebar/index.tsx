@@ -33,13 +33,14 @@ type SidebarProps = {
   username?: string | null;
   email?: string | null;
   appVersion?: string | null;
+  appTitle?: string | null;
   logo?: string | null;
 };
 
 export function Sidebar(props: Readonly<SidebarProps>) {
-  const { username, email, appVersion, logo } = props;
+  const { username, email, appVersion, appTitle, logo } = props;
   return (
-    <Drawer logo={logo}>
+    <Drawer appTitle={appTitle} logo={logo}>
       <nav className="p-4">
         <SidebarLink title="Browser" href="/browser" />
         <SidebarLink title="Buckets" href="/buckets" />

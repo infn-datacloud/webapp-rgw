@@ -13,11 +13,12 @@ import defaultLogo from "@/imgs/infn-cloud.png";
 
 type DrawerProps = {
   logo?: string | null;
+  appTitle?: string | null;
   children?: React.ReactNode;
 };
 
 export function Drawer(props: Readonly<DrawerProps>) {
-  const { logo, children } = props;
+  const { appTitle, children, logo } = props;
   const [show, setShow] = useState(false);
   const toggle = () => setShow(!show);
   return (
@@ -29,14 +30,13 @@ export function Drawer(props: Readonly<DrawerProps>) {
               id="app-logo"
               className="h-12"
               src={logo ?? defaultLogo}
-              alt="INFN Cloud"
+              alt="Logo"
               width={0}
               height={0}
               style={{ width: "auto" }}
             />
-
             <h2 className="text-secondary truncate text-nowrap">
-              Object Storage
+              {appTitle}
             </h2>
           </div>
           <button

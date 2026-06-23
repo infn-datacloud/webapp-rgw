@@ -94,6 +94,24 @@ function loadOtelDisableTelemetry() {
   return maybeDisabled === "true" || maybeDisabled === "1";
 }
 
+function loadHeaderTitle() {
+  return loadEnvVariable("WEBAPP_RGW_HEADER_TITLE", "Object Storage");
+}
+
+function loadApplicationTitle() {
+  return loadEnvVariable(
+    "WEBAPP_RGW_APPLICATION_TITLE",
+    "INFN Cloud Object Storage"
+  );
+}
+
+function loadApplicationDescription() {
+  return loadEnvVariable(
+    "WEBAPP_RGW_APPLICATION_DESCRIPTION",
+    "INFN Cloud Object Storage"
+  );
+}
+
 function loadLogoImage() {
   const uri = loadEnvVariable("WEBAPP_RGW_LOGO", "");
   if (uri) {
@@ -124,5 +142,8 @@ export const settings = {
   WEBAPP_RGW_OTEL_SERVICE_NAMESPACE: loadOtelServiceNamespace(),
   WEBAPP_RGW_OTEL_EXPORTER_OTLP_ENDPOINT: loadOtelExporterOtlpEndpoint(),
   WEBAPP_RGW_OTEL_DISABLE_TELEMETRY: loadOtelDisableTelemetry(),
+  WEBAPP_RGW_HEADER_TITLE: loadHeaderTitle(),
+  WEBAPP_RGW_APPLICATION_TITLE: loadApplicationTitle(),
+  WEBAPP_RGW_APPLICATION_DESCRIPTION: loadApplicationDescription(),
   WEBAPP_RGW_LOGO: loadLogoImage(),
 };
