@@ -70,7 +70,7 @@ export default async function Login(props: Readonly<LoginProps>) {
         <Image
           src={logo}
           className="mx-auto p-4"
-          alt="INFN Cloud"
+          alt="Ceph logo"
           height={100}
           priority={true}
         />
