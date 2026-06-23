@@ -83,7 +83,8 @@ found at [envs/example.env](envs/example.env).
 - `WEBAPP_RGW_APPLICATION_TITLE`: default "INFN DataCloud Object Store" (optional)
 - `WEBAPP_RGW_APPLICATION_DESCRIPTION`: default "INFN DataCloud Object Store" (optional)
 
-To enable login with OIDC/OAuth2, all the `WEBAPP_RGW_OIDC_*` variables must be
+To enable login with OIDC/OAuth2, all the `WEBAPP_RGW_OIDC_ISSUER`,
+`WEBAPP_RGW_OIDC_CLIENT_ID` and`WEBAPP_RGW_OIDC_CLIENT_SECRET`variables must be
 configured. The following message will be displayed after starting the
 application:
 
