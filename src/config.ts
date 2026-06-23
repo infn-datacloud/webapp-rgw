@@ -112,6 +112,20 @@ function loadApplicationDescription() {
   );
 }
 
+function loadLogoImage() {
+  const uri = loadEnvVariable("WEBAPP_RGW_LOGO", "");
+  if (uri) {
+    if (uri.startsWith("data:image/png;base64,")) {
+      return uri;
+    } else {
+      throw new Error(
+        "WEBAPP_RGW_LOGO is not a valid base64 png image. It must start with 'data:image/png;base64,'"
+      );
+    }
+  }
+  return null;
+}
+
 export const settings = {
   WEBAPP_RGW_VERSION: loadAppVersion(),
   WEBAPP_RGW_BASE_URL: loadBaseUrl(),
@@ -133,4 +147,5 @@ export const settings = {
   WEBAPP_RGW_HEADER_TITLE: loadHeaderTitle(),
   WEBAPP_RGW_APPLICATION_TITLE: loadApplicationTitle(),
   WEBAPP_RGW_APPLICATION_DESCRIPTION: loadApplicationDescription(),
+  WEBAPP_RGW_LOGO: loadLogoImage(),
 };

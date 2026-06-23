@@ -9,24 +9,33 @@ import { useState } from "react";
 import { Transition } from "@headlessui/react";
 import { Bars3Icon } from "@heroicons/react/24/solid";
 import { Button } from "@/components/buttons";
-import logo from "@/imgs/infn-cloud.png";
+import defaultLogo from "@/imgs/infn-cloud.png";
 
 type DrawerProps = {
+  logo?: string | null;
   appTitle?: string | null;
   children?: React.ReactNode;
 };
 
 export function Drawer(props: Readonly<DrawerProps>) {
-  const { appTitle, children } = props;
+  const { appTitle, children, logo } = props;
   const [show, setShow] = useState(false);
   const toggle = () => setShow(!show);
   return (
     <>
       <header className="dark:bg-primary-dark bg-primary fixed top-0 left-0 z-30 h-16 w-screen lg:w-80">
         <div className="flex h-full justify-between px-4">
-          <div className="flex py-2">
-            <Image src={logo} alt="INFN Cloud" priority={true} width={80} />
-            <h2 className="text-secondary mt-auto mr-4 truncate text-nowrap">
+          <div className="flex flex-row items-center gap-2 py-2">
+            <Image
+              id="app-logo"
+              className="h-12"
+              src={logo ?? defaultLogo}
+              alt="Logo"
+              width={0}
+              height={0}
+              style={{ width: "auto" }}
+            />
+            <h2 className="text-secondary truncate text-nowrap">
               {appTitle}
             </h2>
           </div>

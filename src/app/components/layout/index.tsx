@@ -16,7 +16,7 @@ export async function Layout(props: Readonly<LayoutProps>) {
   const session = await getSession();
   const username = session?.user?.name;
   const email = session?.user?.email;
-  const { WEBAPP_RGW_VERSION, WEBAPP_RGW_HEADER_TITLE } = settings;
+  const { WEBAPP_RGW_VERSION, WEBAPP_RGW_HEADER_TITLE, WEBAPP_RGW_LOGO } = settings;
 
   return (
     <div className="mt-16 p-4 lg:mt-0 lg:ml-80">
@@ -25,6 +25,7 @@ export async function Layout(props: Readonly<LayoutProps>) {
         email={email}
         appVersion={WEBAPP_RGW_VERSION}
         appTitle={WEBAPP_RGW_HEADER_TITLE}
+        logo={WEBAPP_RGW_LOGO}
       />
       <h1 className="text-primary dark:text-secondary">{title}</h1>
       <hr className="mt-2 mb-8 h-px w-full border-0 bg-gray-200" />
