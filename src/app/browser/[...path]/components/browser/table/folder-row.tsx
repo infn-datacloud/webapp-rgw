@@ -29,7 +29,7 @@ export function FolderRow(props: Readonly<FolderRowProps>) {
   }
 
   return (
-    <li className="text-primary dark:text-secondary border-b border-slate-200 bg-white hover:bg-slate-100 dark:border-white/30 dark:bg-slate-800 dark:hover:bg-slate-700">
+    <li className="text-primary dark:text-secondary cursor-pointer border-b border-slate-200 bg-white hover:bg-slate-100 dark:border-white/30 dark:bg-slate-800 dark:hover:bg-slate-700">
       <Link className="flex w-full items-center gap-2 p-4" href={href}>
         <Checkbox checked={checked} onChange={handleChange} />
         <FileIcon extension="folder" />

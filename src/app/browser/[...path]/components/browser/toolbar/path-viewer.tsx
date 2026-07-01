@@ -13,7 +13,7 @@ function PathBackButton(props: Readonly<{ currentPath: string }>) {
 
   return (
     <button
-      className="text-primary dark:text-secondary my-auto h-8 w-8 rounded-full bg-neutral-100 p-1.25 transition-transform hover:bg-neutral-200 data-[root=true]:-rotate-90 dark:bg-white/30 dark:hover:bg-neutral-600"
+      className="text-primary dark:text-secondary my-auto h-8 w-8 cursor-pointer rounded-full bg-neutral-100 p-1.25 transition-transform hover:bg-neutral-200 data-[root=true]:-rotate-90 dark:bg-white/30 dark:hover:bg-neutral-600"
       onClick={goBack}
       type="button"
       data-root={isRoot}

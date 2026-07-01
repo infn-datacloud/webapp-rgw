@@ -35,12 +35,10 @@ export function Drawer(props: Readonly<DrawerProps>) {
               height={0}
               style={{ width: "auto" }}
             />
-            <h2 className="text-secondary truncate text-nowrap">
-              {appTitle}
-            </h2>
+            <h2 className="text-secondary truncate text-nowrap">{appTitle}</h2>
           </div>
           <button
-            className="hover:bg-light active:bg-primary-200 my-auto rounded-md p-1 transition lg:hidden"
+            className="hover:bg-light active:bg-primary-200 my-auto cursor-pointer rounded-md p-1 transition lg:hidden"
             onClick={toggle}
           >
             <Bars3Icon className="text-secondary w-8" />

@@ -67,7 +67,7 @@ export function BucketInspector(props: BucketInspectorProps) {
     <Inspector isOpen={isOpen}>
       <div className="flex justify-between border-b border-gray-300 bg-gray-100 p-4 dark:border-white/30 dark:bg-slate-600">
         <div className="text-lg font-semibold">{title}</div>
-        <button onClick={onClose} className="mr-0">
+        <button onClick={onClose} className="mr-0 cursor-pointer">
           <div className="w-6 rounded-full bg-neutral-300 p-0.75 text-neutral-500 hover:bg-neutral-400">
             <XMarkIcon />
           </div>

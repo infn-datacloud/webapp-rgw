@@ -84,7 +84,7 @@ export default function Modal(props: Readonly<ModalProps>) {
                     {title}
                     <button onClick={onClose} disabled={backdropButtonDisabled}>
                       <div
-                        className="w-6 rounded-full bg-neutral-300 p-[3px] text-neutral-500 hover:bg-neutral-400"
+                        className="w-6 cursor-pointer rounded-full bg-neutral-300 p-0.75 text-neutral-500 hover:bg-neutral-400"
                         aria-label="close"
                       >
                         <XMarkIcon />

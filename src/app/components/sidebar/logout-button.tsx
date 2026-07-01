@@ -15,7 +15,7 @@ export function LogoutButton() {
   return (
     <form action={logout}>
       <button
-        className="text-secondary hover:bg-light active:bg-primary-200 rounded-full p-2 transition"
+        className="text-secondary hover:bg-light active:bg-primary-200 cursor-pointer rounded-full p-2 transition"
         type="submit"
       >
         <ArrowLeftStartOnRectangleIcon className="w-5" />
