@@ -6,7 +6,6 @@
 
 import { getSession, Session } from "@/auth";
 import { settings } from "@/config";
-import { redirect } from "next/navigation";
 import { AwsCredentialIdentity } from "@aws-sdk/types";
 import { AWSConfig, S3ServiceConfig } from "./types";
 import {

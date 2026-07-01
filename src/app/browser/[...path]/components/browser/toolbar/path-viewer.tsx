@@ -4,7 +4,6 @@
 
 "use client";
 
-import { _Object } from "@aws-sdk/client-s3";
 import { ChevronUpIcon } from "@heroicons/react/24/solid";
 
 function PathBackButton(props: Readonly<{ currentPath: string }>) {
