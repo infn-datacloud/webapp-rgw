@@ -6,6 +6,7 @@ import { Gravatar } from "@/components/gravatar";
 import { LogoutButton } from "./logout-button";
 import SidebarLink from "./sidebar-link";
 import { Drawer } from "./drawer";
+import NextLink from "next/link";
 
 type UserViewProps = {
   username?: string | null;
@@ -15,13 +16,11 @@ type UserViewProps = {
 function UserView(props: Readonly<UserViewProps>) {
   const { username, email } = props;
   return (
-    <div className="border-secondary flex w-full items-center justify-between border-t p-4">
+    <div className="border-secondary flex max-w-full items-center justify-between gap-1 border-t py-4">
       {username ? (
-        <div className="flex">
+        <div className="flex w-full truncate">
           <Gravatar email={email} />
-          <h4 className="text-secondary my-auto ml-2 text-center">
-            {username}
-          </h4>
+          <h4 className="text-secondary my-auto ml-2 truncate">{username}</h4>
         </div>
       ) : null}
       <LogoutButton />
@@ -49,8 +48,13 @@ export function Sidebar(props: Readonly<SidebarProps>) {
         <div className="px-4">
           <UserView username={username} email={email} />
         </div>
-        <div className="text-secondary w-full bg-slate-600 p-1.5 text-center text-sm">
-          v{appVersion}
+        <div className="flex w-full bg-slate-600 p-1.5">
+          <NextLink
+            className="w-full text-center text-sm text-blue-400 hover:underline"
+            href={`https://github.com/infn-datacloud/webapp-rgw/releases/tag/v${appVersion}`}
+          >
+            v{appVersion}
+          </NextLink>
         </div>
       </div>
     </Drawer>
