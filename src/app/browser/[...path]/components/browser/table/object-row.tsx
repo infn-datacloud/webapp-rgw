@@ -34,7 +34,7 @@ export function ObjectRow(props: Readonly<ObjectRowProps>) {
   return (
     <li className="text-primary dark:text-secondary border-b border-slate-200 bg-white hover:bg-slate-100 dark:border-white/30 dark:bg-slate-800 dark:hover:bg-slate-700">
       <button
-        className="flex w-full items-center gap-2 px-4 py-2 text-left"
+        className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left"
         onClick={toggle}
       >
         <Checkbox checked={checked} />
