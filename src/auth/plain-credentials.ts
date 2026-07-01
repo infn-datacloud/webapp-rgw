@@ -13,10 +13,6 @@ const { WEBAPP_RGW_ENABLE_CREDENTIALS } = settings;
 
 export const credentialsProviderEnabled = WEBAPP_RGW_ENABLE_CREDENTIALS;
 
-if (credentialsProviderEnabled) {
-  console.log("Credentials provider enabled.");
-}
-
 const accessKeysSchema = z.object({
   accessKeyId: z.string().meta({ description: "Access Key Id" }),
   secretAccessKey: z.string().meta({ description: "Secret Access Key" }),
