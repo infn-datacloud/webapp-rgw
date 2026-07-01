@@ -6,18 +6,10 @@
 
 import { getSession, Session } from "@/auth";
 import { settings } from "@/config";
-import {  S3ServiceConfig } from "./types";
-import { trace } from "@opentelemetry/api";
+import { S3ServiceConfig } from "./types";
 import { S3Service } from ".";
 
-const {
-  WEBAPP_RGW_S3_ENDPOINT,
-  WEBAPP_RGW_S3_REGION,
-  WEBAPP_RGW_S3_ROLE_ARN,
-  WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
-} = settings;
-
-const tracer = trace.getTracer("s3webui");
+const { WEBAPP_RGW_S3_ENDPOINT, WEBAPP_RGW_S3_REGION } = settings;
 
 export async function listBuckets(credentials: {
   accessKeyId: string;

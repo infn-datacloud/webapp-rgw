@@ -4,7 +4,7 @@
 
 "use client";
 
-import Modal, { ModalBody, ModalFooter, ModalProps } from "@/components/modal";
+import Modal, { ModalBody, ModalProps } from "@/components/modal";
 import { addHours } from "@/commons/utils";
 import { NumberPicker } from "@/components/pickers/number";
 import { useEffect, useState } from "react";

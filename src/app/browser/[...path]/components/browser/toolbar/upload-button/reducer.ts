@@ -45,22 +45,14 @@ export default function reducer(state: State, action: Action) {
       };
     }
     case "ON_COMPLETE": {
-      let { inProgress, allComplete, showPopup, progressStates, ...other } =
-        state;
-      --inProgress;
-
-      if (inProgress <= 0) {
-        inProgress = 0;
-        progressStates = new Map();
-        allComplete = true;
+      const newState = { ...state };
+      newState.inProgress -= 1;
+      if (newState.inProgress <= 0) {
+        newState.inProgress = 0;
+        newState.progressStates = new Map();
+        newState.allComplete = true;
       }
-      return {
-        inProgress,
-        progressStates,
-        allComplete,
-        showPopup,
-        ...other,
-      };
+      return newState;
     }
   }
 }
