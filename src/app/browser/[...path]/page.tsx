@@ -62,7 +62,7 @@ async function AsyncBrowser(props: Readonly<AsyncBrowserProps>) {
 
   const folder = path.splice(1).join("/");
   const bucket = path[0];
-  let prefix = folder ? `${folder}/` : undefined;
+  const prefix = folder ? `${folder}/` : undefined;
   const filepath = `${bucket}/${folder}`;
 
   if (!bucket) {
