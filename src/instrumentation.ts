@@ -7,6 +7,8 @@ import { getMigrations } from "better-auth/db/migration";
 import Database from "better-sqlite3";
 
 import { settings } from "@/config";
+import { oAuth2ProviderEnabled } from "@/auth/oidc.ts";
+import { credentialsProviderEnabled } from "@/auth/index.ts";
 
 const {
   WEBAPP_RGW_VERSION,
@@ -42,6 +44,13 @@ async function registerDatabase() {
   } else {
     // it should be logged only for not in memory databases
     console.log("Session database already initialized, nothing to do.");
+  }
+  if (oAuth2ProviderEnabled) {
+    console.log("OAuth2 provider enabled.");
+  }
+
+  if (credentialsProviderEnabled) {
+    console.log("Credentials provider enabled.");
   }
 }
 
