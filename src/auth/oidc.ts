@@ -27,12 +27,13 @@ const {
   WEBAPP_RGW_S3_ROLE_DURATION_SECONDS,
 } = settings;
 
-export const oAuth2ProviderEnabled =
+export const oAuth2ProviderEnabled = !!(
   WEBAPP_RGW_OIDC_ISSUER &&
   WEBAPP_RGW_OIDC_CLIENT_ID &&
   WEBAPP_RGW_OIDC_CLIENT_SECRET &&
   WEBAPP_RGW_OIDC_SCOPE &&
-  WEBAPP_RGW_OIDC_AUDIENCE;
+  WEBAPP_RGW_OIDC_AUDIENCE
+);
 
 export function oAuthProvider() {
   return genericOAuth({
