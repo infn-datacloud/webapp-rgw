@@ -61,7 +61,11 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
 
   function handleSelectFolder(index: number, checked: boolean) {
     const folders = new Set(selectedIndexes.folders);
-    checked ? folders.add(index) : folders.delete(index);
+    if (checked) {
+      folders.add(index);
+    } else {
+      folders.delete(index);
+    }
     const _selected = { ...selectedIndexes, folders };
     if (totalItems(_selected) > 0) {
       openInspector();
@@ -77,7 +81,11 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
 
   function handleSelectObject(index: number, checked: boolean) {
     const objects = new Set(selectedIndexes.objects);
-    checked ? objects.add(index) : objects.delete(index);
+    if (checked) {
+      objects.add(index);
+    } else {
+      objects.delete(index);
+    }
     const _selected = { ...selectedIndexes, objects };
     if (totalItems(_selected)) {
       openInspector();
@@ -112,7 +120,11 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
   };
 
   function handleOnSelectAll(checked: boolean) {
-    checked ? selectAll() : deselectAll();
+    if (checked) {
+      selectAll();
+    } else {
+      deselectAll();
+    }
   }
 
   const selectedItems = {
