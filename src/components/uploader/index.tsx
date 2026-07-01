@@ -19,6 +19,8 @@ import {
 } from "react";
 import reducer, { defaultState } from "./reducer";
 
+const AUTO_HIDE_TIMEOUT = 5000;
+
 export interface UploaderContextProps {
   upload: (file: FileObjectWithProgress, bucket: string) => void;
   onComplete?: () => void;
@@ -54,6 +56,7 @@ export default function UploaderProvider(
       if (state.inProgress.size === 0) {
         toaster.info("Uploading complete");
         onComplete?.();
+        setTimeout(closeUploader, AUTO_HIDE_TIMEOUT);
       }
     },
     [router, state.inProgress, onComplete]
@@ -92,7 +95,7 @@ export default function UploaderProvider(
       <>
         {children}
         <ProgressPopup
-          title="Uploading"
+          title={allCompleted ? "Uploading complete" : "Uploading"}
           show={state.show}
           onClose={closeUploader}
           progressList={progresses}
