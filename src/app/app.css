@@ -59,7 +59,7 @@
 }
 
 @utility btn-option {
-  @apply w-full px-4 py-2 text-left;
+  @apply w-full cursor-pointer px-4 py-2 text-left;
 }
 
 @layer base {

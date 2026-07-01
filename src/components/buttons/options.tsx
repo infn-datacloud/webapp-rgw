@@ -13,7 +13,7 @@ export function Options(props: Readonly<OptionsProps>) {
   const { children } = props;
   return (
     <Popover className="relative size-8">
-      <PopoverButton>
+      <PopoverButton className="cursor-pointer">
         <EllipsisHorizontalIcon className="text-primary/70 dark:text-secondary/70 size-8" />
       </PopoverButton>
       <PopoverPanel
