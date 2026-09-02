@@ -52,14 +52,17 @@ export function credentialsProvider() {
 
           const user =
             maybeUser ??
-            (await ctx.context.internalAdapter.createUser({
-              id: accessKeyId,
-              name: accessKeyId,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              emailVerified: false,
-              email: accessKeyId,
-            }));
+            (await ctx.context.internalAdapter.createUser(
+              {
+                id: accessKeyId,
+                name: accessKeyId,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                emailVerified: false,
+                email: accessKeyId,
+              },
+              { method: "anonymous" }
+            ));
           const session = await ctx.context.internalAdapter.createSession(
             accessKeyId,
             false
