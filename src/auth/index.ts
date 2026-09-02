@@ -70,7 +70,7 @@ export const authConfig = (db: Database) => {
                 message: "Context session not found",
               });
             }
-            if (ctx.path === "/oauth2/callback/:providerId") {
+            if (ctx.path === "/callback/:id") {
               return getOAuth2Session(sessionData, ctx);
             } else if (ctx.path === "/sign-in/credentials") {
               return getCredentialsSession(sessionData, ctx);
@@ -115,12 +115,15 @@ export async function signIn() {
   if (!oAuth2ProviderEnabled) {
     return;
   }
-  const { url } = await auth.api.signInWithOAuth2({
+  const { url } = await auth.api.signInSocial({
     body: {
-      providerId: "indigo-iam",
+      provider: "indigo-iam",
       callbackURL: WEBAPP_RGW_BASE_URL,
     },
   });
+  if (!url) {
+    throw new Error("failed to login with OAuth2");
+  }
   redirect(url);
 }
 
