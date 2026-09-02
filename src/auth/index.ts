@@ -38,7 +38,8 @@ const {
 
 export const authConfig = (db: Database) => {
   return {
-    baseURL: `${WEBAPP_RGW_BASE_URL}/api/auth`,
+    baseURL: `${WEBAPP_RGW_BASE_URL}`,
+    basePath: "/api/auth/oauth2",
     secret: WEBAPP_RGW_AUTH_SECRET,
     database: db,
     session: {
