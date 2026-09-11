@@ -22,8 +22,8 @@ function CliCommand(props: Readonly<CliCommandProps>) {
 
   return (
     <div className="rounded-xl bg-neutral-200 px-4 py-2">
-      <div className="flex items-baseline justify-between">
-        <span className="font-mono">Bash</span>
+      <div className="flex items-baseline justify-between pb-1">
+        <span className="font-mono text-sm">Bash</span>
         <button
           className="rounded-full p-1 hover:bg-neutral-300"
           onClick={copyToClipboard}
@@ -33,7 +33,7 @@ function CliCommand(props: Readonly<CliCommandProps>) {
       </div>
       <div className="space-y-2">
         <div className="cursor-not-allowed">
-          <p className="rounded-lg bg-neutral-100 p-2 font-mono text-sm" inert>
+          <p className="rounded-lg bg-neutral-100 p-2 font-mono text-xs" inert>
             {command.split(/\r?\n/).map((line, index) => {
               return (
                 <span key={index} className="block py-0.5 pl-4 -indent-4">
@@ -43,9 +43,12 @@ function CliCommand(props: Readonly<CliCommandProps>) {
             })}
           </p>
         </div>
-        <small>
-          <b>Note</b> use the copy-to-clipboard button to include credentials.
-        </small>
+        <p className="text-xs">
+          Use the <b>Copy to clipboard</b> button to include credentials.
+          <br />
+          Credentials expire after 15 minutes, after which you will need to
+          regenerate this command.
+        </p>
       </div>
     </div>
   );
