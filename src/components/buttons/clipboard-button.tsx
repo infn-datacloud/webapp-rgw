@@ -17,7 +17,7 @@ export function ClipboardButton(props: Readonly<ClipboardButtonProps>) {
   const tooltip = useTooltip(buttonRef);
   return (
     <button
-      className="cursor-pointer rounded-full p-1 hover:bg-neutral-300"
+      className="cursor-pointer rounded-full p-1 hover:bg-neutral-300 dark:hover:bg-neutral-300/30"
       onClick={onClick}
       ref={buttonRef}
     >

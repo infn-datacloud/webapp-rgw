@@ -20,14 +20,17 @@ function CliCommand(props: Readonly<CliCommandProps>) {
   }
 
   return (
-    <div className="rounded-xl bg-neutral-200 px-4 py-2">
+    <div className="rounded-xl bg-neutral-200 px-4 py-2 dark:bg-neutral-200/10">
       <div className="flex items-baseline justify-between pb-1">
         <span className="font-mono text-sm">Bash</span>
         <ClipboardButton onClick={copyToClipboard} />
       </div>
       <div className="space-y-2">
         <div className="cursor-not-allowed">
-          <p className="rounded-lg bg-neutral-100 p-2 font-mono text-xs" inert>
+          <p
+            className="rounded-lg bg-neutral-100 p-2 font-mono text-xs dark:bg-neutral-100/20"
+            inert
+          >
             {command.split(/\r?\n/).map((line, index) => {
               return (
                 <span key={index} className="block py-0.5 pl-4 -indent-4">
