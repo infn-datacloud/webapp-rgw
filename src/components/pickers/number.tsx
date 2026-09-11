@@ -52,22 +52,22 @@ export function NumberPicker(props: Readonly<NumberPickerProps>) {
       <Button
         title="remove 1 hour"
         onClick={decrease}
-        className="dark:text-secondary flex size-8 items-center justify-center bg-neutral-50 dark:bg-white/20 dark:hover:bg-white/30"
+        className="dark:text-secondary flex size-6 cursor-pointer items-center justify-center bg-neutral-50 dark:bg-white/20 dark:hover:bg-white/30"
       >
         <MinusIcon className="size-5" />
       </Button>
-      <div className="flex size-8 items-center justify-center border-x border-gray-300">
+      <div className="flex size-6 items-center justify-center border-x border-gray-300">
         <input
           value={value.toString()}
           onChange={handleChange}
           type="number"
-          className="size-5 text-center"
+          className="size-5 text-center text-sm"
         />
       </div>
       <Button
         title="add 1 hour"
         onClick={increase}
-        className="dark:text-secondary flex size-8 items-center justify-center bg-neutral-50 dark:bg-white/20 dark:hover:bg-white/30"
+        className="dark:text-secondary flex size-6 cursor-pointer items-center justify-center bg-neutral-50 dark:bg-white/20 dark:hover:bg-white/30"
       >
         <PlusIcon className="size-5" />
       </Button>

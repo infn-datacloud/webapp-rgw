@@ -54,15 +54,6 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
             authentication. It will automatically expires after your configured
             time (max 12 hours).
           </p>
-          <div className="flex items-center justify-center gap-2">
-            <span>Expires in (hours):</span>
-            <NumberPicker
-              min={1}
-              max={12}
-              defaultValue={1}
-              onChange={handleHoursChange}
-            />
-          </div>
           <p className="text-center">
             URL will expire at <b>{expiration.toUTCString()}</b>
           </p>
@@ -73,6 +64,15 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
               disabled
             />
             <ClipboardButton onClick={copyToClipboard} />
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <span>Expires in (hours):</span>
+            <NumberPicker
+              min={1}
+              max={12}
+              defaultValue={1}
+              onChange={handleHoursChange}
+            />
           </div>
         </div>
       </ModalBody>
