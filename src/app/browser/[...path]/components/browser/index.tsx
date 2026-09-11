@@ -140,6 +140,7 @@ export function Browser(props: Readonly<BucketBrowserProps>) {
       <BucketInspector
         isOpen={showInspector}
         bucket={bucket}
+        prefix={prefix ?? ""}
         objects={selectedItems.objects}
         prefixes={selectedItems.folders}
         onClose={deselectAll}

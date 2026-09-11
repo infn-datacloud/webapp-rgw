@@ -35,18 +35,20 @@ function getTitles(objects?: _Object[]) {
   }
 }
 
-interface BucketInspectorProps extends InspectorProps {
+type BucketInspectorProps = InspectorProps & {
   bucket: string;
+  prefix: string;
   objects?: _Object[];
   prefixes: CommonPrefix[];
-  onClose?: (_: React.MouseEvent<HTMLButtonElement>) => void;
+  onClose: () => void;
   onDelete?: () => void;
-}
+};
 
 export function BucketInspector(props: BucketInspectorProps) {
-  const { bucket, isOpen, prefixes, onClose, onDelete } = props;
+  const { bucket, prefix, isOpen, prefixes, onClose, onDelete } = props;
   const objects = props.objects ?? [];
   const keys = objects.filter(o => o?.Key).map(o => o.Key!) ?? [];
+  const folders = prefixes.filter(p => p.Prefix).map(p => p.Prefix!);
   let object: _Object;
   let title: string;
 
@@ -95,8 +97,19 @@ export function BucketInspector(props: BucketInspectorProps) {
           </div>
         </section>
         <section className="space-y-2 py-8">
-          <DownloadButton bucket={bucket} objectsToDownloads={keys} />
-          <ShareButton bucket={bucket} objectsToDownloads={keys} />
+          <DownloadButton
+            bucket={bucket}
+            prefix={prefix}
+            objectsToDownload={keys}
+            foldersToDownload={folders}
+            onComplete={onClose}
+          />
+          <ShareButton
+            bucket={bucket}
+            object={keys[0]}
+            enabled={keys.length === 1}
+            onClose={onClose}
+          />
           <DeleteButton
             bucket={bucket}
             objectsToDelete={objects}
