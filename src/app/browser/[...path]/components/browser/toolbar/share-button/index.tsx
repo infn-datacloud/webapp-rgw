@@ -8,36 +8,54 @@ import { Button } from "@/components/buttons";
 import { ShareIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { PresignedUrlModal } from "./modal";
+import { getPresignedUrl } from "./action";
 
 type ShareButtonProps = {
   bucket: string;
-  objectsToDownloads: string[];
+  object: string;
+  enabled: boolean;
+  onClose: () => void;
 };
 
 export function ShareButton(props: Readonly<ShareButtonProps>) {
-  const { bucket, objectsToDownloads } = props;
+  const { bucket, object, enabled, onClose } = props;
   const [show, setShow] = useState(false);
-  const open = () => setShow(true);
-  const close = () => setShow(false);
+
+  const [presignedUrl, setPresignedUrl] = useState<string>("");
+  async function fetchPresignedUrl(expiresIn: number) {
+    const url = await getPresignedUrl(bucket, object, expiresIn);
+    setPresignedUrl(url);
+  }
+  async function openModal() {
+    await fetchPresignedUrl(3600);
+    setShow(true);
+  }
+
+  function closeModal() {
+    setShow(false);
+    onClose?.();
+    setTimeout(() => setPresignedUrl(""), 300);
+  }
+
   return (
     <>
       <Button
         title="Share file"
         className="btn-secondary w-full justify-center"
-        disabled={objectsToDownloads.length > 1}
-        onClick={open}
+        disabled={!enabled}
+        onClick={openModal}
       >
         <ShareIcon className="size-5" />
         Share file
       </Button>
-      {objectsToDownloads.length === 1 && (
-        <PresignedUrlModal
-          bucket={bucket}
-          object_key={objectsToDownloads[0]}
-          show={show}
-          onClose={close}
-        />
-      )}
+      <PresignedUrlModal
+        bucket={bucket}
+        object={object}
+        show={show}
+        presignedUrl={presignedUrl}
+        onClose={closeModal}
+        onChangeExpiresIn={fetchPresignedUrl}
+      />
     </>
   );
 }

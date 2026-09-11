@@ -47,6 +47,10 @@ export const authConfig = (db: Database) => {
       expiresIn: WEBAPP_RGW_S3_ROLE_DURATION_SECONDS - 1,
       disableSessionRefresh: true,
       additionalFields: {
+        accessToken: {
+          type: "string",
+          required: false,
+        },
         accessKeyId: {
           type: "string",
         },

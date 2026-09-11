@@ -4,39 +4,36 @@
 
 "use client";
 
+import { useMemo, useState } from "react";
+
 import Modal, { ModalBody, ModalProps } from "@/components/modal";
-import { addHours } from "@/commons/utils";
+import { addHours } from "@/commons/utils/dates";
 import { NumberPicker } from "@/components/pickers/number";
-import { useEffect, useState } from "react";
-import { getPresignedUrl } from "./action";
-import { Button } from "@/components/buttons";
-import { ClipboardDocumentCheckIcon } from "@heroicons/react/24/outline";
 import { toaster } from "@/components/toaster";
+import { getNow } from "@/commons/utils/dates";
+import { ClipboardButton } from "@/components/buttons/clipboard-button";
 
 interface PresignedUrlModalProps extends ModalProps {
   bucket: string;
-  object_key: string;
+  object: string;
+  presignedUrl: string;
+  onChangeExpiresIn: (expiresIn: number) => void;
 }
 
 export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
-  const { bucket, object_key, ...other } = props;
+  const { presignedUrl, onChangeExpiresIn, ...modalProps } = props;
   const [expiresInHours, setExpiresInHours] = useState<number>(1);
-  const [expiration, setExpiration] = useState<Date>(addHours(new Date(), 1));
-  const [presignedUrl, setPresignedUrl] = useState<string>();
+  const expiration = useMemo(
+    () => addHours(getNow(), expiresInHours),
+    [expiresInHours]
+  );
 
   function handleHoursChange(hours: number) {
     setExpiresInHours(hours);
+    const expiresIn = expiresInHours * 60;
+    onChangeExpiresIn(expiresIn);
+    console.log("expiration changed");
   }
-
-  useEffect(() => {
-    const f = async () => {
-      const expiresIn = expiresInHours * 60;
-      const url = await getPresignedUrl(bucket, object_key, expiresIn);
-      setExpiration(addHours(new Date(), expiresInHours));
-      setPresignedUrl(url);
-    };
-    f();
-  }, [expiresInHours, bucket, object_key]);
 
   function copyToClipboard() {
     const type = "text/plain";
@@ -49,7 +46,7 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
   }
 
   return (
-    <Modal title="Share file" {...other}>
+    <Modal title="Share file" {...modalProps}>
       <ModalBody>
         <div className="space-y-4">
           <p>
@@ -57,6 +54,17 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
             authentication. It will automatically expires after your configured
             time (max 12 hours).
           </p>
+          <p className="text-center">
+            URL will expire at <b>{expiration.toUTCString()}</b>
+          </p>
+          <div className="flex gap-2 rounded border border-gray-300 p-2">
+            <input
+              className="grow font-mono text-sm"
+              value={presignedUrl}
+              disabled
+            />
+            <ClipboardButton onClick={copyToClipboard} />
+          </div>
           <div className="flex items-center justify-center gap-2">
             <span>Expires in (hours):</span>
             <NumberPicker
@@ -65,23 +73,6 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
               defaultValue={1}
               onChange={handleHoursChange}
             />
-          </div>
-          <p className="text-center">
-            URL will expire at <b>{expiration.toUTCString()}</b>
-          </p>
-          <div className="flex gap-2 rounded border border-gray-300 px-2">
-            <input
-              className="grow font-mono text-sm"
-              defaultValue={presignedUrl}
-              disabled
-            />
-            <Button
-              title="Copy presigned URL"
-              className="rounded-full p-2 hover:bg-gray-100 active:bg-gray-200"
-              onClick={copyToClipboard}
-            >
-              <ClipboardDocumentCheckIcon className="size-5" />
-            </Button>
           </div>
         </div>
       </ModalBody>

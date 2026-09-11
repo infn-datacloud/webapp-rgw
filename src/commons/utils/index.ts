@@ -54,10 +54,23 @@ export function dateToHuman(date: Date): string {
   return formatter.format(sign * years, "year");
 }
 
-export function addHours(date: Date, hours: number) {
-  return new Date(date.getTime() + hours * 3600000);
-}
-
 export function dropDuplicates<T>(arr: T[]): T[] {
   return [...new Set(arr)];
+}
+
+const mimeTypes: { [index: string]: string } = {
+  apng: "image/apng",
+  gif: "image/gif",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  pdf: "application/pdf",
+};
+
+export function getMimeType(key: string) {
+  const extension = key.split(".").slice(-1)[0];
+  if (extension in mimeTypes) {
+    return ["inline", mimeTypes[extension]];
+  }
+  return [`attachment; filename=${key}`, "application/octet-stream"];
 }

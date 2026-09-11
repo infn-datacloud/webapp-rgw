@@ -5,11 +5,13 @@
 import { ReactNode } from "react";
 import { Transition } from "@headlessui/react";
 
-export interface InspectorProps {
+export type InspectorProps = {
   children?: ReactNode;
   isOpen: boolean;
-}
-export const Inspector = ({ isOpen, children }: InspectorProps) => {
+};
+
+export const Inspector = (props: Readonly<InspectorProps>) => {
+  const { isOpen, children } = props;
   return (
     <Transition
       show={isOpen}

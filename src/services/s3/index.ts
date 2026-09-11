@@ -27,7 +27,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { trace } from "@opentelemetry/api";
 import { FileObjectWithProgress } from "@/models/bucket";
 import { Upload } from "@aws-sdk/lib-storage";
-import { dropDuplicates } from "@/commons/utils";
+import { dropDuplicates, getMimeType } from "@/commons/utils";
 import { CreateBucketArgs, S3ServiceConfig } from "./types";
 
 const tracer = trace.getTracer("s3webui");
@@ -280,11 +280,12 @@ export class S3Service {
     key: string,
     expiresIn: number = 60
   ): Promise<string> {
+    const [disposition, contentType] = getMimeType(key);
     const cmdGetObj = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
-      ResponseContentDisposition: `attachment; filename="${key}"`,
-      ResponseContentType: "application/octet-stream",
+      ResponseContentDisposition: disposition,
+      ResponseContentType: contentType,
     });
     return await getSignedUrl(this.client, cmdGetObj, { expiresIn });
   }
