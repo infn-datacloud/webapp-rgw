@@ -4,14 +4,14 @@
 
 "use client";
 
+import { useMemo, useState } from "react";
+
 import Modal, { ModalBody, ModalProps } from "@/components/modal";
 import { addHours } from "@/commons/utils/dates";
 import { NumberPicker } from "@/components/pickers/number";
-import { useMemo, useState } from "react";
-import { Button } from "@/components/buttons";
-import { ClipboardDocumentCheckIcon } from "@heroicons/react/24/outline";
 import { toaster } from "@/components/toaster";
 import { getNow } from "@/commons/utils/dates";
+import { ClipboardButton } from "@/components/buttons/clipboard-button";
 
 interface PresignedUrlModalProps extends ModalProps {
   bucket: string;
@@ -66,19 +66,13 @@ export function PresignedUrlModal(props: Readonly<PresignedUrlModalProps>) {
           <p className="text-center">
             URL will expire at <b>{expiration.toUTCString()}</b>
           </p>
-          <div className="flex gap-2 rounded border border-gray-300 px-2">
+          <div className="flex gap-2 rounded border border-gray-300 p-2">
             <input
               className="grow font-mono text-sm"
               value={presignedUrl}
               disabled
             />
-            <Button
-              title="Copy presigned URL"
-              className="rounded-full p-2 hover:bg-gray-100 active:bg-gray-200"
-              onClick={copyToClipboard}
-            >
-              <ClipboardDocumentCheckIcon className="size-5" />
-            </Button>
+            <ClipboardButton onClick={copyToClipboard} />
           </div>
         </div>
       </ModalBody>

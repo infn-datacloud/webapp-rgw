@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: EUPL-1.2
 
-import { ClipboardDocumentCheckIcon } from "@heroicons/react/24/outline";
-
+import { ClipboardButton } from "@/components/buttons/clipboard-button";
 import Modal, { ModalBody, ModalProps } from "@/components/modal";
 import { toaster } from "@/components/toaster";
 
@@ -24,12 +23,7 @@ function CliCommand(props: Readonly<CliCommandProps>) {
     <div className="rounded-xl bg-neutral-200 px-4 py-2">
       <div className="flex items-baseline justify-between pb-1">
         <span className="font-mono text-sm">Bash</span>
-        <button
-          className="rounded-full p-1 hover:bg-neutral-300"
-          onClick={copyToClipboard}
-        >
-          <ClipboardDocumentCheckIcon className="size-5" />
-        </button>
+        <ClipboardButton onClick={copyToClipboard} />
       </div>
       <div className="space-y-2">
         <div className="cursor-not-allowed">
